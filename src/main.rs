@@ -6,9 +6,9 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms
 
-use std::path::PathBuf;
-use std::io::{prelude::*, stdout, BufWriter};
 use std::fs::File;
+use std::io::{prelude::*, stdout, BufWriter};
+use std::path::PathBuf;
 
 use anyhow::{Context, Error};
 use human_panic::setup_panic;
@@ -16,7 +16,7 @@ use log::Level;
 use loggerv::{Logger, Output};
 use structopt::StructOpt;
 
-use semantic_release_rust::placeholder;
+use semantic_release_rust::list_packages;
 
 /// Run sementic-release steps in the context of a cargo based Rust project.
 #[derive(StructOpt)]
@@ -35,13 +35,31 @@ struct Opt {
 
 #[derive(StructOpt)]
 enum Subcommand {
-    /// Temporary placeholder pending real subcommands.
-    Placeholder,
+    /// List the packages that are included in the sementic release.
+    ///
+    /// The listed packages are all of the packages in the workspace and are listed
+    /// in order based on their dependencies (it is a topological sort of the
+    /// dependency graph). Packages that will not be published will have such an
+    /// indication given after the name of the package.
+    ///
+    /// This is primarily a debuging aid and does not corresponde directly to a
+    /// sementic release step.
+    ListPackages(CommonOpt),
+}
+
+#[derive(StructOpt)]
+struct CommonOpt {
+    #[structopt(long, parse(from_os_str))]
+    manifest_path: Option<PathBuf>,
 }
 
 impl Subcommand {
     fn run(&self, w: impl Write) -> Result<(), Error> {
-        Ok(placeholder(w)?)
+        use Subcommand::*;
+
+        match self {
+            ListPackages(opt) => Ok(list_packages(w, (&opt.manifest_path).into())?),
+        }
     }
 }
 
