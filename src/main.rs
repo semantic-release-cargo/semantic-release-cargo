@@ -16,6 +16,8 @@ use log::Level;
 use loggerv::{Logger, Output};
 use structopt::StructOpt;
 
+use semantic_release_rust::placeholder;
+
 /// Run sementic-release steps in the context of a cargo based Rust project.
 #[derive(StructOpt)]
 struct Opt {
@@ -38,9 +40,8 @@ enum Subcommand {
 }
 
 impl Subcommand {
-    fn run(&self, mut w: impl Write) -> Result<(), Error> {
-        writeln!(w, "Hello World!")?;
-        Ok(())
+    fn run(&self, w: impl Write) -> Result<(), Error> {
+        Ok(placeholder(w)?)
     }
 }
 
