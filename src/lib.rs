@@ -17,7 +17,7 @@ use std::io::Write;
 use std::path::PathBuf;
 
 use guppy::{MetadataCommand, graph::{DependencyDirection, PackageGraph}};
-use log::error;
+use log::{debug, info, error};
 
 mod error;
 
@@ -35,7 +35,11 @@ pub use error::{Error, Result};
 pub fn list_packages(mut output: impl Write, manifest_path: Option<&PathBuf>) -> Result<()> {
     let graph = get_package_graph(manifest_path)?;
 
-    for package in graph.resolve_workspace().packages(DependencyDirection::Reverse) {
+    info!("Resolving workspace");
+    let set = graph.resolve_workspace();
+
+    info!("Listing packages");
+    for package in set.packages(DependencyDirection::Reverse) {
         write!(output, "{}({})", package.name(), package.version()).map_err(Error::output_error)?;
         if !package.publish().is_none() {
             write!(output, "--not published").map_err(Error::output_error)?;
@@ -51,6 +55,9 @@ fn get_package_graph(manifest_path: Option<&PathBuf>) -> Result<PackageGraph> {
     if let Some(path) = manifest_path {
         command.manifest_path(path);
     }
+
+    info!("Building package graph");
+    debug!("manifest_path: {:?}", manifest_path);
 
     command.build_graph().map_err(|err| {
         let path = match manifest_path {
