@@ -16,7 +16,7 @@ use log::Level;
 use loggerv::{Logger, Output};
 use structopt::StructOpt;
 
-use semantic_release_rust::list_packages;
+use semantic_release_rust::{list_packages, verify_conditions};
 
 /// Run sementic-release steps in the context of a cargo based Rust project.
 #[derive(StructOpt)]
@@ -45,6 +45,22 @@ enum Subcommand {
     /// This is primarily a debuging aid and does not corresponde directly to a
     /// sementic release step.
     ListPackages(CommonOpt),
+
+    /// Verify that the conditions for a release are satisfied
+    ///
+    /// The conditions for a release checked by this subcommand are:
+    ///
+    ///     1. That the CARGO_REGISTRY_TOKEN environment variable is set and is
+    ///        non-empty.
+    ///     2. That it can construct a reverse-dependencies-ordered list of the
+    ///        packages in the root crate's workspace.
+    ///     3. That it can parse the version for packages in the workspace in all of
+    ///        the `Cargo.toml` files that form part of the workspace.
+    ///
+    /// This implments the `verifyConditions` step for `sementic-release` for a
+    /// Cargo-based rust workspace.
+    #[structopt(verbatim_doc_comment)]
+    VerifyConditions(CommonOpt),
 }
 
 #[derive(StructOpt)]
@@ -59,6 +75,7 @@ impl Subcommand {
 
         match self {
             ListPackages(opt) => Ok(list_packages(w, (&opt.manifest_path).into())?),
+            VerifyConditions(opt) => Ok(verify_conditions(w, (&opt.manifest_path).into())?),
         }
     }
 }
