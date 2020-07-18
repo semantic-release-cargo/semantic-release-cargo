@@ -14,6 +14,7 @@
 
 use std::env;
 use std::fmt;
+use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
@@ -86,7 +87,7 @@ pub fn verify_conditions(mut output: impl Write, manifest_path: Option<&PathBuf>
         .into_iter()
     {
         debug!("Checking links for package {}", from.name());
-        let cargo = read_cargo_toml(from.manifest_path());
+        let cargo = read_cargo_toml(from.manifest_path())?;
         for link in links {
             if link.normal().is_present() {
                 dependency_has_version(&cargo, &link, DependencyType::Normal).map_err(|err| {
@@ -199,8 +200,12 @@ fn link_is_publishable(link: &PackageLink) -> bool {
     result
 }
 
-fn read_cargo_toml(_path: &Path) -> Document {
-    todo!()
+fn read_cargo_toml(path: impl AsRef<Path>) -> Result<Document> {
+    let path = path.as_ref();
+    fs::read_to_string(path)
+        .map_err(|err| Error::file_read_error(err, path))?
+        .parse()
+        .map_err(|err| Error::toml_error(err, path))
 }
 
 fn get_top_table<'a>(doc: &'a Document, key: &str) -> Option<&'a Table> {
