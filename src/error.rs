@@ -9,8 +9,8 @@
 use std::io;
 use std::path::PathBuf;
 
-use guppy::graph::PackageLink;
 use guppy::errors::Error as GuppyError;
+use guppy::graph::PackageLink;
 use thiserror::Error;
 
 use super::DependencyType;
@@ -28,7 +28,7 @@ pub enum Error {
 
     /// Error while verifying the conditions for a release.
     #[error("Conditions for a release are not satisfied: {reason}")]
-    VerifyError{
+    VerifyError {
         /// The reason the conditions are not satisfied.
         reason: String,
     },
@@ -37,7 +37,7 @@ pub enum Error {
     ///
     /// This is a specific part of verifying the conditions for a release.
     #[error("{typ} of {from} on {to} prevents publication of {from}")]
-    BadDependancy{
+    BadDependancy {
         /// The name of the package whose dependency prevents publication.
         from: String,
 
@@ -46,7 +46,7 @@ pub enum Error {
 
         /// The type of dependency that prevents publication.
         typ: DependencyType,
-    }
+    },
 }
 
 /// A specialized `Result` type for `semantic-release-rust` operations.
@@ -87,4 +87,3 @@ impl Error {
         }
     }
 }
-

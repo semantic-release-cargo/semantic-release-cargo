@@ -17,9 +17,12 @@ use std::fmt;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-use guppy::{MetadataCommand, graph::{DependencyDirection, PackageGraph, PackageLink, PackageSource}};
+use guppy::{
+    graph::{DependencyDirection, PackageGraph, PackageLink, PackageSource},
+    MetadataCommand,
+};
 use itertools::Itertools;
-use log::{debug, info, error, trace};
+use log::{debug, error, info, trace};
 use toml_edit::{Document, Item, Table};
 
 mod error;
@@ -49,27 +52,33 @@ pub use error::{Error, Result};
 pub fn verify_conditions(mut output: impl Write, manifest_path: Option<&PathBuf>) -> Result<()> {
     info!("Checking CARGO_REGISTRY_TOKEN");
     env::var_os("CARGO_REGISTRY_TOKEN")
-        .and_then(|val| if val.is_empty() {
-            None
-        } else {
-            Some(())
-        }).ok_or_else( || {
+        .and_then(|val| if val.is_empty() { None } else { Some(()) })
+        .ok_or_else(|| {
             writeln!(output, "CARGO_REGISTRY_TOKEN empty or not set.")
                 .map_err(Error::output_error)
-                .and_then::<(),_>(|()| Err(Error::verify_error("CARGO_REGISTRY_TOKEN empty or not set")))
+                .and_then::<(), _>(|()| {
+                    Err(Error::verify_error("CARGO_REGISTRY_TOKEN empty or not set"))
+                })
                 .unwrap_err()
         })?;
 
     info!("Checking that workspace dependencies graph is buildable");
     let graph = match get_package_graph(manifest_path) {
         Ok(graph) => graph,
-        Err(err) => return writeln!(output, "Unable to build workspace dependencies graph: {}", err)
-                .map_err(Error::output_error)
-                .and_then(|()| Err(err)),
+        Err(err) => {
+            return writeln!(
+                output,
+                "Unable to build workspace dependencies graph: {}",
+                err
+            )
+            .map_err(Error::output_error)
+            .and_then(|()| Err(err))
+        }
     };
 
     info!("Checking that dependencies are suitable for publishing");
-    for (from, links) in graph.workspace()
+    for (from, links) in graph
+        .workspace()
         .iter()
         .flat_map(|package| package.direct_links())
         .filter(|link| !link_is_publishable(link))
@@ -80,22 +89,30 @@ pub fn verify_conditions(mut output: impl Write, manifest_path: Option<&PathBuf>
         let cargo = read_cargo_toml(from.manifest_path());
         for link in links {
             if link.normal().is_present() {
-                dependency_has_version(&cargo, &link, DependencyType::Normal)
-                    .map_err(|err| {
-                        writeln!(output, "Dependancy {0} of {1} makes {1} not publishable.", link.to().name(), link.from().name())
-                            .map_err(Error::output_error)
-                            .and_then::<(),_>(|_| Err(err))
-                            .unwrap_err()
-                    })?;
+                dependency_has_version(&cargo, &link, DependencyType::Normal).map_err(|err| {
+                    writeln!(
+                        output,
+                        "Dependancy {0} of {1} makes {1} not publishable.",
+                        link.to().name(),
+                        link.from().name()
+                    )
+                    .map_err(Error::output_error)
+                    .and_then::<(), _>(|_| Err(err))
+                    .unwrap_err()
+                })?;
             }
             if link.build().is_present() {
-                dependency_has_version(&cargo, &link, DependencyType::Build)
-                    .map_err(|err| {
-                        writeln!(output, "Build dependancy {0} of {1} makes {1} not publishable.", link.to().name(), link.from().name())
-                            .map_err(Error::output_error)
-                            .and_then::<(),_>(|_| Err(err))
-                            .unwrap_err()
-                    })?;
+                dependency_has_version(&cargo, &link, DependencyType::Build).map_err(|err| {
+                    writeln!(
+                        output,
+                        "Build dependancy {0} of {1} makes {1} not publishable.",
+                        link.to().name(),
+                        link.from().name()
+                    )
+                    .map_err(Error::output_error)
+                    .and_then::<(), _>(|_| Err(err))
+                    .unwrap_err()
+                })?;
             }
         }
     }
@@ -172,7 +189,11 @@ fn target_source_is_publishable(source: PackageSource) -> bool {
 fn link_is_publishable(link: &PackageLink) -> bool {
     let result = link.dev_only() || target_source_is_publishable(link.to().source());
     if result {
-        trace!("Link from {} to {} is publishable.", link.from().name(), link.to().name());
+        trace!(
+            "Link from {} to {} is publishable.",
+            link.from().name(),
+            link.to().name()
+        );
     }
 
     result
@@ -192,14 +213,18 @@ fn dependency_has_version(doc: &Document, link: &PackageLink, typ: DependencyTyp
         DependencyType::Build => "build-dependencies",
     };
 
-    trace!("Checking for version key for {} in {} section of {}", link.to().name(), top_key, link.from().name());
+    trace!(
+        "Checking for version key for {} in {} section of {}",
+        link.to().name(),
+        top_key,
+        link.from().name()
+    );
     get_top_table(doc, top_key)
         .and_then(|deps| deps.get(link.to().name()))
         .and_then(Item::as_table_like)
         .and_then(|dep| dep.get("version"))
         .map(|_| ())
-        .ok_or_else( || Error::bad_dependency(link, typ))
-
+        .ok_or_else(|| Error::bad_dependency(link, typ))
 }
 
 /// The type of a dependency for a package.
