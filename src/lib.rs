@@ -34,12 +34,12 @@ pub use error::{Error, Result};
 ///
 /// The conditions for a release checked by this function are:
 ///
-///     1. That the CARGO_REGISTRY_TOKEN environment variable is set and is
-///        non-empty.
-///     2. That it can construct the graph of all of the dependencies in the
-///        workspace.
-///     3. That the dependencies and build-dependencies of all of crates in the
-///        workspace are suitable for publishing to `crates.io`.
+///    1. That the CARGO_REGISTRY_TOKEN environment variable is set and is
+///       non-empty.
+///    2. That it can construct the graph of all of the dependencies in the
+///       workspace.
+///    3. That the dependencies and build-dependencies of all of crates in the
+///       workspace are suitable for publishing to `crates.io`.
 ///
 /// If `manifest_path` is provided then it is expect to give the path to the
 /// `Cargo.toml` file for the root of the workspace. If `manifest_path` is `None`
