@@ -33,7 +33,7 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
 
-     - name: Check Format
+      - name: Check Format
         if: matrix.rust == 'stable'
         uses: actions-rs/cargo@v1
         with:
