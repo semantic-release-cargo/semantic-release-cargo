@@ -140,7 +140,7 @@ pub fn list_packages(mut output: impl Write, manifest_path: Option<&PathBuf>) ->
     info!("Listing packages");
     for package in set.packages(DependencyDirection::Reverse) {
         write!(output, "{}({})", package.name(), package.version()).map_err(Error::output_error)?;
-        if !package.publish().is_none() {
+        if package.publish().is_some() {
             write!(output, "--not published").map_err(Error::output_error)?;
         }
         writeln!(output).map_err(Error::output_error)?;
