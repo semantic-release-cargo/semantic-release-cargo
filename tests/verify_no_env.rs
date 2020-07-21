@@ -19,7 +19,7 @@ fn verify_without_env_var_is_error() {
 
     let result = verify_conditions(io::sink(), Some(&path));
 
-    assert_matches!(result, Err(Error::VerifyError{reason: _}));
+    assert_matches!(result, Err(Error::VerifyError { reason: _ }));
 }
 
 fn get_test_data_manifest_path(dir: impl AsRef<Path>) -> PathBuf {
@@ -33,5 +33,3 @@ fn get_test_data_manifest_path(dir: impl AsRef<Path>) -> PathBuf {
 
     path
 }
-
-

@@ -40,7 +40,14 @@ fn verify_with_git_dependancy_is_error() {
 
     let result = verify_conditions(io::sink(), Some(&path));
 
-    assert_matches!(result, Err(Error::BadDependancy{from: _, to: _, typ: _}));
+    assert_matches!(
+        result,
+        Err(Error::BadDependancy {
+            from: _,
+            to: _,
+            typ: _,
+        })
+    );
 }
 
 #[test]
@@ -59,7 +66,6 @@ fn verify_workspace_is_ok(dir: impl AsRef<Path>) {
     let result = verify_conditions(io::sink(), Some(&path));
 
     assert_matches!(result, Ok(_));
-
 }
 
 fn get_test_data_manifest_path(dir: impl AsRef<Path>) -> PathBuf {
