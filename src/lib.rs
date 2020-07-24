@@ -50,7 +50,10 @@ pub use error::{Error, Result};
 ///
 /// This implments the `verifyConditions` step for `sementic-release` for a
 /// Cargo-based rust workspace.
-pub fn verify_conditions(mut output: impl Write, manifest_path: Option<&PathBuf>) -> Result<()> {
+pub fn verify_conditions(
+    mut output: impl Write,
+    manifest_path: Option<impl AsRef<Path>>,
+) -> Result<()> {
     info!("Checking CARGO_REGISTRY_TOKEN");
     env::var_os("CARGO_REGISTRY_TOKEN")
         .and_then(|val| if val.is_empty() { None } else { Some(()) })
@@ -123,7 +126,11 @@ pub fn verify_conditions(mut output: impl Write, manifest_path: Option<&PathBuf>
 
 // TODO: remove when not needed
 #[allow(missing_docs)]
-pub fn prepare(_output: impl Write, _manifest_path: Option<&PathBuf>, _version: &str) -> Result<()> {
+pub fn prepare(
+    _output: impl Write,
+    _manifest_path: Option<impl AsRef<Path>>,
+    _version: &str,
+) -> Result<()> {
     todo!()
 }
 
@@ -136,7 +143,10 @@ pub fn prepare(_output: impl Write, _manifest_path: Option<&PathBuf>, _version: 
 ///
 /// This is a debuging aid and does not directly correspond to a sementic release
 /// step.
-pub fn list_packages(mut output: impl Write, manifest_path: Option<&PathBuf>) -> Result<()> {
+pub fn list_packages(
+    mut output: impl Write,
+    manifest_path: Option<impl AsRef<Path>>,
+) -> Result<()> {
     info!("Building package graph");
     let graph = get_package_graph(manifest_path)?;
 
@@ -155,7 +165,9 @@ pub fn list_packages(mut output: impl Write, manifest_path: Option<&PathBuf>) ->
     Ok(())
 }
 
-fn get_package_graph(manifest_path: Option<&PathBuf>) -> Result<PackageGraph> {
+fn get_package_graph(manifest_path: Option<impl AsRef<Path>>) -> Result<PackageGraph> {
+    let manifest_path = manifest_path.as_ref().map(|path| path.as_ref());
+
     let mut command = MetadataCommand::new();
     if let Some(path) = manifest_path {
         command.manifest_path(path);
@@ -165,7 +177,7 @@ fn get_package_graph(manifest_path: Option<&PathBuf>) -> Result<PackageGraph> {
 
     command.build_graph().map_err(|err| {
         let path = match manifest_path {
-            Some(path) => path.clone(),
+            Some(path) => path.to_path_buf(),
             None => env::current_dir()
                 .map(|path| path.join("Cargo.toml"))
                 .unwrap_or_else(|e| {

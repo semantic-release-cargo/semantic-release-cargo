@@ -8,7 +8,7 @@
 
 use std::fs::File;
 use std::io::{prelude::*, stdout, BufWriter};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Error};
 use human_panic::setup_panic;
@@ -95,9 +95,9 @@ impl Subcommand {
         use Subcommand::*;
 
         match self {
-            ListPackages(opt) => Ok(list_packages(w, (&opt.manifest_path).into())?),
-            VerifyConditions(opt) => Ok(verify_conditions(w, (&opt.manifest_path).into())?),
-            Prepare(opt) => Ok(prepare(w, (&opt.common.manifest_path).into(), &opt.next_version)?),
+            ListPackages(opt) => Ok(list_packages(w, opt.manifest_path())?),
+            VerifyConditions(opt) => Ok(verify_conditions(w, opt.manifest_path())?),
+            Prepare(opt) => Ok(prepare(w, opt.common.manifest_path(), &opt.next_version)?),
         }
     }
 }
@@ -122,5 +122,11 @@ fn main() -> Result<(), Error> {
         }
 
         None => opt.subcommand.run(BufWriter::new(stdout())),
+    }
+}
+
+impl CommonOpt {
+    fn manifest_path(&self) -> Option<&Path> {
+        self.manifest_path.as_ref().map(|path| path.as_path())
     }
 }
