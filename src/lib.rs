@@ -121,6 +121,12 @@ pub fn verify_conditions(mut output: impl Write, manifest_path: Option<&PathBuf>
     Ok(())
 }
 
+// TODO: remove when not needed
+#[allow(missing_docs)]
+pub fn prepare(_output: impl Write, _manifest_path: Option<&PathBuf>, _version: &str) -> Result<()> {
+    todo!()
+}
+
 /// List the packages from the workspace in the order of their dependencies.
 ///
 /// The list of pacakges will be written to `output`. If `manifest_path` is provided

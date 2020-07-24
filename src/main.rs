@@ -16,7 +16,7 @@ use log::Level;
 use loggerv::{Logger, Output};
 use structopt::StructOpt;
 
-use semantic_release_rust::{list_packages, verify_conditions};
+use semantic_release_rust::{list_packages, prepare, verify_conditions};
 
 /// Run sementic-release steps in the context of a cargo based Rust project.
 #[derive(StructOpt)]
@@ -58,15 +58,36 @@ enum Subcommand {
     ///        the `Cargo.toml` files that form part of the workspace.
     ///
     /// This implments the `verifyConditions` step for `sementic-release` for a
-    /// Cargo-based rust workspace.
+    /// Cargo-based Rust workspace.
     #[structopt(verbatim_doc_comment)]
     VerifyConditions(CommonOpt),
+
+    /// Prepare the Rust workspace for a release.
+    ///
+    /// Preparing the workspace for a release updates the version of each crate in
+    /// the workspace in the crate's `Cargo.toml` file, and adds or updates the
+    /// version field of any workspace-relative path dependencies and
+    /// build-dependencies.
+    ///
+    /// This implments the `prepare` step for `semantic-release` for a Cargo-based
+    /// Rust workspace.
+    Prepare(PrepareOpt),
 }
 
 #[derive(StructOpt)]
 struct CommonOpt {
+    /// The path to the `Cargo.toml` file for the root of the workspace.
     #[structopt(long, parse(from_os_str))]
     manifest_path: Option<PathBuf>,
+}
+
+#[derive(StructOpt)]
+struct PrepareOpt {
+    #[structopt(flatten)]
+    common: CommonOpt,
+
+    /// The version to set in all crates in the workspace.
+    next_version: String,
 }
 
 impl Subcommand {
@@ -76,6 +97,7 @@ impl Subcommand {
         match self {
             ListPackages(opt) => Ok(list_packages(w, (&opt.manifest_path).into())?),
             VerifyConditions(opt) => Ok(verify_conditions(w, (&opt.manifest_path).into())?),
+            Prepare(opt) => Ok(prepare(w, (&opt.common.manifest_path).into(), &opt.next_version)?),
         }
     }
 }
