@@ -16,7 +16,10 @@ use std::env;
 use std::fmt;
 use std::fs;
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::{
+    path::{Path, PathBuf},
+    result,
+};
 
 use guppy::{
     graph::{DependencyDirection, PackageGraph, PackageLink, PackageSource},
@@ -24,11 +27,11 @@ use guppy::{
 };
 use itertools::Itertools;
 use log::{debug, error, info, trace};
-use toml_edit::{Document, Item, Table};
+use toml_edit::{Document, InlineTable, Item, Table, Value};
 
 mod error;
 
-pub use error::{Error, Result};
+pub use error::{CargoTomlError, Error, Result};
 
 /// Verify that the conditions for a release are satisfied.
 ///
@@ -124,14 +127,65 @@ pub fn verify_conditions(
     Ok(())
 }
 
-// TODO: remove when not needed
-#[allow(missing_docs)]
+/// Prepare the Rust workspace for a release.
+///
+/// Preparing the release updates the version of each crate in the workspace and of
+/// the intra-workspace dependencies. The `version` field in the `packages` table of
+/// each `Cargo.toml` file in the workspace is set to the supplied version. The
+/// `version` field of each dependency or build-dependency that is otherwise
+/// identified by a workspace-relative path dependencies is also set to the supplied
+/// version (the version filed will be added if it isn't already present).
+///
+/// This implments the `prepare` step for `sementic-release` for a Cargo-based Rust
+/// workspace.
 pub fn prepare(
     _output: impl Write,
-    _manifest_path: Option<impl AsRef<Path>>,
-    _version: &str,
+    manifest_path: Option<impl AsRef<Path>>,
+    version: &str,
 ) -> Result<()> {
-    todo!()
+    let graph = get_package_graph(manifest_path)?;
+
+    let link_map = graph
+        .workspace()
+        .iter()
+        .flat_map(|package| package.direct_links())
+        .filter(|link| !link.dev_only() && link.to().in_workspace())
+        .map(|link| (link.from().id(), link))
+        .into_group_map();
+
+    for package in graph.workspace().iter() {
+        let path = package.manifest_path();
+        let mut cargo = read_cargo_toml(path)?;
+
+        set_package_version(&mut cargo, version).map_err(|err| err.into_error(path))?;
+
+        if let Some(links) = link_map.get(package.id()) {
+            for link in links {
+                if link.normal().is_present() {
+                    set_dependencies_version(
+                        &mut cargo,
+                        version,
+                        DependencyType::Normal,
+                        link.to().name(),
+                    )
+                    .map_err(|err| err.into_error(path))?;
+                }
+                if link.build().is_present() {
+                    set_dependencies_version(
+                        &mut cargo,
+                        version,
+                        DependencyType::Build,
+                        link.to().name(),
+                    )
+                    .map_err(|err| err.into_error(path))?;
+                }
+            }
+        }
+
+        write_cargo_toml(package.manifest_path(), cargo)?;
+    }
+
+    Ok(())
 }
 
 /// List the packages from the workspace in the order of their dependencies.
@@ -226,8 +280,44 @@ fn read_cargo_toml(path: impl AsRef<Path>) -> Result<Document> {
         .map_err(|err| Error::toml_error(err, path))
 }
 
+fn write_cargo_toml(path: impl AsRef<Path>, cargo: Document) -> Result<()> {
+    let path = path.as_ref();
+    fs::write(path, cargo.to_string_in_original_order())
+        .map_err(|err| Error::file_write_error(err, path))
+}
+
 fn get_top_table<'a>(doc: &'a Document, key: &str) -> Option<&'a Table> {
     doc.as_table().get(key).and_then(Item::as_table)
+}
+
+fn get_top_table_mut<'a>(doc: &'a mut Document, key: &str) -> Option<&'a mut Table> {
+    doc.as_table_mut().entry(key).as_table_mut()
+}
+
+fn table_add_or_update_value(table: &mut Table, key: &str, value: Value) -> Option<()> {
+    let entry = table.entry(key);
+
+    if entry.is_none() {
+        *entry = Item::Value(value);
+        return Some(());
+    }
+
+    match entry {
+        Item::Value(val) => {
+            *val = value;
+            Some(())
+        }
+        _ => None,
+    }
+}
+
+fn inline_table_add_or_update_value(table: &mut InlineTable, key: &str, value: Value) {
+    match table.get_mut(key) {
+        Some(ver) => *ver = value,
+        None => {
+            table.get_or_insert(key, value);
+        }
+    }
 }
 
 fn dependency_has_version(doc: &Document, link: &PackageLink, typ: DependencyType) -> Result<()> {
@@ -250,6 +340,60 @@ fn dependency_has_version(doc: &Document, link: &PackageLink, typ: DependencyTyp
         .ok_or_else(|| Error::bad_dependency(link, typ))
 }
 
+fn set_package_version(doc: &mut Document, version: &str) -> result::Result<(), CargoTomlError> {
+    let table =
+        get_top_table_mut(doc, "package").ok_or_else(|| CargoTomlError::no_table("package"))?;
+    table_add_or_update_value(table, "version", version.into())
+        .ok_or_else(|| CargoTomlError::no_value("version"))
+}
+
+fn set_dependency_version(table: &mut Table, version: &str, name: &str) -> Option<()> {
+    let mut result = Some(());
+
+    if table.contains_key(name) {
+        let req = table.entry(name);
+        if !req.is_table_like() {
+            return None;
+        }
+        if let Some(req) = req.as_inline_table_mut() {
+            inline_table_add_or_update_value(req, "version", version.into());
+        }
+        if let Some(req) = req.as_table_mut() {
+            result = table_add_or_update_value(req, "version", version.into());
+        }
+    }
+
+    result
+}
+
+fn set_dependencies_version(
+    doc: &mut Document,
+    version: &str,
+    typ: DependencyType,
+    name: &str,
+) -> result::Result<(), CargoTomlError> {
+    if let Some(table) = get_top_table_mut(doc, typ.key()) {
+        set_dependency_version(table, version, name)
+            .ok_or_else(|| CargoTomlError::set_version(name, version))?;
+    }
+
+    if let Some(table) = get_top_table_mut(doc, "target") {
+        let targets = table.iter().map(|(key, _)| key.to_owned()).collect_vec();
+
+        for target in targets {
+            if let Some(target_deps) = table[&target]
+                .as_table_mut()
+                .and_then(|inner| inner[typ.key()].as_table_mut())
+            {
+                set_dependency_version(target_deps, version, name)
+                    .ok_or_else(|| CargoTomlError::set_version(name, version))?;
+            }
+        }
+    };
+
+    Ok(())
+}
+
 /// The type of a dependency for a package.
 #[derive(Debug)]
 pub enum DependencyType {
@@ -258,6 +402,17 @@ pub enum DependencyType {
 
     /// A build dependency (i.e. "build-dependencies" section of `Cargo.toml`).
     Build,
+}
+
+impl DependencyType {
+    fn key(&self) -> &str {
+        use DependencyType::*;
+
+        match self {
+            Normal => "dependencies",
+            Build => "build-dependencies",
+        }
+    }
 }
 
 impl fmt::Display for DependencyType {

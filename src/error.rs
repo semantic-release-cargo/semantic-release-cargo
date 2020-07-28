@@ -60,9 +60,31 @@ pub enum Error {
         path: PathBuf,
     },
 
+    /// Error while writing a file.
+    #[error("Unable to write file {}", path.display())]
+    FileWriteError {
+        /// The underlying error.
+        #[source]
+        inner: io::Error,
+
+        /// The path the could not be written.
+        path: PathBuf,
+    },
+
     /// Error while parsing a TOML document.
     #[error(transparent)]
     TomlError(TomlError),
+
+    /// Error while examining the contents of a `Cargo.toml` file.
+    #[error("Unexpected contents of {manifest_path}")]
+    CargoTomlError {
+        /// The error found in the `Cargo.toml` file.
+        #[source]
+        inner: CargoTomlError,
+
+        /// The `Cargo.toml` file in which the error occured.
+        manifest_path: PathBuf,
+    },
 }
 
 /// A specialized `Result` type for `semantic-release-rust` operations.
@@ -84,6 +106,34 @@ pub struct TomlError {
     #[source]
     inner: TomlEditError,
     path: PathBuf,
+}
+
+/// The error details related the contents of a `Cargo.toml` file.
+#[derive(Debug, Error)]
+pub enum CargoTomlError {
+    /// Error related to a missing table in a `Cargo.toml` file.
+    #[error("Unable to locate expected table {table_name}")]
+    NoTable {
+        /// The name of the missing table.
+        table_name: String,
+    },
+
+    /// Error related to a missing value in a `Cargo.toml` file.
+    #[error("Unable to located expected value {value_name}")]
+    NoValue {
+        /// The name of the missing value.
+        value_name: String,
+    },
+
+    /// Error related to failed attempt to set the version for a package or a dependency.
+    #[error("Unable to set the version for {name} to {version}")]
+    SetVersion {
+        /// The name of the package or dependency.
+        name: String,
+
+        /// The version to which we attempted to set for the package or dependency.
+        version: String,
+    },
 }
 
 impl Error {
@@ -119,10 +169,45 @@ impl Error {
         }
     }
 
+    pub(crate) fn file_write_error(inner: io::Error, path: impl AsRef<Path>) -> Error {
+        Error::FileWriteError {
+            inner,
+            path: path.as_ref().to_owned(),
+        }
+    }
+
     pub(crate) fn toml_error(inner: TomlEditError, path: impl AsRef<Path>) -> Error {
         Error::TomlError(TomlError {
             inner,
             path: path.as_ref().to_owned(),
         })
+    }
+}
+
+impl CargoTomlError {
+    pub(crate) fn no_table(table: &str) -> Self {
+        Self::NoTable {
+            table_name: table.to_owned(),
+        }
+    }
+
+    pub(crate) fn no_value(value: &str) -> Self {
+        Self::NoValue {
+            value_name: value.to_owned(),
+        }
+    }
+
+    pub(crate) fn set_version(name: &str, version: &str) -> Self {
+        Self::SetVersion {
+            name: name.to_owned(),
+            version: version.to_owned(),
+        }
+    }
+
+    pub(crate) fn into_error(self, path: impl AsRef<Path>) -> Error {
+        Error::CargoTomlError {
+            inner: self,
+            manifest_path: path.as_ref().to_owned(),
+        }
     }
 }
