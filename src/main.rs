@@ -127,6 +127,6 @@ fn main() -> Result<(), Error> {
 
 impl CommonOpt {
     fn manifest_path(&self) -> Option<&Path> {
-        self.manifest_path.as_ref().map(|path| path.as_path())
+        self.manifest_path.as_deref()
     }
 }
