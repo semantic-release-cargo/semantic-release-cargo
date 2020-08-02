@@ -188,6 +188,18 @@ pub fn prepare(
     Ok(())
 }
 
+/// Publish the publishable crates from the workspace.
+///
+/// The publishable crates are the crates in the workspace other than those
+/// whose `package.publish` field is set to `false` or that includes a registry other
+/// than `crates.io`.
+///
+/// This implments the `publish` step for `sementic-release` for a Cargo-based
+/// Rust workspace.
+pub fn publish(_output: impl Write, _manifest_path: Option<impl AsRef<Path>>) -> Result<()> {
+    todo!()
+}
+
 /// List the packages from the workspace in the order of their dependencies.
 ///
 /// The list of pacakges will be written to `output`. If `manifest_path` is provided

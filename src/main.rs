@@ -16,7 +16,7 @@ use log::Level;
 use loggerv::{Logger, Output};
 use structopt::StructOpt;
 
-use semantic_release_rust::{list_packages, prepare, verify_conditions};
+use semantic_release_rust::{list_packages, prepare, publish, verify_conditions};
 
 /// Run sementic-release steps in the context of a cargo based Rust project.
 #[derive(StructOpt)]
@@ -72,6 +72,16 @@ enum Subcommand {
     /// This implments the `prepare` step for `semantic-release` for a Cargo-based
     /// Rust workspace.
     Prepare(PrepareOpt),
+
+    /// Publish the Rust workspace.
+    ///
+    /// Publishing the workspace publishes each crate in the workspace to
+    /// crates.io except crates with the `package.publish` field set to `false` or
+    /// set to any registries other than just crates.io.
+    ///
+    /// This implments the `publish` step for `semantic-release` for a Cargo-based
+    /// Rust workspace.
+    Publish(CommonOpt),
 }
 
 #[derive(StructOpt)]
@@ -98,6 +108,7 @@ impl Subcommand {
             ListPackages(opt) => Ok(list_packages(w, opt.manifest_path())?),
             VerifyConditions(opt) => Ok(verify_conditions(w, opt.manifest_path())?),
             Prepare(opt) => Ok(prepare(w, opt.common.manifest_path(), &opt.next_version)?),
+            Publish(opt) => Ok(publish(w, opt.manifest_path())?),
         }
     }
 }
