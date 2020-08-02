@@ -1,0 +1,120 @@
+// Copyright 2020 Steven Bosnick
+//
+// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE-2.0 or
+// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.
+
+use std::fs;
+use std::io;
+use std::path::{Path, PathBuf};
+
+use fs_extra::dir::{copy, CopyOptions};
+use guppy::{graph::PackageGraph, MetadataCommand};
+use semver::Version;
+use tempfile::{tempdir, TempDir};
+use toml_edit::{Document, Table};
+
+use semantic_release_rust::prepare;
+
+#[test]
+fn prepare_basic() {
+    let (_tempdir, manifest) = copy_workspace("basic");
+
+    prepare(io::sink(), Some(&manifest), "2.0.0").expect("prepare failed");
+
+    let graph = get_package_graph(manifest);
+    let workspace = graph.workspace();
+    let pkg = workspace.member_by_path("").expect("Couldn't get root pkg");
+    assert_eq!(pkg.version(), &Version::new(2, 0, 0));
+}
+
+#[test]
+fn prepare_with_depedencies() {
+    let (_tempdir, manifest) = copy_workspace("dependencies");
+
+    prepare(io::sink(), Some(&manifest), "2.0.0").expect("prepare failed");
+
+    let graph = get_package_graph(&manifest);
+    for pkg in graph.workspace().iter() {
+        assert_eq!(pkg.version(), &Version::new(2, 0, 0));
+    }
+    let cargo_toml = get_toml_document(&manifest);
+    let root = cargo_toml.as_table();
+    assert_eq!(get_dep_version(root, "dependencies", "dep1"), "2.0.0");
+    assert_eq!(
+        get_dep_version(root, "build-dependencies", "build1"),
+        "2.0.0"
+    );
+}
+
+#[test]
+fn prepare_with_target_dependency() {
+    let (_tempdir, manifest) = copy_workspace("target_dep");
+
+    prepare(io::sink(), Some(&manifest), "2.0.0").expect("prepare failed");
+
+    let graph = get_package_graph(&manifest);
+    for pkg in graph.workspace().iter() {
+        assert_eq!(pkg.version(), &Version::new(2, 0, 0));
+    }
+    let cargo_toml = get_toml_document(&manifest);
+    let root = cargo_toml.as_table();
+    let target = get_sub_table(root, "target");
+    let cfg_unix = get_sub_table(target, "cfg(unix)");
+    assert_eq!(get_dep_version(cfg_unix, "dependencies", "dep1"), "2.0.0");
+}
+
+fn copy_workspace(workspace: impl AsRef<Path>) -> (TempDir, PathBuf) {
+    let workspace = workspace.as_ref();
+    let tempdir = tempdir().expect("Couldn't create temp dir");
+    let srcdir = get_workspace_dir(workspace);
+
+    copy(srcdir, tempdir.path(), &CopyOptions::new()).expect("Couldn't copy the workspace");
+    let mut cargo_toml = tempdir.path().join(workspace);
+    cargo_toml.push("Cargo.toml");
+
+    (tempdir, cargo_toml)
+}
+
+fn get_workspace_dir(workspace: impl AsRef<Path>) -> PathBuf {
+    let mut path = PathBuf::from(file!());
+
+    path.pop();
+    path.pop();
+    path.push("test_data");
+    path.push(workspace);
+
+    path
+}
+
+fn get_package_graph(manifest_path: impl Into<PathBuf>) -> PackageGraph {
+    let mut cmd = MetadataCommand::new();
+    cmd.manifest_path(manifest_path)
+        .build_graph()
+        .expect("Couldn't build graph")
+}
+
+fn get_toml_document(path: impl AsRef<Path>) -> Document {
+    let toml = fs::read_to_string(path).expect("Couldn't read file");
+    toml.parse().expect("Couldn't parse toml file")
+}
+
+fn get_dep_version<'a>(table: &'a Table, dep_table: &str, dep: &str) -> &'a str {
+    get_sub_table(table, dep_table)
+        .get(dep)
+        .expect(&format!("no {} dependancy item", dep))
+        .as_table_like()
+        .expect(&format!("no {} dependancy table-like", dep))
+        .get("version")
+        .expect("no version item")
+        .as_value()
+        .expect("no version value")
+        .as_str()
+        .expect("version not a string")
+}
+
+fn get_sub_table<'a>(table: &'a Table, sub: &str) -> &'a Table {
+    table[sub].as_table().expect(&format!("no {} table", sub))
+}
