@@ -381,7 +381,7 @@ fn set_dependencies_version(
         let targets = table.iter().map(|(key, _)| key.to_owned()).collect_vec();
 
         for target in targets {
-            if let Some(target_deps) = table[&target]
+            if let Some(target_deps) = table.entry(&target)
                 .as_table_mut()
                 .and_then(|inner| inner[typ.key()].as_table_mut())
             {
