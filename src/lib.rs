@@ -144,6 +144,7 @@ pub fn prepare(
     manifest_path: Option<impl AsRef<Path>>,
     version: &str,
 ) -> Result<()> {
+    info!("Building package graph");
     let graph = get_package_graph(manifest_path)?;
 
     let link_map = graph
@@ -154,13 +155,20 @@ pub fn prepare(
         .map(|link| (link.from().id(), link))
         .into_group_map();
 
+    info!("Setting version information for packages in the workspace.");
     for package in graph.workspace().iter() {
         let path = package.manifest_path();
+        debug!("reading {}", path.display());
         let mut cargo = read_cargo_toml(path)?;
 
+        debug!("Setting the version for {}", package.name());
         set_package_version(&mut cargo, version).map_err(|err| err.into_error(path))?;
 
         if let Some(links) = link_map.get(package.id()) {
+            debug!(
+                "Setting the version for the dependencies of {}",
+                package.name()
+            );
             for link in links {
                 if link.normal().is_present() {
                     set_dependencies_version(
@@ -183,7 +191,8 @@ pub fn prepare(
             }
         }
 
-        write_cargo_toml(package.manifest_path(), cargo)?;
+        debug!("writing {}", path.display());
+        write_cargo_toml(path, cargo)?;
     }
 
     Ok(())
@@ -198,6 +207,7 @@ pub fn prepare(
 /// This implments the `publish` step for `sementic-release` for a Cargo-based
 /// Rust workspace.
 pub fn publish(output: impl Write, manifest_path: Option<impl AsRef<Path>>) -> Result<()> {
+    info!("getting the package graph");
     let graph = get_package_graph(manifest_path)?;
 
     let mut count = 0;
@@ -223,9 +233,12 @@ pub fn publish(output: impl Write, manifest_path: Option<impl AsRef<Path>>) -> R
     };
 
     if let Some(main_crate) = main_crate {
+        debug!("printing release record with main crate: {}", main_crate);
         let name = format!("crate.io packages ({} packages published)", count);
         serde_json::to_writer(output, &Release::new(name, main_crate)?)
             .map_err(|err| Error::write_release_error(err, main_crate))?;
+    } else {
+        debug!("no release record to print");
     }
 
     Ok(())
@@ -312,15 +325,22 @@ fn link_is_publishable(link: &PackageLink) -> bool {
 /// A package is publishable if either publication is unrestricted or the one
 /// and only registry it is allowed to be published to is "crates.io".
 fn package_is_publishable(pkg: &PackageMetadata) -> bool {
-    pkg.publish().map_or(true, |registries| {
+    let result = pkg.publish().map_or(true, |registries| {
         registries.len() == 1 && registries[0] == "cratis.io"
-    })
+    });
+
+    if result {
+        trace!("package {} is publishable", pkg.name());
+    }
+
+    result
 }
 
 fn process_publishable_packages<F>(graph: &PackageGraph, mut f: F) -> Result<()>
 where
     F: FnMut(&PackageMetadata) -> Result<()>,
 {
+    info!("iterating the workspace crates in dependency order");
     for pkg in graph
         .query_workspace()
         .resolve_with_fn(|_, link| !link.dev_only())
@@ -334,13 +354,20 @@ where
 }
 
 fn publish_package(pkg: &PackageMetadata) -> Result<()> {
+    debug!("publishing package {}", pkg.name());
+
     let cargo = env::var("CARGO")
         .map(|s| PathBuf::from(s))
         .unwrap_or_else(|_| PathBuf::from("cargo"));
 
-    let output = Command::new(cargo)
+    let mut command = Command::new(cargo);
+    command
         .args(&["publish", "--manifest-path"])
-        .arg(pkg.manifest_path())
+        .arg(pkg.manifest_path());
+
+    trace!("running: {:?}", command);
+
+    let output = command
         .output()
         .map_err(|err| Error::cargo_publish(err, pkg.manifest_path()))?;
 
@@ -361,6 +388,11 @@ fn publish_package(pkg: &PackageMetadata) -> Result<()> {
     if output.status.success() {
         Ok(())
     } else {
+        error!(
+            "publishing package {} failed: {}",
+            pkg.name(),
+            output.status
+        );
         Err(Error::cargo_publish_status(
             output.status,
             pkg.manifest_path(),
