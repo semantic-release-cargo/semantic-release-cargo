@@ -6,13 +6,17 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use std::io;
-use std::path::{Path, PathBuf};
+use std::{
+    io,
+    path::{Path, PathBuf},
+    process::ExitStatus,
+};
 
 use guppy::errors::Error as GuppyError;
 use guppy::graph::PackageLink;
 use thiserror::Error;
 use toml_edit::TomlError as TomlEditError;
+use url::ParseError;
 
 use super::DependencyType;
 
@@ -85,6 +89,35 @@ pub enum Error {
         /// The `Cargo.toml` file in which the error occured.
         manifest_path: PathBuf,
     },
+
+    /// Error while attempting to run `cargo publish`
+    #[error("Unable to run \"cargo publish\" for {manifest_path}")]
+    CargoPublish {
+        /// The underlying error.
+        #[source]
+        inner: io::Error,
+
+        /// The manifest path for the crate on which the error occured.
+        manifest_path: PathBuf,
+    },
+
+    /// Error that records a non-sucess exit status from `cargo publish`.
+    #[error("\"cargo publish\" exited with a failure for {manifest_path}: {status}")]
+    CargoPublishStatus {
+        /// The exit status from `cargo publish`.
+        status: ExitStatus,
+
+        /// The manifest path for the crate on which the error occured.
+        manifest_path: PathBuf,
+    },
+
+    /// Error while parsing a url for the release record.
+    #[error(transparent)]
+    UrlError(UrlError),
+
+    /// Error while attempting to write the release record as JSON.
+    #[error(transparent)]
+    WriteReleaseError(WriteReleaseError),
 }
 
 /// A specialized `Result` type for `semantic-release-rust` operations.
@@ -136,6 +169,24 @@ pub enum CargoTomlError {
     },
 }
 
+/// The error details related to an error parsing a url.
+#[derive(Debug, Error)]
+#[error("Unable to parse url for displaying release record.")]
+pub struct UrlError {
+    #[source]
+    inner: ParseError,
+}
+
+/// The error details related to writing a release record as JSON.
+#[derive(Debug, Error)]
+#[error("Unable to write the release record for {main_crate} as JSON.")]
+pub struct WriteReleaseError {
+    #[source]
+    inner: serde_json::Error,
+
+    main_crate: String,
+}
+
 impl Error {
     pub(crate) fn workspace_error(metadata_error: GuppyError, manifest_path: PathBuf) -> Error {
         Error::WorkspaceError(WorkspaceError {
@@ -180,6 +231,31 @@ impl Error {
         Error::TomlError(TomlError {
             inner,
             path: path.as_ref().to_owned(),
+        })
+    }
+
+    pub(crate) fn cargo_publish(inner: io::Error, manifest_path: &Path) -> Error {
+        Error::CargoPublish {
+            inner,
+            manifest_path: manifest_path.to_owned(),
+        }
+    }
+
+    pub(crate) fn cargo_publish_status(status: ExitStatus, manifest_path: &Path) -> Error {
+        Error::CargoPublishStatus {
+            status,
+            manifest_path: manifest_path.to_owned(),
+        }
+    }
+
+    pub(crate) fn url_parse_error(inner: ParseError) -> Error {
+        Error::UrlError(UrlError { inner })
+    }
+
+    pub(crate) fn write_release_error(inner: serde_json::Error, main_crate: &str) -> Error {
+        Error::WriteReleaseError(WriteReleaseError {
+            inner,
+            main_crate: main_crate.to_owned(),
         })
     }
 }

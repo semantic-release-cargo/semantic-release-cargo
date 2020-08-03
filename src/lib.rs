@@ -12,22 +12,23 @@
 #![forbid(unsafe_code)]
 #![deny(warnings, missing_docs)]
 
-use std::env;
-use std::fmt;
-use std::fs;
-use std::io::Write;
 use std::{
+    env, fmt, fs,
+    io::{BufRead, Cursor, Write},
     path::{Path, PathBuf},
+    process::Command,
     result,
 };
 
 use guppy::{
-    graph::{DependencyDirection, PackageGraph, PackageLink, PackageSource},
+    graph::{DependencyDirection, PackageGraph, PackageLink, PackageMetadata, PackageSource},
     MetadataCommand,
 };
 use itertools::Itertools;
-use log::{debug, error, info, trace};
+use log::{debug, error, info, log, trace, Level};
+use serde::Serialize;
 use toml_edit::{Document, InlineTable, Item, Table, Value};
+use url::Url;
 
 mod error;
 
@@ -196,8 +197,38 @@ pub fn prepare(
 ///
 /// This implments the `publish` step for `sementic-release` for a Cargo-based
 /// Rust workspace.
-pub fn publish(_output: impl Write, _manifest_path: Option<impl AsRef<Path>>) -> Result<()> {
-    todo!()
+pub fn publish(output: impl Write, manifest_path: Option<impl AsRef<Path>>) -> Result<()> {
+    let graph = get_package_graph(manifest_path)?;
+
+    let mut count = 0;
+    let mut last_id = None;
+
+    process_publishable_packages(&graph, |pkg| {
+        count += 1;
+        last_id = Some(pkg.id().clone());
+        publish_package(pkg)
+    })?;
+
+    let main_crate = match graph.workspace().member_by_path("") {
+        Ok(pkg) if package_is_publishable(&pkg) => Some(pkg.name()),
+        _ => match last_id {
+            Some(id) => Some(
+                graph
+                    .metadata(&id)
+                    .expect("id of a processed package not found in the package graph")
+                    .name(),
+            ),
+            None => None,
+        },
+    };
+
+    if let Some(main_crate) = main_crate {
+        let name = format!("crate.io packages ({} packages published)", count);
+        serde_json::to_writer(output, &Release::new(name, main_crate)?)
+            .map_err(|err| Error::write_release_error(err, main_crate))?;
+    }
+
+    Ok(())
 }
 
 /// List the packages from the workspace in the order of their dependencies.
@@ -216,19 +247,11 @@ pub fn list_packages(
     info!("Building package graph");
     let graph = get_package_graph(manifest_path)?;
 
-    info!("Resolving workspace");
-    let set = graph.resolve_workspace();
+    process_publishable_packages(&graph, |pkg| {
+        writeln!(output, "{}({})", pkg.name(), pkg.version()).map_err(Error::output_error)?;
 
-    info!("Listing packages");
-    for package in set.packages(DependencyDirection::Reverse) {
-        write!(output, "{}({})", package.name(), package.version()).map_err(Error::output_error)?;
-        if package.publish().is_some() {
-            write!(output, "--not published").map_err(Error::output_error)?;
-        }
-        writeln!(output).map_err(Error::output_error)?;
-    }
-
-    Ok(())
+        Ok(())
+    })
 }
 
 fn get_package_graph(manifest_path: Option<impl AsRef<Path>>) -> Result<PackageGraph> {
@@ -282,6 +305,80 @@ fn link_is_publishable(link: &PackageLink) -> bool {
     }
 
     result
+}
+
+/// Is a particular package publishable.
+///
+/// A package is publishable if either publication is unrestricted or the one
+/// and only registry it is allowed to be published to is "crates.io".
+fn package_is_publishable(pkg: &PackageMetadata) -> bool {
+    pkg.publish().map_or(true, |registries| {
+        registries.len() == 1 && registries[0] == "cratis.io"
+    })
+}
+
+fn process_publishable_packages<F>(graph: &PackageGraph, mut f: F) -> Result<()>
+where
+    F: FnMut(&PackageMetadata) -> Result<()>,
+{
+    for pkg in graph
+        .query_workspace()
+        .resolve_with_fn(|_, link| !link.dev_only())
+        .packages(DependencyDirection::Reverse)
+        .filter(|pkg| pkg.in_workspace() && package_is_publishable(pkg))
+    {
+        f(&pkg)?;
+    }
+
+    Ok(())
+}
+
+fn publish_package(pkg: &PackageMetadata) -> Result<()> {
+    let cargo = env::var("CARGO")
+        .map(|s| PathBuf::from(s))
+        .unwrap_or_else(|_| PathBuf::from("cargo"));
+
+    let output = Command::new(cargo)
+        .args(&["publish", "--manifest-path"])
+        .arg(pkg.manifest_path())
+        .output()
+        .map_err(|err| Error::cargo_publish(err, pkg.manifest_path()))?;
+
+    let level = if output.status.success() {
+        Level::Trace
+    } else {
+        Level::Info
+    };
+
+    trace!("cargo publish stdout");
+    trace!("--------------------");
+    log_bytes(Level::Trace, &output.stdout);
+
+    log!(level, "cargo publish stderr");
+    log!(level, "--------------------");
+    log_bytes(level, &output.stderr);
+
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(Error::cargo_publish_status(
+            output.status,
+            pkg.manifest_path(),
+        ))
+    }
+}
+
+fn log_bytes(level: Level, bytes: &[u8]) {
+    let mut buffer = Cursor::new(bytes);
+    let mut string = String::new();
+
+    while let Ok(size) = buffer.read_line(&mut string) {
+        if size == 0 {
+            return;
+        }
+        log!(level, "{}", string);
+        string.clear();
+    }
 }
 
 fn read_cargo_toml(path: impl AsRef<Path>) -> Result<Document> {
@@ -436,5 +533,26 @@ impl fmt::Display for DependencyType {
             Normal => write!(f, "Dependancy"),
             Build => write!(f, "Build dependency"),
         }
+    }
+}
+
+#[derive(Debug, Serialize)]
+struct Release {
+    name: String,
+    url: Url,
+}
+
+impl Release {
+    fn new(name: impl AsRef<str>, main_crate: impl AsRef<str>) -> Result<Self> {
+        let base =
+            Url::parse("https://crates.io/crates/").map_err(|err| Error::url_parse_error(err))?;
+        let url = base
+            .join(main_crate.as_ref())
+            .map_err(|err| Error::url_parse_error(err))?;
+
+        Ok(Self {
+            name: name.as_ref().to_owned(),
+            url,
+        })
     }
 }

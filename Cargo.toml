@@ -16,6 +16,9 @@ thiserror = "1.0.20"
 guppy = "0.5.0"
 itertools = "0.9.0"
 toml_edit = "0.2.0"
+serde = {version = "1.0.114", features = ["derive"]}
+serde_json = "1.0.57"
+url = {version = "2.1.1", features = ["serde"]}
 
 [dev-dependencies]
 assert_matches = "1.3.0"
