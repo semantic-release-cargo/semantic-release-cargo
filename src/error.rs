@@ -27,6 +27,16 @@ pub enum Error {
     #[error(transparent)]
     WorkspaceError(WorkspaceError),
 
+    /// Error when verifying that a workspace does not include cycles.
+    #[error("Workspace has at least one cycle that includes as least {crate1} and {crate2}")]
+    WorkspaceCycles {
+        /// The first crate in the cycle.
+        crate1: String,
+
+        /// The second crate in the cycle.
+        crate2: String,
+    },
+
     /// Error while writing to the output.
     #[error("Unable to write to the output")]
     OutputError(#[source] io::Error),
@@ -257,6 +267,14 @@ impl Error {
             inner,
             main_crate: main_crate.to_owned(),
         })
+    }
+
+    pub(crate) fn cycle_error(crate1: &str, crate2: &str) -> Error {
+        Error::WorkspaceCycles {
+            crate1: crate1.to_owned(),
+            crate2: crate2.to_owned(),
+
+        }
     }
 }
 

@@ -20,7 +20,16 @@ fn verify_simple_workspaces_is_ok() {
 
     verify_workspace_is_ok("basic");
     verify_workspace_is_ok("dependencies");
-    verify_workspace_is_ok("cycle");
+}
+
+#[test]
+fn verify_workspace_with_cycle_is_error() {
+    set_registry_token();
+    let path = get_test_data_manifest_path("cycle");
+
+    let result = verify_conditions(io::sink(), Some(path));
+
+    assert_matches!(result, Err(Error::WorkspaceCycles { crate1: _, crate2: _}));
 }
 
 #[test]

@@ -22,7 +22,7 @@ use std::{
 
 use guppy::{
     graph::{DependencyDirection, PackageGraph, PackageLink, PackageMetadata, PackageSource},
-    MetadataCommand,
+    MetadataCommand, PackageId,
 };
 use itertools::Itertools;
 use log::{debug, error, info, log, trace, Level};
@@ -83,6 +83,21 @@ pub fn verify_conditions(
             .and_then(|()| Err(err))
         }
     };
+
+    info!("Checking that the workspace does not contain any cycles");
+    if let Some(cycle) = graph.cycles().all_cycles().next() {
+        assert!(cycle.len() >= 2);
+        let crate0 = get_crate_name(&graph, cycle[0]);
+        let crate1 = get_crate_name(&graph, cycle[1]);
+        return writeln!(
+            output,
+            "Workspace contains a cycle that includes (at least) {} and {}",
+            crate0, crate1
+        )
+        .map_err(Error::output_error)
+        .and_then(|()| Err(Error::cycle_error(crate0, crate1)));
+    }
+
 
     info!("Checking that dependencies are suitable for publishing");
     for (from, links) in graph
@@ -351,6 +366,13 @@ where
     }
 
     Ok(())
+}
+
+// Panics if id is not from graph
+fn get_crate_name<'a>(graph: &'a PackageGraph, id: &PackageId) -> &'a str {
+    graph.metadata(id)
+        .expect(&format!("id {} was not found in the graph {:?}", id, graph))
+        .name()
 }
 
 fn publish_package(pkg: &PackageMetadata) -> Result<()> {
