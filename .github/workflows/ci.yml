@@ -3,7 +3,8 @@ on:
   pull_request:
   push:
     branches:
-      - master
+      - main
+      - alpha
 
 env:
   RUST_BACKTRACE: 1
@@ -12,6 +13,7 @@ jobs:
 
   test:
     name: Test ${{ matrix.rust }}
+    if: "!contains(github.event.commits[0].message, '[skip ci]')"
     strategy:
       matrix:
         rust:
@@ -51,3 +53,51 @@ jobs:
         with:
           command: test
 
+  release:
+      name: Semantic Release
+      if: github.event_name == 'push'
+      runs-on: ubuntu-latest
+      needs: ['test']
+
+      steps:
+          - name: Checkout
+            uses: actions/checkout@v2
+            with:
+                fetch-depth: 0
+
+          - name: Install Rust Stable
+            uses: actions-rs/toolchain@v1
+            with:
+                profile: minimal
+                toolchain: stable
+                override: true
+
+          - name: Build
+            uses: actions-rs/cargo@v1
+            with:
+                command: build
+                args: --release
+
+          - name: Disable "include adminstrator" Branch Protection
+            uses: benjefferies/branch-protection-bot@1
+            if: always()
+            with:
+                access-token: ${{ secrets.SEMRELGH }}
+
+          - name: Semantic Release
+            uses: cycjimmy/semantic-release-action@v2
+            with:
+                semantic_version: 17.1.1
+                dry_run: true
+                extra_plugins: |
+                    @semantic-release/git@9.0
+                    @semantic-release/exec@5.0
+            env:
+                GITHUB_TOKEN: ${{ secrets.SEMRELGH }}
+                CARGO_REGISTRY_TOKEN: ${{ secrets.SEMREL_CRATES_IO }}
+
+          - name: Enable "include adminstrator" Branch Protection
+            uses: benjefferies/branch-protection-bot@1
+            if: always()
+            with:
+                access-token: ${{ secrets.SEMRELGH }}
