@@ -371,7 +371,7 @@ where
 fn get_crate_name<'a>(graph: &'a PackageGraph, id: &PackageId) -> &'a str {
     graph
         .metadata(id)
-        .expect(&format!("id {} was not found in the graph {:?}", id, graph))
+        .unwrap_or_else(|_| panic!("id {} was not found in the graph {:?}", id, graph))
         .name()
 }
 
@@ -379,7 +379,7 @@ fn publish_package(pkg: &PackageMetadata) -> Result<()> {
     debug!("publishing package {}", pkg.name());
 
     let cargo = env::var("CARGO")
-        .map(|s| PathBuf::from(s))
+        .map(PathBuf::from)
         .unwrap_or_else(|_| PathBuf::from("cargo"));
 
     let mut command = Command::new(cargo);
@@ -598,11 +598,10 @@ struct Release {
 
 impl Release {
     fn new(name: impl AsRef<str>, main_crate: impl AsRef<str>) -> Result<Self> {
-        let base =
-            Url::parse("https://crates.io/crates/").map_err(|err| Error::url_parse_error(err))?;
+        let base = Url::parse("https://crates.io/crates/").map_err(Error::url_parse_error)?;
         let url = base
             .join(main_crate.as_ref())
-            .map_err(|err| Error::url_parse_error(err))?;
+            .map_err(Error::url_parse_error)?;
 
         Ok(Self {
             name: name.as_ref().to_owned(),
