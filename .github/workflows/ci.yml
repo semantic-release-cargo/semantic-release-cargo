@@ -79,7 +79,7 @@ jobs:
                 args: --release
 
           - name: Disable "include adminstrator" Branch Protection
-            uses: benjefferies/branch-protection-bot@1
+            uses: docker://benjefferies/branch-protection-bot
             if: always()
             with:
                 access-token: ${{ secrets.SEMRELGH }}
@@ -97,7 +97,7 @@ jobs:
                 CARGO_REGISTRY_TOKEN: ${{ secrets.SEMREL_CRATES_IO }}
 
           - name: Enable "include adminstrator" Branch Protection
-            uses: benjefferies/branch-protection-bot@1
+            uses: docker://benjefferies/branch-protection-bot
             if: always()
             with:
                 access-token: ${{ secrets.SEMRELGH }}
