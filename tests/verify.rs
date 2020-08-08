@@ -29,7 +29,13 @@ fn verify_workspace_with_cycle_is_error() {
 
     let result = verify_conditions(io::sink(), Some(path));
 
-    assert_matches!(result, Err(Error::WorkspaceCycles { crate1: _, crate2: _}));
+    assert_matches!(
+        result,
+        Err(Error::WorkspaceCycles {
+            crate1: _,
+            crate2: _,
+        })
+    );
 }
 
 #[test]

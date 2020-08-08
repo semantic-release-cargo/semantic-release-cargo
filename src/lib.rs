@@ -98,7 +98,6 @@ pub fn verify_conditions(
         .and_then(|()| Err(Error::cycle_error(crate0, crate1)));
     }
 
-
     info!("Checking that dependencies are suitable for publishing");
     for (from, links) in graph
         .workspace()
@@ -370,7 +369,8 @@ where
 
 // Panics if id is not from graph
 fn get_crate_name<'a>(graph: &'a PackageGraph, id: &PackageId) -> &'a str {
-    graph.metadata(id)
+    graph
+        .metadata(id)
         .expect(&format!("id {} was not found in the graph {:?}", id, graph))
         .name()
 }

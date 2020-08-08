@@ -273,7 +273,6 @@ impl Error {
         Error::WorkspaceCycles {
             crate1: crate1.to_owned(),
             crate2: crate2.to_owned(),
-
         }
     }
 }

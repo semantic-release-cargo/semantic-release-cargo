@@ -20,7 +20,7 @@ fn list_basic_workspace() {
 
     list_packages(Cursor::new(&mut output), Some(path)).expect("unable to list packages");
 
-    let lines: Result<Vec<_>,_> = Cursor::new(&output).lines().collect();
+    let lines: Result<Vec<_>, _> = Cursor::new(&output).lines().collect();
     match lines {
         Ok(lines) => {
             assert!(lines[0].starts_with("basic"));
@@ -36,7 +36,7 @@ fn list_dependancies_workspace() {
 
     list_packages(Cursor::new(&mut output), Some(path)).expect("unable to list packages");
 
-    let lines: Result<Vec<_>,_> = Cursor::new(&output).lines().collect();
+    let lines: Result<Vec<_>, _> = Cursor::new(&output).lines().collect();
     match lines {
         Ok(lines) => {
             if lines[0].starts_with("build1") {
