@@ -80,7 +80,11 @@ jobs:
                 args: --release
 
           - name: Get Current Branch
-            uses: ryolambert/current-branch@v1.0
+            # set the output "branch" to everything after the last "/"
+            # in GITHUB_REF. This will not work properly on pull requests
+            # but this job is restricted to push's.
+            run: echo "::set-output name=branch::${GITHUB_REF##*/}"
+            shell: bash
             id: get-branch
 
           - name: Disable "include adminstrator" Branch Protection
