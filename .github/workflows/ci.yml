@@ -17,9 +17,9 @@ jobs:
     strategy:
       matrix:
         rust:
-          - stable
-          - beta
-          - nightly
+          #- stable
+          #- beta
+          #- nightly
           - 1.42.0
 
     runs-on: ubuntu-latest
@@ -80,11 +80,11 @@ jobs:
                 args: --release
 
           - name: Get Current Branch
+            uses: ryolambert/current-branch@v1.0
             id: get-branch
-            uses: ryolambert/current-branch@v1
 
           - name: Disable "include adminstrator" Branch Protection
-            uses: benjefferies/branch-protection-bot@master
+            uses: benjefferies/branch-protection-bot@1.0.4
             if: always()
             with:
                 access-token: ${{ secrets.SEMRELGH }}
@@ -103,7 +103,7 @@ jobs:
                 CARGO_REGISTRY_TOKEN: ${{ secrets.SEMREL_CRATES_IO }}
 
           - name: Enable "include adminstrator" Branch Protection
-            uses: benjefferies/branch-protection-bot@master
+            uses: benjefferies/branch-protection-bot@1.0.4
             if: always()
             with:
                 access-token: ${{ secrets.SEMRELGH }}
