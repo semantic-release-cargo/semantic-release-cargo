@@ -1,6 +1,7 @@
-# Semantic Release--Rust
+# Semantic Release Rust
 
-**semantic-release-rust integrates a cargo based project into semantic-release**
+**integrates a cargo based project into semantic-release**
+
 [![Build Status](https://img.shields.io/github/workflow/status/sbosnick/semantic-release-rust/CI)](https://github.com/sbosnick/semantic-release-rust/actions?query=workflow%3ACI)
 [![Latest Version](https://img.shields.io/crates/v/semantic-release-rust)](https://crates.io/crates/semantic-release-rust)
 [![Documentation](https://img.shields.io/badge/api-rustdoc-blue)](https://doc.rs/semantic-release-rust)
@@ -29,9 +30,9 @@ plugins:
     - '@semantic-release/release-notes-generator'
     - '@semantic-release/github'
     - - '@semantic-release/exec'
-      - verifyConditionsCmd: "./target/release/semantic-release-rust verify-conditions"
-        prepareCmd: "./target/release/semantic-release-rust prepare"
-        publishCmd: "./target/release/semantic-release-rust publish"
+      - verifyConditionsCmd: "semantic-release-rust verify-conditions"
+        prepareCmd: "semantic-release-rust prepare ${nextRelease.version}"
+        publishCmd: "semantic-release-rust publish"
 ```
 
 `semantic-release-rust` expects (and verifies) that the environment variable
