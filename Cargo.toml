@@ -1,6 +1,6 @@
 [package]
 name = "semantic-release-rust"
-version = "0.1.0"
+version ="1.0.0-alpha.4"
 authors = ["Steven Bosnick <sbosnick@sympatico.ca>"]
 edition = "2018"
 description = "A CLI to integrate Rust into a semantic-release workflow."
