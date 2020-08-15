@@ -96,9 +96,14 @@ jobs:
             if: steps.semantic.outputs.new_release_published == 'true'
             with:
                 token: ${{ secrets.SEMRELGH }}
-                commit-message: 'chore(release): version ${{ steps.semantic.ouputs.new_release_version }}'
+                commit-message: 'chore(release): version ${{ steps.semantic.outputs.new_release_version }}'
                 committer: sbosnick-bot <sbosnick@gmail.com>
                 author: sbosnick-bot <sbosnick@gmail.com>
-                branch: release-bot/${{ steps.semantic.ouputs.new_release_version }}
-                title: 'chore(release): version ${{ steps.semantic.ouputs.new_release_version }}'
-                body: 'Version bump in Crates.io files for release[${{ steps.semantic.ouputs.new_release_version }}](https://github.com/${{ github.repository }}/releases/tag/v${{ steps.semantic.ouputs.new_release_version }})\n\n[skip ci]'
+                branch: release-bot/${{ steps.semantic.outputs.new_release_version }}
+                title: 'chore(release): version ${{ steps.semantic.outputs.new_release_version }}'
+                body: >
+                    Version bump in Crates.io files for release
+                    [${{ steps.semantic.outputs.new_release_version }}](https://github.com/${{ github.repository }}/releases/tag/v${{ steps.semantic.outputs.new_release_version }})
+
+
+                    [skip ci]
