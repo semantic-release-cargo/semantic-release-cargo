@@ -15,4 +15,4 @@ plugins:
     - - '@semantic-release/exec'
       - verifyConditionsCmd: "./target/release/semantic-release-rust verify-conditions"
         prepareCmd: "./target/release/semantic-release-rust prepare ${nextRelease.version}"
-        publishCmd: "./target/release/semantic-release-rust -vv publish"
+        publishCmd: "./target/release/semantic-release-rust publish"
