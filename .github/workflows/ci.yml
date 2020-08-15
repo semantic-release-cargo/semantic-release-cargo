@@ -79,23 +79,9 @@ jobs:
                 command: build
                 args: --release
 
-          - name: Get Current Branch
-            # set the output "branch" to everything after the last "/"
-            # in GITHUB_REF. This will not work properly on pull requests
-            # but this job is restricted to push's.
-            run: echo "::set-output name=branch::${GITHUB_REF##*/}"
-            shell: bash
-            id: get-branch
-
-          - name: Disable "include adminstrator" Branch Protection
-            uses: benjefferies/branch-protection-bot@1.0.4
-            if: always()
-            with:
-                access-token: ${{ secrets.SEMRELGH }}
-                branch: ${{ steps.get-branch.outputs.branch }}
-
           - name: Semantic Release
             uses: cycjimmy/semantic-release-action@v2
+            id: semantic
             with:
                 semantic_version: 17.1.1
                 extra_plugins: |
@@ -105,9 +91,14 @@ jobs:
                 GITHUB_TOKEN: ${{ secrets.SEMRELGH }}
                 CARGO_REGISTRY_TOKEN: ${{ secrets.SEMREL_CRATES_IO }}
 
-          - name: Enable "include adminstrator" Branch Protection
-            uses: benjefferies/branch-protection-bot@1.0.4
-            if: always()
+          - name: Create Pull Request
+            uses: peter-evans/create-pull-request@v3.1.0
+            if: steps.semantic.outputs.new_release_published == 'true'
             with:
-                access-token: ${{ secrets.SEMRELGH }}
-                branch: ${{ steps.get-branch.outputs.branch }}
+                token: ${{ secrets.SEMRELGH }}
+                commit-message: 'chore(release): version ${{ steps.semantic.ouputs.new_release_version }}'
+                committer: sbosnick-bot <sbosnick@gmail.com>
+                author: sbosnick-bot <sbosnick@gmail.com>
+                branch: release-bot/${{ steps.semantic.ouputs.new_release_version }}
+                title: 'chore(release): version ${{ steps.semantic.ouputs.new_release_version }}'
+                body: 'Version bump in Crates.io files for release[${{ steps.semantic.ouputs.new_release_version }}](https://github.com/${{ github.repository }}/releases/tag/v${{ steps.semantic.ouputs.new_release_version }})\n\n[skip ci]'
