@@ -4,7 +4,7 @@
 
 [![Build Status](https://img.shields.io/github/workflow/status/sbosnick/semantic-release-rust/CI)](https://github.com/sbosnick/semantic-release-rust/actions?query=workflow%3ACI)
 [![Latest Version](https://img.shields.io/crates/v/semantic-release-rust)](https://crates.io/crates/semantic-release-rust)
-[![Documentation](https://img.shields.io/badge/api-rustdoc-blue)](https://doc.rs/semantic-release-rust)
+[![Documentation](https://img.shields.io/badge/api-rustdoc-blue)](https://docs.rs/semantic-release-rust)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 ---
 
