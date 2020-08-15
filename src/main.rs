@@ -77,11 +77,13 @@ enum Subcommand {
     ///
     /// Publishing the workspace publishes each crate in the workspace to
     /// crates.io except crates with the `package.publish` field set to `false` or
-    /// set to any registries other than just crates.io.
+    /// set to any registries other than just crates.io. By default this will publish
+    /// with the `allow-dirty` flag but this can be excluded with the `no-dirty`
+    /// flag to this subcommand.
     ///
     /// This implments the `publish` step for `semantic-release` for a Cargo-based
     /// Rust workspace.
-    Publish(CommonOpt),
+    Publish(PublishOpt),
 }
 
 #[derive(StructOpt)]
@@ -100,6 +102,16 @@ struct PrepareOpt {
     next_version: String,
 }
 
+#[derive(StructOpt)]
+struct PublishOpt {
+    #[structopt(flatten)]
+    common: CommonOpt,
+
+    /// Disallow publishing with uncommited files in the workspace.
+    #[structopt(long)]
+    no_dirty: bool,
+}
+
 impl Subcommand {
     fn run(&self, w: impl Write) -> Result<(), Error> {
         use Subcommand::*;
@@ -108,7 +120,7 @@ impl Subcommand {
             ListPackages(opt) => Ok(list_packages(w, opt.manifest_path())?),
             VerifyConditions(opt) => Ok(verify_conditions(w, opt.manifest_path())?),
             Prepare(opt) => Ok(prepare(w, opt.common.manifest_path(), &opt.next_version)?),
-            Publish(opt) => Ok(publish(w, opt.manifest_path())?),
+            Publish(opt) => Ok(publish(w, opt.common.manifest_path(), opt.no_dirty)?),
         }
     }
 }

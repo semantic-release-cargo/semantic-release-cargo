@@ -220,7 +220,11 @@ pub fn prepare(
 ///
 /// This implments the `publish` step for `sementic-release` for a Cargo-based
 /// Rust workspace.
-pub fn publish(output: impl Write, manifest_path: Option<impl AsRef<Path>>) -> Result<()> {
+pub fn publish(
+    output: impl Write,
+    manifest_path: Option<impl AsRef<Path>>,
+    no_dirty: bool,
+) -> Result<()> {
     info!("getting the package graph");
     let graph = get_package_graph(manifest_path)?;
 
@@ -230,7 +234,7 @@ pub fn publish(output: impl Write, manifest_path: Option<impl AsRef<Path>>) -> R
     process_publishable_packages(&graph, |pkg| {
         count += 1;
         last_id = Some(pkg.id().clone());
-        publish_package(pkg)
+        publish_package(pkg, no_dirty)
     })?;
 
     let main_crate = match graph.workspace().member_by_path("") {
@@ -375,7 +379,7 @@ fn get_crate_name<'a>(graph: &'a PackageGraph, id: &PackageId) -> &'a str {
         .name()
 }
 
-fn publish_package(pkg: &PackageMetadata) -> Result<()> {
+fn publish_package(pkg: &PackageMetadata, no_dirty: bool) -> Result<()> {
     debug!("publishing package {}", pkg.name());
 
     let cargo = env::var("CARGO")
@@ -386,6 +390,9 @@ fn publish_package(pkg: &PackageMetadata) -> Result<()> {
     command
         .args(&["publish", "--manifest-path"])
         .arg(pkg.manifest_path());
+    if !no_dirty {
+        command.arg("--allow-dirty");
+    }
 
     trace!("running: {:?}", command);
 
