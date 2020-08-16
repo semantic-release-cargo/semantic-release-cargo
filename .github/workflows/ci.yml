@@ -100,6 +100,7 @@ jobs:
                 committer: sbosnick-bot <sbosnick@gmail.com>
                 author: sbosnick-bot <sbosnick@gmail.com>
                 branch: release-bot/${{ steps.semantic.outputs.new_release_version }}
+                labels: "automerge"
                 title: 'chore(release): version ${{ steps.semantic.outputs.new_release_version }}'
                 body: >
                     Version bump in Crates.io files for release
