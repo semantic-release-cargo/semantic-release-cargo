@@ -1,0 +1,50 @@
+name: Release
+on:
+  push:
+    branches:
+      - main
+      - alpha
+
+env:
+  RUST_BACKTRACE: 1
+
+jobs:
+    release:
+        name: Semantic Release
+        runs-on: ubuntu-latest
+        if: github.actor != 'sbosnick-bot'
+
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v2
+            with:
+                fetch-depth: 0
+                persist-credentials: false
+
+          - name: Install Rust Stable
+            uses: actions-rs/toolchain@v1
+            with:
+                profile: minimal
+                toolchain: stable
+                override: true
+
+          # The release build is used in the Semantic Release step
+          - name: Build
+            uses: actions-rs/cargo@v1
+            with:
+                command: build
+                args: --release
+
+          - name: Semantic Release
+            uses: cycjimmy/semantic-release-action@v2
+            id: semantic
+            with:
+                semantic_version: 17.1.1
+                extra_plugins: |
+                    @semantic-release/exec@5.0
+                    @semantic-release/git@9.0
+            env:
+                GITHUB_TOKEN: ${{ secrets.SEMRELGH }}
+                CARGO_REGISTRY_TOKEN: ${{ secrets.SEMREL_CRATES_IO }}
+
+

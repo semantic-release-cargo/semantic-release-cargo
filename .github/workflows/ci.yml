@@ -1,7 +1,6 @@
 name: CI
 on:
   pull_request:
-  push:
     branches:
       - main
       - alpha
@@ -13,7 +12,6 @@ jobs:
 
   test:
     name: Test ${{ matrix.rust }}
-    if: "!contains(github.event.commits[0].message, '[skip ci]')"
     strategy:
       matrix:
         rust:
@@ -23,6 +21,7 @@ jobs:
           - 1.42.0
 
     runs-on: ubuntu-latest
+    if: github.actor != 'sbosnick-bot'
 
     steps:
       - name: Checkout
@@ -52,59 +51,3 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-
-  release:
-      name: Semantic Release
-      if: github.event_name == 'push'
-      runs-on: ubuntu-latest
-      needs: ['test']
-
-      steps:
-          - name: Checkout
-            uses: actions/checkout@v2
-            with:
-                fetch-depth: 0
-
-          - name: Install Rust Stable
-            uses: actions-rs/toolchain@v1
-            with:
-                profile: minimal
-                toolchain: stable
-                override: true
-
-          # The release build is used in the Semantic Release step
-          - name: Build
-            uses: actions-rs/cargo@v1
-            with:
-                command: build
-                args: --release
-
-          - name: Semantic Release
-            uses: cycjimmy/semantic-release-action@v2
-            id: semantic
-            with:
-                semantic_version: 17.1.1
-                extra_plugins: |
-                    @semantic-release/git@9.0
-                    @semantic-release/exec@5.0
-            env:
-                GITHUB_TOKEN: ${{ secrets.SEMRELGH }}
-                CARGO_REGISTRY_TOKEN: ${{ secrets.SEMREL_CRATES_IO }}
-
-          - name: Create Pull Request
-            uses: peter-evans/create-pull-request@v3.1.0
-            if: steps.semantic.outputs.new_release_published == 'true'
-            with:
-                token: ${{ secrets.SEMRELGH }}
-                commit-message: 'chore(release): version ${{ steps.semantic.outputs.new_release_version }}'
-                committer: sbosnick-bot <sbosnick@gmail.com>
-                author: sbosnick-bot <sbosnick@gmail.com>
-                branch: release-bot/${{ steps.semantic.outputs.new_release_version }}
-                labels: "automerge"
-                title: 'chore(release): version ${{ steps.semantic.outputs.new_release_version }}'
-                body: >
-                    Version bump in Crates.io files for release
-                    [${{ steps.semantic.outputs.new_release_version }}](https://github.com/${{ github.repository }}/releases/tag/v${{ steps.semantic.outputs.new_release_version }})
-
-
-                    [skip ci]
