@@ -18,7 +18,7 @@ and `publish` step of [semantic-release].
 Install `semantic-release-rust` with
 
 ```bash
-$ cargo install semantic-release-rust
+$ cargo install semantic-release-rust --version 1.0.0-alpha.6
 ```
 
 then add it to your `semantic-release` configuration using the [`semantic-release/exec`][exec]
