@@ -80,7 +80,7 @@ pub fn verify_conditions(
                 err
             )
             .map_err(Error::output_error)
-            .and_then(|()| Err(err))
+            .and(Err(err))
         }
     };
 
@@ -119,7 +119,7 @@ pub fn verify_conditions(
                         link.from().name()
                     )
                     .map_err(Error::output_error)
-                    .and_then::<(), _>(|_| Err(err))
+                    .and::<()>(Err(err))
                     .unwrap_err()
                 })?;
             }
@@ -132,7 +132,7 @@ pub fn verify_conditions(
                         link.from().name()
                     )
                     .map_err(Error::output_error)
-                    .and_then::<(), _>(|_| Err(err))
+                    .and::<()>(Err(err))
                     .unwrap_err()
                 })?;
             }
