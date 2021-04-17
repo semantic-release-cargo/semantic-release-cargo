@@ -17,3 +17,14 @@ pull_request_rules:
     actions:
       queue:
         name: default
+
+  - name: Queue on success checks for sbosnick
+    conditions:
+      - author=sbosnick
+      - check-success=Test stable
+      - check-success=Test beta
+      - check-success=Test nightly
+      - check-success=Test 1.45.0
+    actions:
+      queue:
+        name: default
