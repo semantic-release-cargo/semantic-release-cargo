@@ -1,15 +1,15 @@
 name: CI
 on:
   pull_request:
-    branches:
-      - main
-      - alpha
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   RUST_BACKTRACE: 1
 
 jobs:
-
   test:
     name: Test ${{ matrix.rust }}
     strategy:
@@ -21,7 +21,6 @@ jobs:
           - 1.45.0
 
     runs-on: ubuntu-latest
-    if: github.actor != 'sbosnick-bot'
 
     steps:
       - name: Checkout
@@ -33,19 +32,6 @@ jobs:
           profile: default
           toolchain: ${{ matrix.rust }}
           override: true
-
-      - name: Check Format
-        if: matrix.rust == 'stable'
-        uses: actions-rs/cargo@v1
-        with:
-            command: fmt
-            args: -- --check
-
-      - name: Clippy
-        if: matrix.rust == 'stable'
-        uses: actions-rs/clippy-check@v1
-        with:
-            token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Test
         uses: actions-rs/cargo@v1
