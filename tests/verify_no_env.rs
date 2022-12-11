@@ -11,7 +11,7 @@ use std::path::{Path, PathBuf};
 
 use assert_matches::assert_matches;
 
-use semantic_release_rust::{verify_conditions, Error};
+use semantic_release_cargo::{verify_conditions, Error};
 
 #[test]
 fn verify_without_env_var_is_error() {

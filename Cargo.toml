@@ -1,11 +1,11 @@
 [package]
-name = "semantic-release-rust"
+name = "semantic-release-cargo"
 version ="1.0.0-alpha.8"
 authors = ["Steven Bosnick <sbosnick@sympatico.ca>"]
 edition = "2018"
 description = "A CLI to integrate Rust into a semantic-release workflow."
 readme = "README.md"
-repository = "https://github.com/kettleby/semantic-release-rust"
+repository = "https://github.com/semantic-release-rust/semantic-release-rust"
 license = "MIT OR Apache-2.0"
 keywords = ["release", "semantic-release", "command-line-tool"]
 categories = ["command-line-utilities", "development-tools::build-utils"]

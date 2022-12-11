@@ -16,7 +16,7 @@ use semver::Version;
 use tempfile::{tempdir, TempDir};
 use toml_edit::{Document, Table};
 
-use semantic_release_rust::prepare;
+use semantic_release_cargo::prepare;
 
 #[test]
 fn prepare_basic() {

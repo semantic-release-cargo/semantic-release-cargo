@@ -11,7 +11,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use semantic_release_rust::list_packages;
+use semantic_release_cargo::list_packages;
 
 #[test]
 fn list_basic_workspace() {

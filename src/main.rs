@@ -16,7 +16,7 @@ use log::Level;
 use loggerv::{Logger, Output};
 use structopt::StructOpt;
 
-use semantic_release_rust::{list_packages, prepare, publish, verify_conditions};
+use semantic_release_cargo::{list_packages, prepare, publish, verify_conditions};
 
 /// Run sementic-release steps in the context of a cargo based Rust project.
 #[derive(StructOpt)]

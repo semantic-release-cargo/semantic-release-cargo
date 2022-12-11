@@ -72,7 +72,7 @@
           # Additional arguments specific to this derivation can be added here.
           # Be warned that using `//` will not do a deep copy of nested
           # structures
-          pname = "semantic-release-rust-deps";
+          pname = "semantic-release-cargo-deps";
         });
 
       # Run clippy (and deny all warnings) on the crate source,

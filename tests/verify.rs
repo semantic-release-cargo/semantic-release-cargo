@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 
 use assert_matches::assert_matches;
 
-use semantic_release_rust::{verify_conditions, Error};
+use semantic_release_cargo::{verify_conditions, Error};
 
 #[test]
 fn verify_simple_workspaces_is_ok() {
