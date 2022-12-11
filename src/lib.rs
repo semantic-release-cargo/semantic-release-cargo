@@ -172,7 +172,7 @@ pub fn prepare(
     info!("Setting version information for packages in the workspace.");
     for package in graph.workspace().iter() {
         let path = package.manifest_path();
-        debug!("reading {}", path.display());
+        debug!("reading {}", path.as_str());
         let mut cargo = read_cargo_toml(path)?;
 
         debug!("Setting the version for {}", package.name());
@@ -205,7 +205,7 @@ pub fn prepare(
             }
         }
 
-        debug!("writing {}", path.display());
+        debug!("writing {}", path.as_str());
         write_cargo_toml(path, cargo)?;
     }
 
@@ -343,9 +343,14 @@ fn link_is_publishable(link: &PackageLink) -> bool {
 /// A package is publishable if either publication is unrestricted or the one
 /// and only registry it is allowed to be published to is "crates.io".
 fn package_is_publishable(pkg: &PackageMetadata) -> bool {
-    let result = pkg.publish().map_or(true, |registries| {
-        registries.len() == 1 && registries[0] == "cratis.io"
-    });
+    let result = match pkg.publish() {
+        guppy::graph::PackagePublish::Unrestricted => true,
+        guppy::graph::PackagePublish::Registries(registries) => {
+            // DISCUSS: is this supposed to be crates.io?
+            registries.len() == 1 && registries[0] == "cratis.io"
+        }
+        _ => todo!(),
+    };
 
     if result {
         trace!("package {} is publishable", pkg.name());
@@ -398,7 +403,7 @@ fn publish_package(pkg: &PackageMetadata, no_dirty: bool) -> Result<()> {
 
     let output = command
         .output()
-        .map_err(|err| Error::cargo_publish(err, pkg.manifest_path()))?;
+        .map_err(|err| Error::cargo_publish(err, pkg.manifest_path().as_std_path()))?;
 
     let level = if output.status.success() {
         Level::Trace
@@ -424,7 +429,7 @@ fn publish_package(pkg: &PackageMetadata, no_dirty: bool) -> Result<()> {
         );
         Err(Error::cargo_publish_status(
             output.status,
-            pkg.manifest_path(),
+            pkg.manifest_path().as_std_path(),
         ))
     }
 }
