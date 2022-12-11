@@ -1,2 +1,4 @@
 /target
 /test_data/*/target
+/.direnv
+/.pre-commit-config.yaml
