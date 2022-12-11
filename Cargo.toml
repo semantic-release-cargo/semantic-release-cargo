@@ -28,4 +28,4 @@ url = { version = "2.2.0", features = ["serde"] }
 assert_matches = "1.5.0"
 tempfile = "3.2.0"
 fs_extra = "1.2.0"
-semver = "0.11.0"
+semver = "1.0"
