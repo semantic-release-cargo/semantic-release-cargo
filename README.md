@@ -10,7 +10,7 @@ and `publish` steps of [semantic-release].
 
 [semantic-release]: https://github.com/semantic-release/semantic-release
 
-## Usage
+## Install
 
 Install `semantic-release-cargo` with
 
@@ -18,7 +18,9 @@ Install `semantic-release-cargo` with
 $ cargo install semantic-release-cargo
 ```
 
-then add it to your `semantic-release` configuration using the [`semantic-release/exec`][exec]
+## Use
+
+Add **semantic-release-cargo** to your `semantic-release` configuration using the [`semantic-release/exec`][exec]
 plugin. For example, in `.releaserc.json`:
 
 ```json
