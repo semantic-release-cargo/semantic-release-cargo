@@ -1,0 +1,17 @@
+{
+  "extends": ["config:js-app"],
+  "labels": ["dependencies"],
+  "assignees": ["@ericcrosson"],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true
+    }
+  ],
+  "timezone": "America/Chicago",
+  "schedule": [
+    "after 10pm every weekday",
+    "before 5am every weekday",
+    "every weekend"
+  ]
+}
