@@ -3,6 +3,11 @@ on:
   push:
     branches: [master, alpha, beta]
 
+# Only allow one release workflow to execute at a time, since each release
+# workflow uses shared resources (git tags, package registries)
+concurrency:
+  group: ${{ github.workflow }}
+
 env:
   RUST_BACKTRACE: 1
 
