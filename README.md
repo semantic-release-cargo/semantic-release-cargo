@@ -45,17 +45,6 @@ access. You likely want to set this through the secrets mechanism of your CI pro
 
 [exec]: https://github.com/semantic-release/exec
 
-## License
-
-**semantic-release-cargo** is licensed under either of
-
-- Apache License, Version 2.0, ([LICENSE-APACHE-2.0](LICENSE-APACHE-2.0) or
-  http://www.apache.org/licenses/LICENSE-2.0)
-- MIT license ([LICENSE-MIT](LICENSE-MIT) or
-  http://opensource.org/licenses/MIT)
-
-at your option.
-
 ## Contribution
 
 Please note that this project is released with a [Contributor Code of
