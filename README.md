@@ -4,7 +4,7 @@
 
 [build status]: https://github.com/semantic-release-cargo/semantic-release-cargo/actions/workflows/release.yml/badge.svg?event=push
 
-**semantic-release-cargo** integrates a cargo-based Rust project into [semantic-release].
+**semantic-release-cargo** integrates a cargo-based Rust project with [semantic-release].
 Specifically it provides sub-command for each of the `verifyConditons`, `prepare`,
 and `publish` steps of [semantic-release].
 
