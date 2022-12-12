@@ -53,3 +53,10 @@ Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in **semantic-release-cargo** by you, as defined in the Apache-2.0
 license, shall be dual licensed as above, without any additional terms or
 conditions.
+
+## Acknowledgments
+
+This repository has been forked from [kettleby/semantic-release-rust]. All
+credit goes to the original author.
+
+[kettleby/semantic-release-rust]: https://github.com/kettleby/semantic-release-rust
