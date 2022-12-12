@@ -346,8 +346,7 @@ fn package_is_publishable(pkg: &PackageMetadata) -> bool {
     let result = match pkg.publish() {
         guppy::graph::PackagePublish::Unrestricted => true,
         guppy::graph::PackagePublish::Registries(registries) => {
-            // DISCUSS: is this supposed to be crates.io?
-            registries.len() == 1 && registries[0] == "cratis.io"
+            registries.len() == 1 && registries[0] == "crates.io"
         }
         _ => todo!(),
     };
