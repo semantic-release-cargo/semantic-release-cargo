@@ -47,7 +47,7 @@ access. You likely want to set this through the secrets mechanism of your CI pro
 
 ## License
 
-Semantic Release Rust is licensed under either of
+**semantic-release-cargo** is licensed under either of
 
 - Apache License, Version 2.0, ([LICENSE-APACHE-2.0](LICENSE-APACHE-2.0) or
   http://www.apache.org/licenses/LICENSE-2.0)
@@ -63,7 +63,7 @@ Conduct][code-of-conduct]. By participating in this project you agree to abide
 by its terms.
 
 Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in Semantic Release Rust by you, as defined in the Apache-2.0
+for inclusion in **semantic-release-cargo** by you, as defined in the Apache-2.0
 license, shall be dual licensed as above, without any additional terms or
 conditions.
 
