@@ -130,7 +130,7 @@ pub enum Error {
     WriteReleaseError(WriteReleaseError),
 }
 
-/// A specialized `Result` type for `semantic-release-rust` operations.
+/// A specialized `Result` type for `semantic-release-cargo` operations.
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// The error details related to a problem parsing the workspace structure.
