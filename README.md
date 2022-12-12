@@ -1,4 +1,4 @@
-# Semantic Release Cargo
+# semantic-release-cargo
 
 [![Build Status]](https://github.com/semantic-release-cargo/semantic-release-cargo/actions/workflows/release.yml)
 
