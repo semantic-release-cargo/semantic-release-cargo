@@ -7,10 +7,6 @@
       inputs.flake-utils.follows = "flake-utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    fenix = {
-      url = "github:nix-community/fenix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     pre-commit-hooks = {
       url = "github:cachix/pre-commit-hooks.nix";
       inputs.flake-utils.follows = "flake-utils";
@@ -22,7 +18,6 @@
     self,
     nixpkgs,
     crane,
-    fenix,
     flake-utils,
     pre-commit-hooks,
     ...
@@ -32,17 +27,15 @@
         inherit system;
       };
 
-      fenix-channel = fenix.packages.${system}.latest;
-      fenix-toolchain = fenix-channel.withComponents [
-        "rustc"
-        "cargo"
-        "clippy"
-        "rust-analysis"
-        "rust-src"
-        "rustfmt"
+      rust-components = with pkgs; [
+        rustc
+        cargo
+        clippy
+        rust-analyzer
+        rustfmt
       ];
 
-      craneLib = crane.lib.${system}.overrideToolchain fenix-toolchain;
+      craneLib = crane.lib.${system};
 
       # Common derivation arguments used for all builds
       commonArgs = {
@@ -50,19 +43,13 @@
 
         # Add extra inputs here or any other derivation settings
         # doCheck = true;
-        buildInputs = with pkgs; [
-          openssl
-          fenix-channel.rustc
-          fenix-channel.clippy
+        buildInputs = [
+          # openssl
         ];
 
-        nativeBuildInputs = with pkgs; [
-          cmake
-          pkg-config
+        nativeBuildInputs = [
+          # pkg-config
         ];
-
-        # DEBUG:
-        dontUseCmakeConfigure = true;
       };
 
       # Build *just* the cargo dependencies, so we can reuse
@@ -125,10 +112,8 @@
           buildInputs = commonArgs.buildInputs;
           nativeBuildInputs =
             commonArgs.nativeBuildInputs
+            ++ rust-components
             ++ [
-              fenix-toolchain
-              fenix.packages.${system}.rust-analyzer
-
               pkgs.nodejs
             ];
 
