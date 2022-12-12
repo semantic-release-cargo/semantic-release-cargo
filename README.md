@@ -45,15 +45,9 @@ access. You likely want to set this through the secrets mechanism of your CI pro
 
 [exec]: https://github.com/semantic-release/exec
 
-## Contribution
-
-Please note that this project is released with a [Contributor Code of
-Conduct][code-of-conduct]. By participating in this project you agree to abide
-by its terms.
+## Contributors License Agreement
 
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in **semantic-release-cargo** by you, as defined in the Apache-2.0
 license, shall be dual licensed as above, without any additional terms or
 conditions.
-
-[code-of-conduct]: CODE_OF_CONDUCT.md
