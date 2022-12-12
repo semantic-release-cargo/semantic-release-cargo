@@ -19,17 +19,24 @@ $ cargo install semantic-release-cargo
 ```
 
 then add it to your `semantic-release` configuration using the [`semantic-release/exec`][exec]
-plugin. For example in `.releaserc.yml`:
+plugin. For example, in `.releaserc.json`:
 
-```yaml
-plugins:
-  - "@semantic-release/commit-analyzer"
-  - "@semantic-release/release-notes-generator"
-  - "@semantic-release/github"
-  - - "@semantic-release/exec"
-    - verifyConditionsCmd: "semantic-release-cargo verify-conditions"
-      prepareCmd: "semantic-release-cargo prepare ${nextRelease.version}"
-      publishCmd: "semantic-release-cargo publish"
+```json
+{
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/github",
+    [
+      "@semantic-release/exec",
+      {
+        "verifyConditionsCmd": "semantic-release-cargo verify-conditions",
+        "prepareCmd": "semantic-release-cargo prepare ${nextRelease.version}",
+        "publishCmd": "semantic-release-cargo publish"
+      }
+    ]
+  ]
+}
 ```
 
 `semantic-release-cargo` expects (and verifies) that the environment variable
