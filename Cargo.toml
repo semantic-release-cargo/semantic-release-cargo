@@ -1,7 +1,7 @@
 [package]
 name = "semantic-release-cargo"
 version ="1.0.2"
-authors = ["Steven Bosnick <sbosnick@sympatico.ca>"]
+authors = ["Steven Bosnick <sbosnick@sympatico.ca>", "Eric Crosson <eric.s.crosson@utexas.edu>"]
 edition = "2018"
 description = "A CLI to integrate Rust into a semantic-release workflow."
 readme = "README.md"
