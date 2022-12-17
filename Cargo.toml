@@ -11,17 +11,17 @@ keywords = ["release", "semantic-release", "command-line-tool"]
 categories = ["command-line-utilities", "development-tools::build-utils"]
 
 [dependencies]
+anyhow = "1.0.38"
+guppy = "0.15.1"
 human-panic = "1.0.3"
+itertools = "0.10.0"
 log = "0.4.14"
 loggerv = "0.7.2"
-structopt = "0.3.21"
-anyhow = "1.0.38"
-thiserror = "1.0.23"
-guppy = "0.15.1"
-itertools = "0.10.0"
-toml_edit = "0.2.0"
-serde = { version = "1.0.123", features = ["derive"] }
 serde_json = "1.0.62"
+serde = { version = "1.0.123", features = ["derive"] }
+structopt = "0.3.21"
+thiserror = "1.0.23"
+toml_edit = "0.2.0"
 url = { version = "2.2.0", features = ["serde"] }
 
 [dev-dependencies]
