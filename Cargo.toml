@@ -19,7 +19,10 @@ exclude = [
   "index.d.ts",
   "index.js",
   "package-lock.json",
-  "package.json"
+  "package.json",
+  "semantic-release-cargo.darwin-arm64.node",
+  "semantic-release-cargo.darwin-x64.node",
+  "semantic-release-cargo.linux-x64-gnu.node"
 ]
 
 [lib]
