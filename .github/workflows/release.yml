@@ -45,6 +45,7 @@ jobs:
 
   # Compile native CLI binary
   build-release:
+    name: build-release ${{ matrix.settings.target }}
     runs-on: ${{ matrix.triple.os }}
     container: ${{ matrix.triple.container }}
     needs:
@@ -178,7 +179,7 @@ jobs:
               ./node_modules/.bin/napi build --platform --release --strip --js false --features napi-rs --cargo-flags=--lib --target x86_64-unknown-linux-gnu &&
               strip *.node
 
-    name: Build ${{ matrix.settings.target }}
+    name: build-napi ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     steps:
       - uses: actions/checkout@v3
