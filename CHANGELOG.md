@@ -1,3 +1,10 @@
+# [2.0.0-beta.4](https://github.com/semantic-release-rust/semantic-release-rust/compare/v2.0.0-beta.3...v2.0.0-beta.4) (2022-12-18)
+
+
+### Bug Fixes
+
+* re-enable prepare lifecycle hook ([95dd885](https://github.com/semantic-release-rust/semantic-release-rust/commit/95dd88576bc8bf6b1a2c9c0bab7bf0f0ba100307))
+
 # [2.0.0-beta.3](https://github.com/semantic-release-rust/semantic-release-rust/compare/v2.0.0-beta.2...v2.0.0-beta.3) (2022-12-18)
 
 
