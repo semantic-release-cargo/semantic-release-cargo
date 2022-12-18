@@ -3,8 +3,16 @@
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
     "@semantic-release/changelog",
-    "@semantic-release/npm",
     "@semantic-release/git",
+    [
+      "@semantic-release/exec",
+      {
+        "verifyConditionsCmd": "./semantic-release-cargo verify-conditions",
+        "prepareCmd": "./semantic-release-cargo prepare ${nextRelease.version}",
+        "publishCmd": "./semantic-release-cargo publish"
+      }
+    ],
+    "@semantic-release/npm",
     [
       "@semantic-release/github",
       {
@@ -34,14 +42,6 @@
             "label": "SHASUMS256.txt"
           }
         ]
-      }
-    ],
-    [
-      "@semantic-release/exec",
-      {
-        "verifyConditionsCmd": "./semantic-release-cargo verify-conditions",
-        "prepareCmd": "./semantic-release-cargo prepare ${nextRelease.version}",
-        "publishCmd": "./semantic-release-cargo publish"
       }
     ]
   ]
