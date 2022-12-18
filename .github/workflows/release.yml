@@ -45,7 +45,7 @@ jobs:
 
   # Compile native CLI binary
   build-release:
-    name: build-release ${{ matrix.settings.target }}
+    name: build-release ${{ matrix.triple.target }}
     runs-on: ${{ matrix.triple.os }}
     container: ${{ matrix.triple.container }}
     needs:
