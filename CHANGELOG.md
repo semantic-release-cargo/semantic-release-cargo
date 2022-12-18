@@ -1,3 +1,10 @@
+# [2.0.0-beta.3](https://github.com/semantic-release-rust/semantic-release-rust/compare/v2.0.0-beta.2...v2.0.0-beta.3) (2022-12-18)
+
+
+### Bug Fixes
+
+* use x86_64-unknown-linux-gnu target ([1517c0a](https://github.com/semantic-release-rust/semantic-release-rust/commit/1517c0ac4f7599f69616ac35b7fb340ba3f28bb0))
+
 # [2.0.0-beta.2](https://github.com/semantic-release-rust/semantic-release-rust/compare/v2.0.0-beta.1...v2.0.0-beta.2) (2022-12-18)
 
 
