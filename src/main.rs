@@ -22,9 +22,9 @@ use semantic_release_cargo::{list_packages, prepare, publish, verify_conditions}
 struct Opt {
     /// Increases the logging level (use multiple times for more detail).
     #[clap(short, long, action = clap::ArgAction::Count)]
-    verbose: u64,
+    verbose: u8,
 
-    #[structopt(subcommand)]
+    #[clap(subcommand)]
     subcommand: Subcommand,
 }
 
@@ -54,7 +54,7 @@ enum Subcommand {
     ///
     /// This implments the `verifyConditions` step for `sementic-release` for a
     /// Cargo-based Rust workspace.
-    #[structopt(verbatim_doc_comment)]
+    #[clap(verbatim_doc_comment)]
     VerifyConditions(CommonOpt),
 
     /// Prepare the Rust workspace for a release.
@@ -84,13 +84,13 @@ enum Subcommand {
 #[derive(Parser)]
 struct CommonOpt {
     /// The path to the `Cargo.toml` file for the root of the workspace.
-    #[structopt(long)]
+    #[clap(long)]
     manifest_path: Option<PathBuf>,
 }
 
 #[derive(Parser)]
 struct PrepareOpt {
-    #[structopt(flatten)]
+    #[clap(flatten)]
     common: CommonOpt,
 
     /// The version to set in all crates in the workspace.
@@ -99,11 +99,11 @@ struct PrepareOpt {
 
 #[derive(Parser)]
 struct PublishOpt {
-    #[structopt(flatten)]
+    #[clap(flatten)]
     common: CommonOpt,
 
     /// Disallow publishing with uncommited files in the workspace.
-    #[structopt(long)]
+    #[clap(long)]
     no_dirty: bool,
 }
 
@@ -129,7 +129,7 @@ fn main() -> Result<(), Error> {
         .output(&Level::Trace, Output::Stderr)
         .output(&Level::Debug, Output::Stderr)
         .output(&Level::Info, Output::Stderr)
-        .verbosity(opt.verbose)
+        .verbosity(opt.verbose.into())
         .init()?;
 
     opt.subcommand.run()
