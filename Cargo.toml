@@ -27,7 +27,7 @@ name = "semantic_release_cargo"
 path = "src/lib.rs"
 crate-type = ["lib", "cdylib"]
 
-# Must be build without default features, to disable napi-rs
+# Must be built without default features, to disable napi-rs
 [[bin]]
 name = "semantic-release-cargo"
 path = "src/main.rs"

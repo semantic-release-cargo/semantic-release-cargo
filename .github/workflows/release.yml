@@ -164,19 +164,19 @@ jobs:
               export CXX=$(xcrun -f clang++);
               SYSROOT=$(xcrun --sdk macosx --show-sdk-path);
               export CFLAGS="-isysroot $SYSROOT -isystem $SYSROOT";
-              ./node_modules/.bin/napi build --platform --release --strip --target aarch64-apple-darwin
+              ./node_modules/.bin/napi build --platform --release --strip --js false --target aarch64-apple-darwin --cargo-flags=--lib
               strip -x *.node
           - host: macos-latest
             target: x86_64-apple-darwin
             build: |
-              ./node_modules/.bin/napi build --platform --release --strip
+              ./node_modules/.bin/napi build --platform --release --strip --js false --target x86_64-apple-darwin --cargo-flags=--lib
               strip -x *.node
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
             build: |-
               set -e &&
-              ./node_modules/.bin/napi build --platform --release --strip --target x86_64-unknown-linux-gnu &&
+              ./node_modules/.bin/napi build --platform --release --strip --js false --target x86_64-unknown-linux-gnu --cargo-flags=--lib &&
               strip *.node
     name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
