@@ -21,9 +21,9 @@ function verifyConditions(pluginConfig, context) {
   semanticReleaseCargo.verifyConditions();
 }
 
-// function prepare(pluginConfig, context) {
-//   semanticReleaseCargo.prepare(context.nextRelease.version);
-// }
+function prepare(pluginConfig, context) {
+  semanticReleaseCargo.prepare(context.nextRelease.version);
+}
 
 function publish(pluginConfig, context) {
   semanticReleaseCargo.publish(false);
@@ -31,6 +31,6 @@ function publish(pluginConfig, context) {
 
 module.exports = {
   verifyConditions,
-  // prepare,
+  prepare,
   publish,
 };
