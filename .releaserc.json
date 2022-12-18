@@ -8,7 +8,7 @@
       {
         "verifyConditionsCmd": "./semantic-release-cargo verify-conditions",
         "prepareCmd": "./semantic-release-cargo prepare ${nextRelease.version}",
-        "publishCmd": "./semantic-release-cargo --verbose --verbose --verbose publish"
+        "publishCmd": "./semantic-release-cargo publish"
       }
     ],
     "@semantic-release/npm",
