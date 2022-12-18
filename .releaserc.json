@@ -2,21 +2,9 @@
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
-    "@semantic-release/github",
     "@semantic-release/changelog",
-    [
-      "@semantic-release/exec",
-      {
-        "verifyConditionsCmd": "./target/release/semantic-release-cargo verify-conditions",
-        "prepareCmd": "./target/release/semantic-release-cargo prepare ${nextRelease.version}",
-        "publishCmd": "./target/release/semantic-release-cargo publish"
-      }
-    ],
-    [
-      "@semantic-release/git",
-      {
-        "assets": ["CHANGELOG.md", "Cargo.toml"]
-      }
-    ]
+    "@semantic-release/npm",
+    "@semantic-release/git",
+    "@semantic-release/github"
   ]
 }

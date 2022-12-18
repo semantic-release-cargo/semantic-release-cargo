@@ -43,7 +43,7 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Test
+      - name: Compile
         uses: actions-rs/cargo@v1
         with:
-          command: test
+          command: check

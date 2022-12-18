@@ -131,7 +131,7 @@ pub enum Error {
 }
 
 /// A specialized `Result` type for `semantic-release-cargo` operations.
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result<T> = std::result::Result<T, anyhow::Error>;
 
 /// The error details related to a problem parsing the workspace structure.
 #[derive(Debug, Error)]
@@ -267,13 +267,6 @@ impl Error {
             inner,
             main_crate: main_crate.to_owned(),
         })
-    }
-
-    pub(crate) fn cycle_error(crate1: &str, crate2: &str) -> Error {
-        Error::WorkspaceCycles {
-            crate1: crate1.to_owned(),
-            crate2: crate2.to_owned(),
-        }
     }
 }
 

@@ -1,4 +1,7 @@
-/target
-/test_data/*/target
 /.direnv
+/napi/
+/node_modules/
 /.pre-commit-config.yaml
+/semantic-release-cargo.*.node
+/target/
+/test_data/*/target
