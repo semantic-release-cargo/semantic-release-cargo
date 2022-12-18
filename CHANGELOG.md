@@ -1,3 +1,10 @@
+# [2.0.0-beta.6](https://github.com/semantic-release-rust/semantic-release-rust/compare/v2.0.0-beta.5...v2.0.0-beta.6) (2022-12-18)
+
+
+### Bug Fixes
+
+* publish semantic-release-cargo to crates.io with semantic-release ([d89213b](https://github.com/semantic-release-rust/semantic-release-rust/commit/d89213b1adb9661764d2a29fa49b06bdceb9801f))
+
 # [2.0.0-beta.5](https://github.com/semantic-release-rust/semantic-release-rust/compare/v2.0.0-beta.4...v2.0.0-beta.5) (2022-12-18)
 
 
