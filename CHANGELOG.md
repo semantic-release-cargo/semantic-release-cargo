@@ -4,6 +4,14 @@
 ### Bug Fixes
 
 * avoid segfault in args parsing ([4c42566](https://github.com/semantic-release-rust/semantic-release-rust/commit/4c425665a8aada8d0a4053ad755f87db49d38100))
+* remove CI artifacts from cargo package list ([764e04a](https://github.com/semantic-release-rust/semantic-release-rust/commit/764e04a0a73994ba4b06023886e98c96edeca43b))
+
+# [2.0.0-beta.7](https://github.com/semantic-release-rust/semantic-release-rust/compare/v2.0.0-beta.6...v2.0.0-beta.7) (2022-12-18)
+
+
+### Bug Fixes
+
+* avoid segfault in args parsing ([4c42566](https://github.com/semantic-release-rust/semantic-release-rust/commit/4c425665a8aada8d0a4053ad755f87db49d38100))
 
 # [2.0.0-beta.6](https://github.com/semantic-release-rust/semantic-release-rust/compare/v2.0.0-beta.5...v2.0.0-beta.6) (2022-12-18)
 
