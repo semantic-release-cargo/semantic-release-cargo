@@ -282,6 +282,13 @@ jobs:
       - name: Combine checksums
         run: cat dist/**/semantic-release-cargo-*-SHASUMS256.txt | tee dist/SHASUMS256.txt
 
+      - name: Prepare semantic-release-cargo for local use
+        run: |
+          cp dist/x86_64-unknown-linux-musl/semantic-release-cargo-x86_64-unknown-linux-musl.tar.gz .
+          tar -xvf semantic-release-cargo-x86_64-unknown-linux-musl.tar.gz
+          mv ./semantic-release-cargo-x86_64-unknown-linux-musl/semantic-release-cargo .
+          rmdir semantic-release-cargo-x86_64-unknown-linux-musl
+
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
