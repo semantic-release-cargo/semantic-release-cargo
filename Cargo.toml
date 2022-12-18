@@ -10,16 +10,19 @@ license = "MIT OR Apache-2.0"
 keywords = ["release", "semantic-release", "command-line-tool"]
 categories = ["command-line-utilities", "development-tools::build-utils"]
 exclude = [
+  "artifacts",
+  "dist",
   ".envrc",
-  ".github",
-  ".gitignore",
-  ".releaserc.json",
   "flake.lock",
   "flake.nix",
+  ".github",
+  ".gitignore",
   "index.d.ts",
   "index.js",
-  "package-lock.json",
+  "node_modules",
   "package.json",
+  "package-lock.json",
+  ".releaserc.json",
   "semantic-release-cargo",
   "semantic-release-cargo.darwin-arm64.node",
   "semantic-release-cargo.darwin-x64.node",
