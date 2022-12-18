@@ -222,7 +222,7 @@ jobs:
         shell: bash
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Build in docker
         uses: addnab/docker-run-action@v3
@@ -269,7 +269,7 @@ jobs:
             npm-cache-
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Download artifacts
         uses: actions/download-artifact@v3
