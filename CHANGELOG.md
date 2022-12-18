@@ -1,3 +1,10 @@
+# [2.0.0-beta.5](https://github.com/semantic-release-rust/semantic-release-rust/compare/v2.0.0-beta.4...v2.0.0-beta.5) (2022-12-18)
+
+
+### Bug Fixes
+
+* upload compiled CLI to GitHub Release artifacts ([34b692a](https://github.com/semantic-release-rust/semantic-release-rust/commit/34b692a32e1ffe9de53497f9300264a1fa974f21))
+
 # [2.0.0-beta.4](https://github.com/semantic-release-rust/semantic-release-rust/compare/v2.0.0-beta.3...v2.0.0-beta.4) (2022-12-18)
 
 
