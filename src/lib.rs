@@ -29,10 +29,12 @@ use guppy::{
 };
 use itertools::Itertools;
 use log::{debug, error, info, log, trace, Level};
-use napi_derive::napi;
 use serde::Serialize;
 use toml_edit::{Document, InlineTable, Item, Table, Value};
 use url::Url;
+
+#[cfg(feature = "napi-rs")]
+use napi_derive::napi;
 
 mod error;
 
@@ -58,7 +60,7 @@ pub use error::{CargoTomlError, Error, Result};
 ///
 /// This implments the `verifyConditions` step for `sementic-release` for a
 /// Cargo-based rust workspace.
-#[napi]
+#[cfg_attr(feature = "napi-rs", napi)]
 pub fn verify_conditions() -> Result<()> {
     info!("Checking CARGO_REGISTRY_TOKEN");
     env::var_os("CARGO_REGISTRY_TOKEN")
@@ -158,7 +160,7 @@ pub fn verify_conditions() -> Result<()> {
 ///
 /// This implments the `prepare` step for `sementic-release` for a Cargo-based Rust
 /// workspace.
-#[napi]
+#[cfg_attr(feature = "napi-rs", napi)]
 pub fn prepare(next_release_version: String) -> Result<()> {
     info!("Building package graph");
     let graph = get_package_graph()?;
@@ -223,7 +225,7 @@ pub fn prepare(next_release_version: String) -> Result<()> {
 ///
 /// This implments the `publish` step for `sementic-release` for a Cargo-based
 /// Rust workspace.
-#[napi]
+#[cfg_attr(feature = "napi-rs", napi)]
 pub fn publish(no_dirty: bool) -> Result<()> {
     info!("getting the package graph");
     let graph = get_package_graph()?;

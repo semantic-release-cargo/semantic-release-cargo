@@ -5,6 +5,36 @@
     "@semantic-release/changelog",
     "@semantic-release/npm",
     "@semantic-release/git",
-    "@semantic-release/github"
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "dist/x86_64-unknown-linux-musl/semantic-release-cargo-x86_64-unknown-linux-musl.tar.gz",
+            "label": "x86_64-unknown-linux-musl"
+          },
+          {
+            "path": "dist/i686-unknown-linux-musl/semantic-release-cargo-i686-unknown-linux-musl.tar.gz",
+            "label": "i686-unknown-linux-musl"
+          },
+          {
+            "path": "dist/x86_64-apple-darwin/semantic-release-cargo-x86_64-apple-darwin.tar.gz",
+            "label": "x86_64-apple-darwin"
+          },
+          {
+            "path": "dist/aarch64-unknown-linux-musl/semantic-release-cargo-aarch64-unknown-linux-musl.tar.gz",
+            "label": "aarch64-unknown-linux-musl"
+          },
+          {
+            "path": "dist/aarch64-apple-darwin/semantic-release-cargo-aarch64-apple-darwin.tar.gz",
+            "label": "aarch64-apple-darwin"
+          },
+          {
+            "path": "dist/SHASUMS256.txt",
+            "label": "SHASUMS256.txt"
+          }
+        ]
+      }
+    ]
   ]
 }
