@@ -248,7 +248,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build-napi
-      - build-native
+      - build-release
     steps:
       - uses: actions/checkout@v3
 
