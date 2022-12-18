@@ -3,7 +3,7 @@ const { platform, arch } = require("os");
 const getAbi = (platform) => {
   switch (platform) {
     case "linux":
-      return "-musl";
+      return "-gnu";
     case "win32":
       return "-msvc";
     default:

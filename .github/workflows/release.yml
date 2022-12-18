@@ -1,51 +1,3 @@
-# jobs:
-#   release:
-#     name: Semantic Release
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v2
-#         with:
-#           fetch-depth: 0
-#           persist-credentials: false
-
-#       - name: Install Rust Stable
-#         uses: actions-rs/toolchain@v1
-#         with:
-#           profile: minimal
-#           toolchain: stable
-#           override: true
-
-#       - uses: actions/cache@v3
-#         with:
-#           path: |
-#             ~/.cargo/bin/
-#             ~/.cargo/registry/index/
-#             ~/.cargo/registry/cache/
-#             ~/.cargo/git/db/
-#             target/
-#           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-#       # The release build is used in the Semantic Release step
-#       - name: Build
-#         uses: actions-rs/cargo@v1
-#         with:
-#           command: build
-#           args: --release
-
-#       - name: Semantic Release
-#         uses: cycjimmy/semantic-release-action@v3
-#         id: semantic
-#         with:
-#           semantic_version: 19.0.5
-#           extra_plugins: |
-#             @semantic-release/changelog@6.0
-#             @semantic-release/exec@6.0
-#             @semantic-release/git@10.0
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ---
 name: Release
 
@@ -86,11 +38,11 @@ jobs:
               ./node_modules/.bin/napi build --platform --release --strip
               strip -x *.node
           - host: ubuntu-latest
-            target: x86_64-unknown-linux-musl
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            target: x86_64-unknown-linux-gnu
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
             build: |-
               set -e &&
-              ./node_modules/.bin/napi build --platform --release --strip &&
+              ./node_modules/.bin/napi build --platform --release --strip --target x86_64-unknown-linux-gnu &&
               strip *.node
     name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
@@ -194,7 +146,7 @@ jobs:
           mkdir napi/
           mv artifacts/bindings-aarch64-apple-darwin/semantic-release-cargo.darwin-arm64.node napi/
           mv artifacts/bindings-x86_64-apple-darwin/semantic-release-cargo.darwin-x64.node napi/
-          mv artifacts/bindings-x86_64-unknown-linux-musl/semantic-release-cargo.linux-x64-musl.node napi/
+          mv artifacts/bindings-x86_64-unknown-linux-gnu/semantic-release-cargo.linux-x64-gnu.node napi/
 
       - name: List packages
         run: ls -R ./napi
