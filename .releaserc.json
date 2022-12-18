@@ -43,6 +43,17 @@
         ]
       }
     ],
-    "@semantic-release/git"
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "CHANGELOG.md",
+          "Cargo.toml",
+          "Cargo.lock",
+          "package.json",
+          "package-lock.json"
+        ]
+      }
+    ]
   ]
 }
