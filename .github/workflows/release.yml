@@ -38,6 +38,14 @@ jobs:
           node-version: lts/*
           cache: npm
 
+      - name: Cache NPM dependencies
+        uses: actions/cache@v3
+        with:
+          path: .npm/cache
+          key: npm-cache-ubuntu-latest-publish
+          restore-keys: |
+            npm-cache-
+
       - name: Install npm dependencies
         run: npm ci --ignore-scripts
 
