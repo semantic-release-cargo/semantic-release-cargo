@@ -44,7 +44,7 @@ jobs:
         run: echo "next-version=$(npx standard-version --dry-run | grep "tagging release" | awk '{ print $NF }' | tr -d 'v')" >> $GITHUB_OUTPUT
 
   # Compile native CLI binary
-  build-release:
+  build-cli:
     name: build-release ${{ matrix.triple.target }}
     runs-on: ${{ matrix.triple.os }}
     container: ${{ matrix.triple.container }}
@@ -186,7 +186,6 @@ jobs:
 
       - name: Setup node
         uses: actions/setup-node@v3
-        if: ${{ !matrix.settings.docker }}
         with:
           node-version: lts/*
           check-latest: true
@@ -194,7 +193,6 @@ jobs:
 
       - name: Install
         uses: actions-rs/toolchain@v1
-        if: ${{ !matrix.settings.docker }}
         with:
           profile: minimal
           override: true
