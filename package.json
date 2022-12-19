@@ -26,14 +26,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/semantic-release-rust/semantic-release-rust.git"
+    "url": "git+https://github.com/semantic-release-cargo/semantic-release-cargo.git"
   },
   "author": "Eric Crosson <eric.s.crosson@utexas.edu",
   "license": "MIT OR Apache-2.0",
   "bugs": {
-    "url": "https://github.com/semantic-release-rust/semantic-release-rust/issues"
+    "url": "https://github.com/semantic-release-cargo/semantic-release-cargo/issues"
   },
-  "homepage": "https://github.com/semantic-release-rust/semantic-release-rust#readme",
+  "homepage": "https://github.com/semantic-release-cargo/semantic-release-cargo#readme",
   "devDependencies": {
     "@napi-rs/cli": "2.13.3",
     "@semantic-release/changelog": "6.0.2",
