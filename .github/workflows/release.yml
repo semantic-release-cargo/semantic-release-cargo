@@ -51,7 +51,7 @@ jobs:
 
       - name: Calculate next semantic-release version
         id: get-next-version
-        run: ./node_modules/.bin/semantic-release --dry-run --verify-conditions semantic-release-export-data --generateNotes semantic-release-export-data
+        run: ./node_modules/.bin/semantic-release --dry-run --verify-conditions semantic-release-export-data --generate-notes semantic-release-export-data
 
   # Compile native CLI binary
   build-cli:
