@@ -10,15 +10,9 @@ env:
   RUST_BACKTRACE: 1
 
 jobs:
-  test:
-    name: Test ${{ matrix.rust }}
-    strategy:
-      matrix:
-        rust:
-          - stable
-          - beta
-          - nightly
-          - 1.45.0
+  # Compile native CLI binary
+  test-cli:
+    name: Test CLI
 
     runs-on: ubuntu-latest
 
@@ -43,7 +37,78 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Test
+      - name: Compile
         uses: actions-rs/cargo@v1
         with:
-          command: test
+          command: check
+
+  # Compile napi-rs native Node.js library
+  build-napi:
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - host: macos-latest
+            target: aarch64-apple-darwin
+            build: |
+              sudo rm -Rf /Library/Developer/CommandLineTools/SDKs/*;
+              export CC=$(xcrun -f clang);
+              export CXX=$(xcrun -f clang++);
+              SYSROOT=$(xcrun --sdk macosx --show-sdk-path);
+              export CFLAGS="-isysroot $SYSROOT -isystem $SYSROOT";
+              ./node_modules/.bin/napi build --platform --release --js false --features napi-rs --cargo-flags=--lib --target aarch64-apple-darwin
+          - host: macos-latest
+            target: x86_64-apple-darwin
+            build: |
+              ./node_modules/.bin/napi build --platform --release --js false --features napi-rs --cargo-flags=--lib --target x86_64-apple-darwin
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            build: |-
+              set -e &&
+              ./node_modules/.bin/napi build --platform --release --js false --features napi-rs --cargo-flags=--lib --target x86_64-unknown-linux-gnu &&
+
+    name: Build Node-API ${{ matrix.settings.target }}
+    runs-on: ${{ matrix.settings.host }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+          check-latest: true
+          cache: npm
+
+      - name: Install
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+          toolchain: stable
+          target: ${{ matrix.settings.target }}
+
+      - name: Cache cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            .cargo-cache
+            target/
+          key: ${{ matrix.settings.target }}-cargo-registry
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Build
+        run: ${{ matrix.settings.build }}
+        shell: bash
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: ${{ env.APP_NAME }}.*.node
+          if-no-files-found: error
+          retention-days: 1

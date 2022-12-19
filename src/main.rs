@@ -6,34 +6,29 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms
 
-use std::fs::File;
-use std::io::{prelude::*, stdout, BufWriter};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
-use anyhow::{Context, Error};
+use anyhow::Error;
+use clap::{crate_version, Parser};
 use human_panic::setup_panic;
 use log::Level;
 use loggerv::{Logger, Output};
-use structopt::StructOpt;
 
 use semantic_release_cargo::{list_packages, prepare, publish, verify_conditions};
 
 /// Run sementic-release steps in the context of a cargo based Rust project.
-#[derive(StructOpt)]
+#[derive(Parser)]
+#[clap(version = crate_version!())]
 struct Opt {
     /// Increases the logging level (use multiple times for more detail).
-    #[structopt(short, long, parse(from_occurrences))]
-    verbose: u64,
+    #[clap(short, long, action = clap::ArgAction::Count)]
+    verbose: u8,
 
-    /// Specifies the output file to use instead of standard out.
-    #[structopt(short, long, parse(from_os_str))]
-    output: Option<PathBuf>,
-
-    #[structopt(subcommand)]
+    #[clap(subcommand)]
     subcommand: Subcommand,
 }
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 enum Subcommand {
     /// List the packages that are included in the sementic release.
     ///
@@ -59,7 +54,7 @@ enum Subcommand {
     ///
     /// This implments the `verifyConditions` step for `sementic-release` for a
     /// Cargo-based Rust workspace.
-    #[structopt(verbatim_doc_comment)]
+    #[clap(verbatim_doc_comment)]
     VerifyConditions(CommonOpt),
 
     /// Prepare the Rust workspace for a release.
@@ -86,41 +81,41 @@ enum Subcommand {
     Publish(PublishOpt),
 }
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 struct CommonOpt {
     /// The path to the `Cargo.toml` file for the root of the workspace.
-    #[structopt(long, parse(from_os_str))]
+    #[clap(long)]
     manifest_path: Option<PathBuf>,
 }
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 struct PrepareOpt {
-    #[structopt(flatten)]
+    #[clap(flatten)]
     common: CommonOpt,
 
     /// The version to set in all crates in the workspace.
     next_version: String,
 }
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 struct PublishOpt {
-    #[structopt(flatten)]
+    #[clap(flatten)]
     common: CommonOpt,
 
     /// Disallow publishing with uncommited files in the workspace.
-    #[structopt(long)]
+    #[clap(long)]
     no_dirty: bool,
 }
 
 impl Subcommand {
-    fn run(&self, w: impl Write) -> Result<(), Error> {
+    fn run(&self) -> Result<(), Error> {
         use Subcommand::*;
 
         match self {
-            ListPackages(opt) => Ok(list_packages(w, opt.manifest_path())?),
-            VerifyConditions(opt) => Ok(verify_conditions(w, opt.manifest_path())?),
-            Prepare(opt) => Ok(prepare(w, opt.common.manifest_path(), &opt.next_version)?),
-            Publish(opt) => Ok(publish(w, opt.common.manifest_path(), opt.no_dirty)?),
+            ListPackages(_opt) => Ok(list_packages(None::<PathBuf>)?),
+            VerifyConditions(_opt) => Ok(verify_conditions()?),
+            Prepare(opt) => Ok(prepare(opt.next_version.clone())?),
+            Publish(opt) => Ok(publish(opt.no_dirty)?),
         }
     }
 }
@@ -128,28 +123,14 @@ impl Subcommand {
 fn main() -> Result<(), Error> {
     setup_panic!();
 
-    let opt = Opt::from_args();
+    let opt: Opt = Opt::parse();
 
     Logger::new()
         .output(&Level::Trace, Output::Stderr)
         .output(&Level::Debug, Output::Stderr)
         .output(&Level::Info, Output::Stderr)
-        .verbosity(opt.verbose)
+        .verbosity(opt.verbose.into())
         .init()?;
 
-    match opt.output {
-        Some(path) => {
-            let file = File::create(&path)
-                .with_context(|| format!("Failed to create output file {}", path.display()))?;
-            opt.subcommand.run(BufWriter::new(file))
-        }
-
-        None => opt.subcommand.run(BufWriter::new(stdout())),
-    }
-}
-
-impl CommonOpt {
-    fn manifest_path(&self) -> Option<&Path> {
-        self.manifest_path.as_deref()
-    }
+    opt.subcommand.run()
 }

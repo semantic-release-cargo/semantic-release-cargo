@@ -12,10 +12,10 @@ and `publish` steps of [semantic-release].
 
 ## Install
 
-Install `semantic-release-cargo` with
+Install `semantic-release-cargo` with npm:
 
 ```bash
-$ cargo install semantic-release-cargo
+$ npm install --save-dev --save-exact @semantic-release-cargo/semantic-release-cargo
 ```
 
 ## Use
@@ -29,14 +29,7 @@ plugin. For example, in `.releaserc.json`:
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
     "@semantic-release/github",
-    [
-      "@semantic-release/exec",
-      {
-        "verifyConditionsCmd": "semantic-release-cargo verify-conditions",
-        "prepareCmd": "semantic-release-cargo prepare ${nextRelease.version}",
-        "publishCmd": "semantic-release-cargo publish"
-      }
-    ]
+    "@semantic-release-cargo/semantic-release-cargo"
   ]
 }
 ```
@@ -46,6 +39,16 @@ plugin. For example, in `.releaserc.json`:
 access. You likely want to set this through the secrets mechanism of your CI provider.
 
 [exec]: https://github.com/semantic-release/exec
+
+### Use with semantic-release-action
+
+If you're not keen to mix npm with your Rust project, you can use the [semantic-release-action].
+
+[Here][semantic-release-action-example] is an example using semantic-release-action, presented with
+the disclaimer that I'm not familiar with this action myself.
+
+[semantic-release-action]: https://github.com/cycjimmy/semantic-release-action
+[semantic-release-action-example]: https://github.com/kettleby/semantic-release-rust/blob/2b183b27fac6abe54ca7741498e5f7a222ad07bb/.github/workflows/release.yml#L38-L45
 
 ## Contributors License Agreement
 

@@ -1,4 +1,13 @@
+---
 name: Release
+
+env:
+  APP_NAME: semantic-release-cargo
+  CARGO_TERM_COLOR: always
+  DEBUG: napi:*
+  # MACOSX_DEPLOYMENT_TARGET: "10.13"
+  RUST_BACKTRACE: 1
+
 on:
   push:
     branches: [master, alpha, beta]
@@ -8,30 +17,87 @@ on:
 concurrency:
   group: ${{ github.workflow }}
 
-env:
-  RUST_BACKTRACE: 1
-
 jobs:
-  release:
-    name: Semantic Release
+  get-next-version:
+    name: Calculate next release
     runs-on: ubuntu-latest
-    if: github.actor != 'sbosnick-bot'
+    outputs:
+      new-release-published: ${{ steps.get-next-version.outputs.new-release-published }}
+      new-release-version: ${{ steps.get-next-version.outputs.new-release-version }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
+          # Fetch all history and tags for calculating next semantic version
           fetch-depth: 0
-          persist-credentials: false
 
-      - name: Install Rust Stable
+      - name: Configure Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Calculate next semantic-release version
+        id: get-next-version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: ./node_modules/.bin/semantic-release --dry-run
+
+  # Compile native CLI binary
+  build-cli:
+    name: Build CLI ${{ matrix.triple.target }}
+    runs-on: ${{ matrix.triple.os }}
+    container: ${{ matrix.triple.container }}
+    needs:
+      - get-next-version
+
+    strategy:
+      matrix:
+        triple:
+          - {
+              os: "ubuntu-latest",
+              target: "x86_64-unknown-linux-musl",
+              cross: false,
+            }
+          - {
+              os: "ubuntu-latest",
+              target: "i686-unknown-linux-musl",
+              cross: true,
+            }
+          - { os: "macOS-latest", target: "x86_64-apple-darwin", cross: false }
+          # aarch64
+          - {
+              os: "ubuntu-latest",
+              target: "aarch64-unknown-linux-musl",
+              cross: true,
+            }
+          # macOS ARM
+          - { os: "macOS-latest", target: "aarch64-apple-darwin", cross: true }
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install build inputs
+        run: sudo apt install musl-tools
+        if: runner.os == 'Linux'
+
+      - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: stable
+          toolchain: nightly
           override: true
+          target: ${{ matrix.triple.target }}
 
-      - uses: actions/cache@v3
+      - name: Cache cargo
+        uses: actions/cache@v3
+        id: cache-cargo
         with:
           path: |
             ~/.cargo/bin/
@@ -41,22 +107,198 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      # The release build is used in the Semantic Release step
-      - name: Build
+      - name: Install semantic-release-cargo
+        if: needs.get-next-version.outputs.new-release-published == 'true'
+        uses: taiki-e/install-action@v1
+        with:
+          tool: semantic-release-cargo@2.0.0-beta.7
+
+      - name: Prepare semantic-release for Rust
+        if: needs.get-next-version.outputs.new-release-published == 'true'
+        run: semantic-release-cargo --verbose --verbose --verbose prepare ${{ needs.get-next-version.outputs.new-release-version }}
+
+      - name: Cargo build
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release
+          args: --bin semantic-release-cargo --target=${{ matrix.triple.target }} --release --verbose
+          use-cross: ${{ matrix.triple.cross }}
 
-      - name: Semantic Release
-        uses: cycjimmy/semantic-release-action@v3
-        id: semantic
+      - name: Create release archive
+        run: |
+          mkdir dist
+          mkdir -p builds/semantic-release-cargo-${{ matrix.triple.target }}
+          cp target/${{ matrix.triple.target }}/release/semantic-release-cargo builds/semantic-release-cargo-${{ matrix.triple.target }}/
+          tar -C builds -czvf dist/semantic-release-cargo-${{ matrix.triple.target }}.tar.gz semantic-release-cargo-${{ matrix.triple.target }}
+
+      # Create a checksum of the tar archive for manual checksum verification of the archive before extraction.
+      - name: Create tar checksum
+        run: shasum --algorithm 256 semantic-release-cargo-${{ matrix.triple.target }}.tar.gz > semantic-release-cargo-${{ matrix.triple.target }}-SHASUMS256.txt
+        working-directory: ./dist
+
+      # Create a checksum of the binary for automatic checksum verification in the post-install hook. In this code
+      # path, the tar archive is streamed from the GitHub release page and the stream is untarred before a file
+      # is ever written to disk, to minimize disk usage. This makes it impossible to validate the checksum of the
+      # entire tar archive, so we calculate a checksum of the untarred binary instead.
+      - name: Create binary checksum
+        run: shasum --algorithm 256 --binary semantic-release-cargo | tee ../../dist/semantic-release-cargo-${{ matrix.triple.target }}-binary-SHASUMS256.txt
+        working-directory: ./builds/semantic-release-cargo-${{ matrix.triple.target }}
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v3
         with:
-          semantic_version: 19.0.5
-          extra_plugins: |
-            @semantic-release/changelog@6.0
-            @semantic-release/exec@6.0
-            @semantic-release/git@10.0
+          name: ${{ matrix.triple.target }}
+          path: |
+            dist/semantic-release-cargo-${{ matrix.triple.target }}.tar.gz
+            dist/semantic-release-cargo-${{ matrix.triple.target }}-binary-SHASUMS256.txt
+            dist/semantic-release-cargo-${{ matrix.triple.target }}-SHASUMS256.txt
+          if-no-files-found: error
+          retention-days: 1
+
+  # Compile napi-rs native Node.js modules
+  build-napi:
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - host: macos-latest
+            target: aarch64-apple-darwin
+            build: |
+              sudo rm -Rf /Library/Developer/CommandLineTools/SDKs/*;
+              export CC=$(xcrun -f clang);
+              export CXX=$(xcrun -f clang++);
+              SYSROOT=$(xcrun --sdk macosx --show-sdk-path);
+              export CFLAGS="-isysroot $SYSROOT -isystem $SYSROOT";
+              ./node_modules/.bin/napi build --platform --release --strip --js false --features napi-rs --cargo-flags=--lib --target aarch64-apple-darwin
+              strip -x *.node
+          - host: macos-latest
+            target: x86_64-apple-darwin
+            build: |
+              ./node_modules/.bin/napi build --platform --release --strip --js false --features napi-rs --cargo-flags=--lib --target x86_64-apple-darwin
+              strip -x *.node
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            build: |-
+              set -e &&
+              ./node_modules/.bin/napi build --platform --release --strip --js false --features napi-rs --cargo-flags=--lib --target x86_64-unknown-linux-gnu &&
+              strip *.node
+
+    name: Build Node-API ${{ matrix.settings.target }}
+    runs-on: ${{ matrix.settings.host }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+          check-latest: true
+          cache: npm
+
+      - name: Install
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+          toolchain: stable
+          target: ${{ matrix.settings.target }}
+
+      - name: Cache cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            .cargo-cache
+            target/
+          key: ${{ matrix.settings.target }}-cargo-registry
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Build
+        run: ${{ matrix.settings.build }}
+        shell: bash
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: ${{ env.APP_NAME }}.*.node
+          if-no-files-found: error
+          retention-days: 1
+
+  release:
+    runs-on: ubuntu-latest
+    needs:
+      - build-napi
+      - build-release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          # Fetch all history and tags for calculating next semantic version
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+          check-latest: true
+          cache: npm
+
+      - name: Cache NPM dependencies
+        uses: actions/cache@v3
+        with:
+          path: .npm/cache
+          key: npm-cache-ubuntu-latest-publish
+          restore-keys: |
+            npm-cache-
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: ls artifacts
+        run: ls -R ./artifacts
+
+      - name: Prepare native artifacts
+        run: |
+          mkdir napi/
+          mv artifacts/bindings-aarch64-apple-darwin/semantic-release-cargo.darwin-arm64.node napi/
+          mv artifacts/bindings-x86_64-apple-darwin/semantic-release-cargo.darwin-x64.node napi/
+          mv artifacts/bindings-x86_64-unknown-linux-gnu/semantic-release-cargo.linux-x64-gnu.node napi/
+
+      - name: ls napi
+        run: ls -R ./napi
+
+      - name: Prepare GitHub Release artifacts
+        run: |
+          mkdir dist/
+          mv artifacts/aarch64-apple-darwin dist/
+          mv artifacts/aarch64-unknown-linux-musl dist/
+          mv artifacts/i686-unknown-linux-musl dist/
+          mv artifacts/x86_64-apple-darwin dist/
+          mv artifacts/x86_64-unknown-linux-musl dist/
+
+      - name: Combine checksums
+        run: cat dist/**/semantic-release-cargo-*-SHASUMS256.txt | tee dist/SHASUMS256.txt
+
+      - name: Prepare semantic-release-cargo for local use
+        run: |
+          cp dist/x86_64-unknown-linux-musl/semantic-release-cargo-x86_64-unknown-linux-musl.tar.gz .
+          tar -xvf semantic-release-cargo-x86_64-unknown-linux-musl.tar.gz
+          mv ./semantic-release-cargo-x86_64-unknown-linux-musl/semantic-release-cargo .
+          rmdir semantic-release-cargo-x86_64-unknown-linux-musl
+
+      - name: Invoke semantic-release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npx semantic-release

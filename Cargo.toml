@@ -2,30 +2,71 @@
 name = "semantic-release-cargo"
 version ="1.0.2"
 authors = ["Steven Bosnick <sbosnick@sympatico.ca>", "Eric Crosson <eric.s.crosson@utexas.edu>"]
-edition = "2018"
+edition = "2021"
 description = "A CLI to integrate Rust into a semantic-release workflow."
 readme = "README.md"
 repository = "https://github.com/semantic-release-cargo/semantic-release-cargo"
 license = "MIT OR Apache-2.0"
 keywords = ["release", "semantic-release", "command-line-tool"]
 categories = ["command-line-utilities", "development-tools::build-utils"]
+exclude = [
+  "artifacts",
+  "dist",
+  ".envrc",
+  "flake.lock",
+  "flake.nix",
+  ".github",
+  ".gitignore",
+  "index.d.ts",
+  "index.js",
+  "node_modules",
+  "package.json",
+  "package-lock.json",
+  ".releaserc.json",
+  "semantic-release-cargo",
+  "semantic-release-cargo.darwin-arm64.node",
+  "semantic-release-cargo.darwin-x64.node",
+  "semantic-release-cargo.linux-x64-gnu.node"
+]
+
+[lib]
+name = "semantic_release_cargo"
+path = "src/lib.rs"
+crate-type = ["lib", "cdylib"]
+
+[[bin]]
+name = "semantic-release-cargo"
+path = "src/main.rs"
 
 [dependencies]
+anyhow = "1.0.38"
+guppy = "0.15.1"
 human-panic = "1.0.3"
+itertools = "0.10.0"
 log = "0.4.14"
 loggerv = "0.7.2"
-structopt = "0.3.21"
-anyhow = "1.0.38"
-thiserror = "1.0.23"
-guppy = "0.15.1"
-itertools = "0.10.0"
-toml_edit = "0.2.0"
-serde = { version = "1.0.123", features = ["derive"] }
+napi = { version = "2", features = ["error_anyhow"], optional = true}
+napi-derive = { version = "2.9.3", optional = true }
 serde_json = "1.0.62"
+serde = { version = "1.0.123", features = ["derive"] }
+clap = { version = "4.0.8", features = ["cargo", "derive"]}
+thiserror = "1.0.23"
+toml_edit = "0.2.0"
 url = { version = "2.2.0", features = ["serde"] }
+
+[build-dependencies]
+napi-build = { version = "2", optional = true }
 
 [dev-dependencies]
 assert_matches = "1.5.0"
 tempfile = "3.2.0"
 fs_extra = "1.2.0"
 semver = "1.0"
+
+[features]
+napi-rs = ["napi", "napi-build", "napi-derive"]
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

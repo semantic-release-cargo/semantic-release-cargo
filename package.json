@@ -1,0 +1,48 @@
+{
+  "name": "@semantic-release-cargo/semantic-release-cargo",
+  "version": "2.0.0-beta.7",
+  "description": "Integrate a Rust project with semantic-release",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "napi/"
+  ],
+  "napi": {
+    "name": "semantic-release-cargo",
+    "triples": {
+      "additional": [
+        "aarch64-apple-darwin",
+        "x86_64-apple-darwin",
+        "x86_64-unknown-linux-musl"
+      ]
+    }
+  },
+  "scripts": {
+    "build": "napi build --release",
+    "build:debug": "napi build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/semantic-release-cargo/semantic-release-cargo.git"
+  },
+  "author": "Eric Crosson <eric.s.crosson@utexas.edu",
+  "license": "MIT OR Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/semantic-release-cargo/semantic-release-cargo/issues"
+  },
+  "homepage": "https://github.com/semantic-release-cargo/semantic-release-cargo#readme",
+  "devDependencies": {
+    "@napi-rs/cli": "2.13.3",
+    "@semantic-release/changelog": "6.0.2",
+    "@semantic-release/exec": "6.0.3",
+    "@semantic-release/git": "10.0.1",
+    "semantic-release": "19.0.5",
+    "semantic-release-export-data": "1.0.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

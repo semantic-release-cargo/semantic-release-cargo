@@ -2,20 +2,57 @@
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
-    "@semantic-release/github",
     "@semantic-release/changelog",
     [
       "@semantic-release/exec",
       {
-        "verifyConditionsCmd": "./target/release/semantic-release-cargo verify-conditions",
-        "prepareCmd": "./target/release/semantic-release-cargo prepare ${nextRelease.version}",
-        "publishCmd": "./target/release/semantic-release-cargo publish"
+        "verifyConditionsCmd": "./semantic-release-cargo verify-conditions",
+        "prepareCmd": "./semantic-release-cargo prepare ${nextRelease.version}",
+        "publishCmd": "./semantic-release-cargo publish"
+      }
+    ],
+    "@semantic-release/npm",
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "dist/x86_64-unknown-linux-musl/semantic-release-cargo-x86_64-unknown-linux-musl.tar.gz",
+            "label": "x86_64-unknown-linux-musl"
+          },
+          {
+            "path": "dist/i686-unknown-linux-musl/semantic-release-cargo-i686-unknown-linux-musl.tar.gz",
+            "label": "i686-unknown-linux-musl"
+          },
+          {
+            "path": "dist/x86_64-apple-darwin/semantic-release-cargo-x86_64-apple-darwin.tar.gz",
+            "label": "x86_64-apple-darwin"
+          },
+          {
+            "path": "dist/aarch64-unknown-linux-musl/semantic-release-cargo-aarch64-unknown-linux-musl.tar.gz",
+            "label": "aarch64-unknown-linux-musl"
+          },
+          {
+            "path": "dist/aarch64-apple-darwin/semantic-release-cargo-aarch64-apple-darwin.tar.gz",
+            "label": "aarch64-apple-darwin"
+          },
+          {
+            "path": "dist/SHASUMS256.txt",
+            "label": "SHASUMS256.txt"
+          }
+        ]
       }
     ],
     [
       "@semantic-release/git",
       {
-        "assets": ["CHANGELOG.md", "Cargo.toml"]
+        "assets": [
+          "CHANGELOG.md",
+          "Cargo.toml",
+          "Cargo.lock",
+          "package.json",
+          "package-lock.json"
+        ]
       }
     ]
   ]
