@@ -60,11 +60,7 @@ jobs:
 
       - name: Calculate next semantic-release version
         id: get-next-version
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: ./node_modules/.bin/semantic-release --dry-run
+        run: ./node_modules/.bin/semantic-release --dry-run --verify-conditions semantic-release-export-data --generateNotes semantic-release-export-data
 
   # Compile native CLI binary
   build-cli:
