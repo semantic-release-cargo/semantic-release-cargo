@@ -19,6 +19,7 @@ concurrency:
 
 jobs:
   semantic-version:
+    # TODO: add name, migrate to git-disjoint's model
     runs-on: ubuntu-latest
     outputs:
       next-version: ${{ steps.calculate.outputs.next-version }}
@@ -45,7 +46,7 @@ jobs:
 
   # Compile native CLI binary
   build-cli:
-    name: build-release ${{ matrix.triple.target }}
+    name: Build CLI ${{ matrix.triple.target }}
     runs-on: ${{ matrix.triple.os }}
     container: ${{ matrix.triple.container }}
     needs:
@@ -179,7 +180,7 @@ jobs:
               ./node_modules/.bin/napi build --platform --release --strip --js false --features napi-rs --cargo-flags=--lib --target x86_64-unknown-linux-gnu &&
               strip *.node
 
-    name: build-napi ${{ matrix.settings.target }}
+    name: Build Node-API ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     steps:
       - uses: actions/checkout@v3
