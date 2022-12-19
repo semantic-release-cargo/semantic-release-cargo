@@ -18,11 +18,12 @@ concurrency:
   group: ${{ github.workflow }}
 
 jobs:
-  semantic-version:
-    # TODO: add name, migrate to git-disjoint's model
+  get-next-version:
+    name: Calculate next release
     runs-on: ubuntu-latest
     outputs:
-      next-version: ${{ steps.calculate.outputs.next-version }}
+      new-release-published: ${{ steps.get-next-version.outputs.new-release-published }}
+      new-release-version: ${{ steps.get-next-version.outputs.new-release-version }}
 
     steps:
       - name: Checkout
@@ -41,8 +42,11 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Calculate next semantic-release version
-        id: calculate
-        run: echo "next-version=$(npx standard-version --dry-run | grep "tagging release" | awk '{ print $NF }' | tr -d 'v')" >> $GITHUB_OUTPUT
+        id: get-next-version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: ./node_modules/.bin/semantic-release --dry-run
 
   # Compile native CLI binary
   build-cli:
@@ -50,7 +54,7 @@ jobs:
     runs-on: ${{ matrix.triple.os }}
     container: ${{ matrix.triple.container }}
     needs:
-      - semantic-version
+      - get-next-version
 
     strategy:
       matrix:
@@ -103,16 +107,15 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      # TODO: ERIC: bootstrap this with our own binary, to avoid long compilation times
-      - name: Install set-cargo-version
-        uses: actions-rs/cargo@v1
-        if: steps.cache-cargo.outputs.cache-hit != 'true'
+      - name: Install semantic-release-cargo
+        if: needs.get-next-version.outputs.new-release-published == 'true'
+        uses: taiki-e/install-action@v1
         with:
-          command: install
-          args: set-cargo-version --version 1.2.1
+          tool: semantic-release-cargo@2.0.0-beta.7
 
       - name: Prepare semantic-release for Rust
-        run: set-cargo-version ./Cargo.toml ${{ needs.semantic-version.outputs.next-version }}
+        if: needs.get-next-version.outputs.new-release-published == 'true'
+        run: semantic-release-cargo --verbose --verbose --verbose prepare ${{ needs.get-next-version.outputs.new-release-version }}
 
       - name: Cargo build
         uses: actions-rs/cargo@v1
@@ -232,9 +235,13 @@ jobs:
       - build-napi
       - build-release
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          # Fetch all history and tags for calculating next semantic version
+          fetch-depth: 0
 
-      - name: Setup node
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: lts/*
@@ -289,7 +296,7 @@ jobs:
           mv ./semantic-release-cargo-x86_64-unknown-linux-musl/semantic-release-cargo .
           rmdir semantic-release-cargo-x86_64-unknown-linux-musl
 
-      - name: Release
+      - name: Invoke semantic-release
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
