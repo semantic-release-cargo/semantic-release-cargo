@@ -127,7 +127,7 @@ build:
 
     - name: Prepare semantic-release for Rust
       if: needs.get-next-version.outputs.new-release-published == 'true'
-      run: semantic-release-cargo --verbose --verbose --verbose prepare ${{ needs.get-next-version.outputs.new-release-version }}
+      run: semantic-release-cargo prepare ${{ needs.get-next-version.outputs.new-release-version }}
 
     - name: Cargo build
       uses: actions-rs/cargo@v1
