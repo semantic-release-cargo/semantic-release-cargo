@@ -1,5 +1,4 @@
 {
-  "enabled": false,
   "extends": ["config:js-app"],
   "labels": ["dependencies"],
   "assignees": ["@ericcrosson"],
