@@ -30,7 +30,7 @@ fn list_basic_workspace() {
 }
 
 #[test]
-fn list_dependancies_workspace() {
+fn list_dependencies_workspace() {
     let path = get_test_data_manifest_path("dependencies");
     let mut output = Vec::new();
 

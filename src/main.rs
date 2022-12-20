@@ -6,9 +6,13 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms
 
-use std::path::PathBuf;
+use std::{
+    fs::File,
+    io::{self, BufWriter, Write},
+    path::{Path, PathBuf},
+};
 
-use anyhow::Error;
+use anyhow::{Context, Error};
 use clap::{crate_version, Parser};
 use human_panic::setup_panic;
 use log::Level;
@@ -23,6 +27,10 @@ struct Opt {
     /// Increases the logging level (use multiple times for more detail).
     #[clap(short, long, action = clap::ArgAction::Count)]
     verbose: u8,
+
+    /// Specifies the output file to use instead of standard out.
+    #[structopt(short, long)]
+    output: Option<PathBuf>,
 
     #[clap(subcommand)]
     subcommand: Subcommand,
@@ -108,14 +116,18 @@ struct PublishOpt {
 }
 
 impl Subcommand {
-    fn run(&self) -> Result<(), Error> {
+    fn run(&self, w: impl Write) -> Result<(), Error> {
         use Subcommand::*;
 
         match self {
-            ListPackages(_opt) => Ok(list_packages(None::<PathBuf>)?),
-            VerifyConditions(_opt) => Ok(verify_conditions()?),
-            Prepare(opt) => Ok(prepare(opt.next_version.clone())?),
-            Publish(opt) => Ok(publish(opt.no_dirty)?),
+            ListPackages(opt) => Ok(list_packages(w, opt.manifest_path())?),
+            VerifyConditions(opt) => Ok(verify_conditions(w, opt.manifest_path())?),
+            Prepare(opt) => Ok(prepare(
+                w,
+                opt.common.manifest_path(),
+                opt.next_version.clone(),
+            )?),
+            Publish(opt) => Ok(publish(w, opt.common.manifest_path(), opt.no_dirty)?),
         }
     }
 }
@@ -132,5 +144,19 @@ fn main() -> Result<(), Error> {
         .verbosity(opt.verbose.into())
         .init()?;
 
-    opt.subcommand.run()
+    match opt.output {
+        Some(path) => {
+            let file = File::create(&path)
+                .with_context(|| format!("Failed to create output file {}", path.display()))?;
+            opt.subcommand.run(BufWriter::new(file))
+        }
+
+        None => opt.subcommand.run(BufWriter::new(io::stdout())),
+    }
+}
+
+impl CommonOpt {
+    fn manifest_path(&self) -> Option<&Path> {
+        self.manifest_path.as_deref()
+    }
 }

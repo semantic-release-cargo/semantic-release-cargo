@@ -17,7 +17,7 @@
 
 use std::{
     env, fmt, fs,
-    io::{self, BufRead, Cursor, Write},
+    io::{BufRead, Cursor, Write},
     path::{Path, PathBuf},
     process::Command,
     result,
@@ -60,13 +60,51 @@ pub use error::{CargoTomlError, Error, Result};
 ///
 /// This implments the `verifyConditions` step for `sementic-release` for a
 /// Cargo-based rust workspace.
-#[cfg_attr(feature = "napi-rs", napi)]
+#[cfg(feature = "napi-rs")]
+#[napi]
 pub fn verify_conditions() -> Result<()> {
+    let output = std::io::stdout();
+    let manifest_path: Option<&Path> = None;
+    internal_verify_conditions(output, manifest_path)
+}
+
+/// Verify that the conditions for a release are satisfied.
+///
+/// The conditions for a release checked by this function are:
+///
+///    1. That the CARGO_REGISTRY_TOKEN environment variable is set and is
+///       non-empty.
+///    2. That it can construct the graph of all of the dependencies in the
+///       workspace.
+///    3. That the dependencies and build-dependencies of all of crates in the
+///       workspace are suitable for publishing to `crates.io`.
+///
+/// If `manifest_path` is provided then it is expect to give the path to the
+/// `Cargo.toml` file for the root of the workspace. If `manifest_path` is `None`
+/// then `verify_conditions` will look for the root of the workspace in a
+/// `Cargo.toml` file in the current directory. If one of the conditions for a
+/// release are not satisfied then an explination for that will be written to
+/// `output`.
+///
+/// This implments the `verifyConditions` step for `sementic-release` for a
+/// Cargo-based rust workspace.
+#[cfg(not(feature = "napi-rs"))]
+pub fn verify_conditions(
+    output: impl Write,
+    manifest_path: Option<impl AsRef<Path>>,
+) -> Result<()> {
+    internal_verify_conditions(output, manifest_path)
+}
+
+pub fn internal_verify_conditions(
+    mut output: impl Write,
+    manifest_path: Option<impl AsRef<Path>>,
+) -> Result<()> {
     info!("Checking CARGO_REGISTRY_TOKEN");
     env::var_os("CARGO_REGISTRY_TOKEN")
         .and_then(|val| if val.is_empty() { None } else { Some(()) })
         .ok_or_else(|| {
-            writeln!(io::stdout(), "CARGO_REGISTRY_TOKEN empty or not set.")
+            writeln!(output, "CARGO_REGISTRY_TOKEN empty or not set.")
                 .map_err(Error::output_error)
                 .and_then::<(), _>(|()| {
                     Err(Error::verify_error("CARGO_REGISTRY_TOKEN empty or not set"))
@@ -75,15 +113,16 @@ pub fn verify_conditions() -> Result<()> {
         })?;
 
     info!("Checking that workspace dependencies graph is buildable");
-    let graph = match get_package_graph() {
+    let graph = match get_package_graph(manifest_path) {
         Ok(graph) => graph,
         Err(err) => {
             return writeln!(
-                io::stdout(),
+                output,
                 "Unable to build workspace dependencies graph: {}",
                 err
             )
-            .map_err(|io_error| -> anyhow::Error { Error::output_error(io_error).into() });
+            .map_err(|io_error| -> anyhow::Error { Error::output_error(io_error).into() })
+            .and(Err(err));
         }
     };
 
@@ -93,17 +132,17 @@ pub fn verify_conditions() -> Result<()> {
         let crate0 = get_crate_name(&graph, cycle[0]);
         let crate1 = get_crate_name(&graph, cycle[1]);
         return writeln!(
-            io::stdout(),
+            output,
             "Workspace contains a cycle that includes (at least) {} and {}",
-            crate0,
-            crate1
+            crate0, crate1
         )
-        .map_err(|_io_error| -> anyhow::Error {
-            Error::WorkspaceCycles {
+        .map_err(|io_error| -> anyhow::Error { Error::output_error(io_error).into() })
+        .and_then(|()| -> Result<()> {
+            Err(Error::WorkspaceCycles {
                 crate1: crate0.to_owned(),
                 crate2: crate1.to_owned(),
             }
-            .into()
+            .into())
         });
     }
 
@@ -117,29 +156,31 @@ pub fn verify_conditions() -> Result<()> {
         .into_iter()
     {
         debug!("Checking links for package {}", from.name());
-        let cargo = read_cargo_toml(from.manifest_path())?;
+        let cargo = read_cargo_toml(from.manifest_path().as_std_path())?;
         for link in links {
             if link.normal().is_present() {
-                dependency_has_version(&cargo, &link, DependencyType::Normal).map_err(|_err| {
+                dependency_has_version(&cargo, &link, DependencyType::Normal).map_err(|err| {
                     writeln!(
-                        io::stdout(),
+                        output,
                         "Dependency {0} of {1} makes {1} not publishable.",
                         link.to().name(),
                         link.from().name()
                     )
                     .map_err(|io_error| -> anyhow::Error { Error::output_error(io_error).into() })
+                    .and::<()>(Err(err))
                     .unwrap_err()
                 })?;
             }
             if link.build().is_present() {
-                dependency_has_version(&cargo, &link, DependencyType::Build).map_err(|_err| {
+                dependency_has_version(&cargo, &link, DependencyType::Build).map_err(|err| {
                     writeln!(
-                        io::stdout(),
+                        output,
                         "Build dependency {0} of {1} makes {1} not publishable.",
                         link.to().name(),
                         link.from().name()
                     )
                     .map_err(|io_error| -> anyhow::Error { Error::output_error(io_error).into() })
+                    .and::<()>(Err(err))
                     .unwrap_err()
                 })?;
             }
@@ -160,10 +201,41 @@ pub fn verify_conditions() -> Result<()> {
 ///
 /// This implments the `prepare` step for `sementic-release` for a Cargo-based Rust
 /// workspace.
-#[cfg_attr(feature = "napi-rs", napi)]
+#[cfg(feature = "napi-rs")]
+#[napi]
 pub fn prepare(next_release_version: String) -> Result<()> {
+    let output = std::io::stdout();
+    let manifest_path: Option<&Path> = None;
+    internal_prepare(output, manifest_path, next_release_version)
+}
+
+/// Prepare the Rust workspace for a release.
+///
+/// Preparing the release updates the version of each crate in the workspace and of
+/// the intra-workspace dependencies. The `version` field in the `packages` table of
+/// each `Cargo.toml` file in the workspace is set to the supplied version. The
+/// `version` field of each dependency or build-dependency that is otherwise
+/// identified by a workspace-relative path dependencies is also set to the supplied
+/// version (the version filed will be added if it isn't already present).
+///
+/// This implments the `prepare` step for `sementic-release` for a Cargo-based Rust
+/// workspace.
+#[cfg(not(feature = "napi-rs"))]
+pub fn prepare(
+    output: impl Write,
+    manifest_path: Option<&Path>,
+    next_release_version: String,
+) -> Result<()> {
+    internal_prepare(output, manifest_path, next_release_version)
+}
+
+pub fn internal_prepare(
+    _output: impl Write,
+    manifest_path: Option<&Path>,
+    next_release_version: String,
+) -> Result<()> {
     info!("Building package graph");
-    let graph = get_package_graph()?;
+    let graph = get_package_graph(manifest_path)?;
 
     let link_map = graph
         .workspace()
@@ -177,7 +249,7 @@ pub fn prepare(next_release_version: String) -> Result<()> {
     for package in graph.workspace().iter() {
         let path = package.manifest_path();
         debug!("reading {}", path.as_str());
-        let mut cargo = read_cargo_toml(path)?;
+        let mut cargo = read_cargo_toml(path.as_std_path())?;
 
         debug!("Setting the version for {}", package.name());
         set_package_version(&mut cargo, &next_release_version)
@@ -211,7 +283,7 @@ pub fn prepare(next_release_version: String) -> Result<()> {
         }
 
         debug!("writing {}", path.as_str());
-        write_cargo_toml(path, cargo)?;
+        write_cargo_toml(path.as_std_path(), cargo)?;
     }
 
     Ok(())
@@ -225,10 +297,34 @@ pub fn prepare(next_release_version: String) -> Result<()> {
 ///
 /// This implments the `publish` step for `sementic-release` for a Cargo-based
 /// Rust workspace.
-#[cfg_attr(feature = "napi-rs", napi)]
+#[cfg(feature = "napi-rs")]
+#[napi]
 pub fn publish(no_dirty: bool) -> Result<()> {
+    let output = std::io::stdout();
+    let manifest_path: Option<&Path> = None;
+    internal_publish(output, manifest_path, no_dirty)
+}
+
+/// Publish the publishable crates from the workspace.
+///
+/// The publishable crates are the crates in the workspace other than those
+/// whose `package.publish` field is set to `false` or that includes a registry other
+/// than `crates.io`.
+///
+/// This implments the `publish` step for `sementic-release` for a Cargo-based
+/// Rust workspace.
+#[cfg(not(feature = "napi-rs"))]
+pub fn publish(output: impl Write, manifest_path: Option<&Path>, no_dirty: bool) -> Result<()> {
+    internal_publish(output, manifest_path, no_dirty)
+}
+
+pub fn internal_publish(
+    output: impl Write,
+    manifest_path: Option<&Path>,
+    no_dirty: bool,
+) -> Result<()> {
     info!("getting the package graph");
-    let graph = get_package_graph()?;
+    let graph = get_package_graph(manifest_path)?;
 
     let mut count = 0;
     let mut last_id = None;
@@ -252,7 +348,7 @@ pub fn publish(no_dirty: bool) -> Result<()> {
     if let Some(main_crate) = main_crate {
         debug!("printing release record with main crate: {}", main_crate);
         let name = format!("crate.io packages ({} packages published)", count);
-        serde_json::to_writer(io::stdout(), &Release::new(name, main_crate)?)
+        serde_json::to_writer(output, &Release::new(name, main_crate)?)
             .map_err(|err| Error::write_release_error(err, main_crate))?;
     } else {
         debug!("no release record to print");
@@ -261,7 +357,6 @@ pub fn publish(no_dirty: bool) -> Result<()> {
     Ok(())
 }
 
-// TODO: assess visibility of this function
 /// List the packages from the workspace in the order of their dependencies.
 ///
 /// The list of pacakges will be written to `output`. If `manifest_path` is provided
@@ -271,19 +366,25 @@ pub fn publish(no_dirty: bool) -> Result<()> {
 ///
 /// This is a debuging aid and does not directly correspond to a sementic release
 /// step.
-pub fn list_packages(_manifest_path: Option<impl AsRef<Path>>) -> Result<()> {
+pub fn list_packages(
+    #[cfg(not(feature = "napi-rs"))] mut output: impl Write,
+    manifest_path: Option<impl AsRef<Path>>,
+) -> Result<()> {
+    #[cfg(feature = "napi-rs")]
+    let mut output = std::io::stdout();
+
     info!("Building package graph");
-    let graph = get_package_graph()?;
+    let graph = get_package_graph(manifest_path)?;
 
     process_publishable_packages(&graph, |pkg| {
-        writeln!(io::stdout(), "{}({})", pkg.name(), pkg.version()).map_err(Error::output_error)?;
+        writeln!(output, "{}({})", pkg.name(), pkg.version()).map_err(Error::output_error)?;
 
         Ok(())
     })
 }
 
-fn get_package_graph() -> Result<PackageGraph> {
-    let manifest_path: Option<&Path> = None;
+fn get_package_graph(manifest_path: Option<impl AsRef<Path>>) -> Result<PackageGraph> {
+    let manifest_path = manifest_path.as_ref().map(|path| path.as_ref());
 
     let mut command = MetadataCommand::new();
     if let Some(path) = manifest_path {
@@ -440,16 +541,14 @@ fn log_bytes(level: Level, bytes: &[u8]) {
     }
 }
 
-fn read_cargo_toml(path: impl AsRef<Path>) -> Result<Document> {
-    let path = path.as_ref();
+fn read_cargo_toml(path: &Path) -> Result<Document> {
     fs::read_to_string(path)
         .map_err(|err| Error::file_read_error(err, path))?
         .parse()
         .map_err(|err| Error::toml_error(err, path).into())
 }
 
-fn write_cargo_toml(path: impl AsRef<Path>, cargo: Document) -> Result<()> {
-    let path = path.as_ref();
+fn write_cargo_toml(path: &Path, cargo: Document) -> Result<()> {
     fs::write(path, cargo.to_string_in_original_order())
         .map_err(|err| Error::file_write_error(err, path).into())
 }

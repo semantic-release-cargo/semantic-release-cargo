@@ -37,10 +37,10 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Compile
+      - name: Cargo Test
         uses: actions-rs/cargo@v1
         with:
-          command: check
+          command: test
 
   # Compile napi-rs native Node.js library
   build-napi:

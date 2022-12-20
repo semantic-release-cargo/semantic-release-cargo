@@ -22,7 +22,7 @@ use semantic_release_cargo::prepare;
 fn prepare_basic() {
     let (_tempdir, manifest) = copy_workspace("basic");
 
-    prepare(io::sink(), Some(&manifest), "2.0.0").expect("prepare failed");
+    prepare(io::sink(), Some(&manifest), "2.0.0".into()).expect("prepare failed");
 
     let graph = get_package_graph(manifest);
     let workspace = graph.workspace();
@@ -34,7 +34,7 @@ fn prepare_basic() {
 fn prepare_with_depedencies() {
     let (_tempdir, manifest) = copy_workspace("dependencies");
 
-    prepare(io::sink(), Some(&manifest), "2.0.0").expect("prepare failed");
+    prepare(io::sink(), Some(&manifest), "2.0.0".into()).expect("prepare failed");
 
     let graph = get_package_graph(&manifest);
     for pkg in graph.workspace().iter() {
@@ -53,7 +53,7 @@ fn prepare_with_depedencies() {
 fn prepare_with_target_dependency() {
     let (_tempdir, manifest) = copy_workspace("target_dep");
 
-    prepare(io::sink(), Some(&manifest), "2.0.0").expect("prepare failed");
+    prepare(io::sink(), Some(&manifest), "2.0.0".into()).expect("prepare failed");
 
     let graph = get_package_graph(&manifest);
     for pkg in graph.workspace().iter() {
@@ -104,9 +104,9 @@ fn get_toml_document(path: impl AsRef<Path>) -> Document {
 fn get_dep_version<'a>(table: &'a Table, dep_table: &str, dep: &str) -> &'a str {
     get_sub_table(table, dep_table)
         .get(dep)
-        .expect(&format!("no {} dependancy item", dep))
+        .expect(&format!("no {} dependency item", dep))
         .as_table_like()
-        .expect(&format!("no {} dependancy table-like", dep))
+        .expect(&format!("no {} dependency table-like", dep))
         .get("version")
         .expect("no version item")
         .as_value()

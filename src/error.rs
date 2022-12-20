@@ -52,7 +52,7 @@ pub enum Error {
     ///
     /// This is a specific part of verifying the conditions for a release.
     #[error("{typ} of {from} on {to} prevents publication of {from}")]
-    BadDependancy {
+    BadDependency {
         /// The name of the package whose dependency prevents publication.
         from: String,
 
@@ -131,7 +131,10 @@ pub enum Error {
 }
 
 /// A specialized `Result` type for `semantic-release-cargo` operations.
+// #[cfg(feature = "napi-rs")]
 pub type Result<T> = std::result::Result<T, anyhow::Error>;
+// #[cfg(not(feature = "napi-rs"))]
+// pub type Result<T> = std::result::Result<T, Error>;
 
 /// The error details related to a problem parsing the workspace structure.
 #[derive(Debug, Error)]
@@ -216,7 +219,7 @@ impl Error {
     }
 
     pub(crate) fn bad_dependency(link: &PackageLink, typ: DependencyType) -> Error {
-        Error::BadDependancy {
+        Error::BadDependency {
             from: link.from().name().to_string(),
             to: link.to().name().to_string(),
             typ,
