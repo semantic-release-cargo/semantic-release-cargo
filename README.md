@@ -5,12 +5,25 @@
 [build status]: https://github.com/semantic-release-cargo/semantic-release-cargo/actions/workflows/release.yml/badge.svg?event=push
 
 **semantic-release-cargo** integrates a cargo-based Rust project with [semantic-release].
-Specifically it provides sub-command for each of the `verifyConditons`, `prepare`,
-and `publish` steps of [semantic-release].
 
+**semantic-release-cargo** solves two use cases:
+
+1. publishing to [crates.io], and
+2. compiling release binaries
+
+[crates.io]: https://crates.io/
 [semantic-release]: https://github.com/semantic-release/semantic-release
 
-## Install
+## Publish to crates.io
+
+After following these instructions, you will have a semantic-release pipeline that publishes
+your Rust crate to crates.io.
+
+### Requirements
+
+You must set the `CARGO_REGISTRY_TOKEN` environment variable.
+
+### Install
 
 Install `semantic-release-cargo` with npm:
 
@@ -18,37 +31,143 @@ Install `semantic-release-cargo` with npm:
 $ npm install --save-dev --save-exact @semantic-release-cargo/semantic-release-cargo
 ```
 
-## Use
+### Use
 
-Add **semantic-release-cargo** to your `semantic-release` configuration using the [`semantic-release/exec`][exec]
-plugin. For example, in `.releaserc.json`:
+Add **semantic-release-cargo** to your `semantic-release` configuration in `.releaserc.json`:
 
 ```json
 {
-  "plugins": [
-    "@semantic-release/commit-analyzer",
-    "@semantic-release/release-notes-generator",
-    "@semantic-release/github",
-    "@semantic-release-cargo/semantic-release-cargo"
-  ]
+  "plugins": ["@semantic-release-cargo/semantic-release-cargo"]
 }
 ```
 
-`semantic-release-cargo` expects (and verifies) that the environment variable
-`CARGO_REGISTRY_TOKEN` is set. It should be set to an API Access token for `crates.io`
-access. You likely want to set this through the secrets mechanism of your CI provider.
-
-[exec]: https://github.com/semantic-release/exec
-
-### Use with semantic-release-action
+### Alternative Configuration with semantic-release-action
 
 If you're not keen to mix npm with your Rust project, you can use the [semantic-release-action].
 
-[Here][semantic-release-action-example] is an example using semantic-release-action, presented with
-the disclaimer that I'm not familiar with this action myself.
-
 [semantic-release-action]: https://github.com/cycjimmy/semantic-release-action
-[semantic-release-action-example]: https://github.com/kettleby/semantic-release-rust/blob/2b183b27fac6abe54ca7741498e5f7a222ad07bb/.github/workflows/release.yml#L38-L45
+
+## Compile Release Binaries
+
+After following these instructions, you will have a GitHub Actions workflow
+that sets the next version number in `Cargo.toml` and compiles your crate's
+release binaries.
+
+Updating the cargo manifest with the next version number lets us reference
+the next version in the compiled binary, for example with the [clap::crate_version]
+macro.
+
+The compiled binaries can be uploaded to a GitHub release using the [@semantic-
+release/github] plugin.
+
+[clap::crate-version]: https://docs.rs/clap/latest/clap/macro.crate_version.html
+[@semantic-release/github]: https://github.com/semantic-release/github
+
+### Use
+
+In the first job, use the [semantic-release-export-data] plugin to save the
+next release version as GitHub Actions outputs:
+
+```yaml
+jobs:
+  get-next-version:
+    name: Calculate next release
+    runs-on: ubuntu-latest
+    outputs:
+      new-release-published: ${{ steps.get-next-version.outputs.new-release-published }}
+      new-release-version: ${{ steps.get-next-version.outputs.new-release-version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          # Fetch all history and tags for calculating next semantic version
+          fetch-depth: 0
+
+      - name: Configure Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Cache NPM dependencies
+        uses: actions/cache@v3
+        with:
+          path: .npm/cache
+          key: npm-cache-ubuntu-latest-publish
+          restore-keys: |
+            npm-cache-
+
+      - name: Install npm dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Calculate next semantic-release version
+        id: get-next-version
+        run: ./node_modules/.bin/semantic-release --dry-run --verify-conditions semantic-release-export-data --generate-notes semantic-release-export-data
+```
+
+In the next job, use **semantic-release-cargo** to set the crate version before
+compilation:
+
+```yaml
+build:
+  name: Build
+  runs-on: ubuntu-latest
+  needs:
+    - get-next-version
+
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Install toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: nightly
+        override: true
+        target: x86_64-unknown-linux-gnu
+
+    - name: Cache cargo
+      uses: actions/cache@v3
+      id: cache-cargo
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Install semantic-release-cargo
+      if: needs.get-next-version.outputs.new-release-published == 'true'
+      uses: taiki-e/install-action@v1
+      with:
+        tool: semantic-release-cargo@2.0.0
+
+    - name: Prepare semantic-release for Rust
+      if: needs.get-next-version.outputs.new-release-published == 'true'
+      run: semantic-release-cargo --verbose --verbose --verbose prepare ${{ needs.get-next-version.outputs.new-release-version }}
+
+    - name: Cargo build
+      uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --all-targets --target=x86_64-unknown-linux-gnu --release --verbose
+```
+
+[semantic-release-export-data]: https://github.com/felipecrs/semantic-release-export-data
+
+## Example Workflow
+
+You can create a single GitHub Actions workflow that combines both use cases.
+This repository uses **semantic-release-cargo** with semantic-release to publish
+to crates.io and create a GitHub Release with precompiled binaries.
+
+See [release.yml] for a working example.
+
+[release.yml]: .github/workflows/release.yml
 
 ## Contributors License Agreement
 
