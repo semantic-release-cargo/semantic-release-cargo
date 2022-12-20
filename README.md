@@ -90,14 +90,6 @@ jobs:
           node-version: lts/*
           cache: npm
 
-      - name: Cache NPM dependencies
-        uses: actions/cache@v3
-        with:
-          path: .npm/cache
-          key: npm-cache-ubuntu-latest-publish
-          restore-keys: |
-            npm-cache-
-
       - name: Install npm dependencies
         run: npm ci --ignore-scripts
 
@@ -127,18 +119,6 @@ build:
         toolchain: nightly
         override: true
         target: x86_64-unknown-linux-gnu
-
-    - name: Cache cargo
-      uses: actions/cache@v3
-      id: cache-cargo
-      with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
     - name: Install semantic-release-cargo
       if: needs.get-next-version.outputs.new-release-published == 'true'
