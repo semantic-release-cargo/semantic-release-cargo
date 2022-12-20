@@ -5,8 +5,7 @@
 [build status]: https://github.com/semantic-release-cargo/semantic-release-cargo/actions/workflows/release.yml/badge.svg?event=push
 
 **semantic-release-cargo** integrates a cargo-based Rust project with [semantic-release].
-
-**semantic-release-cargo** solves two use cases:
+This solves two use cases:
 
 1. publishing to [crates.io], and
 2. compiling release binaries
