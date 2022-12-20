@@ -52,14 +52,14 @@ After following these instructions, you will have a GitHub Actions workflow
 that sets the next version number in `Cargo.toml` and compiles your crate's
 release binaries.
 
-Updating the cargo manifest with the next version number lets us reference
+Updating the cargo manifest with the next version number lets you reference
 the next version in the compiled binary, for example with the [clap::crate_version]
 macro.
 
-The compiled binaries can be uploaded to a GitHub release using the [@semantic-
-release/github] plugin.
+The compiled binaries can be uploaded to a GitHub release using the
+[@semantic-release/github] plugin.
 
-[clap::crate-version]: https://docs.rs/clap/latest/clap/macro.crate_version.html
+[clap::crate_version]: https://docs.rs/clap/latest/clap/macro.crate_version.html
 [@semantic-release/github]: https://github.com/semantic-release/github
 
 ### Use
