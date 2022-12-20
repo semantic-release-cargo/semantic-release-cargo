@@ -1,3 +1,10 @@
+## [2.0.3](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.2...v2.0.3) (2022-12-20)
+
+
+### Bug Fixes
+
+* correct regression in error handling ([f054630](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/f05463032bff6f5a24909e82cea3d7d0c7671c5b)), closes [#8](https://github.com/semantic-release-cargo/semantic-release-cargo/issues/8)
+
 ## [2.0.2](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.1...v2.0.2) (2022-12-20)
 
 ## [2.0.1](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.0...v2.0.1) (2022-12-20)
