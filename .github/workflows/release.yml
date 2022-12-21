@@ -1,13 +1,6 @@
 ---
 name: Release
 
-env:
-  APP_NAME: semantic-release-cargo
-  CARGO_TERM_COLOR: always
-  DEBUG: napi:*
-  # MACOSX_DEPLOYMENT_TARGET: "10.13"
-  RUST_BACKTRACE: 1
-
 on:
   push:
     branches: [master, alpha, beta]
@@ -16,6 +9,13 @@ on:
 # workflow uses shared resources (git tags, package registries)
 concurrency:
   group: ${{ github.workflow }}
+
+env:
+  APP_NAME: semantic-release-cargo
+  CARGO_TERM_COLOR: always
+  DEBUG: napi:*
+  # MACOSX_DEPLOYMENT_TARGET: "10.13"
+  RUST_BACKTRACE: 1
 
 jobs:
   get-next-version:

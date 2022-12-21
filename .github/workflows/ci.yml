@@ -1,4 +1,6 @@
+---
 name: CI
+
 on:
   pull_request:
 
@@ -11,23 +13,53 @@ env:
 
 jobs:
   # Compile native CLI binary
-  test-cli:
-    name: Test CLI
+  build-cli:
+    name: Test CLI ${{ matrix.triple.target }}
+    runs-on: ${{ matrix.triple.os }}
+    container: ${{ matrix.triple.container }}
 
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        triple:
+          - {
+              os: "ubuntu-latest",
+              target: "x86_64-unknown-linux-musl",
+              cross: false,
+            }
+          - {
+              os: "ubuntu-latest",
+              target: "i686-unknown-linux-musl",
+              cross: true,
+            }
+          - { os: "macOS-latest", target: "x86_64-apple-darwin", cross: false }
+          # aarch64
+          - {
+              os: "ubuntu-latest",
+              target: "aarch64-unknown-linux-musl",
+              cross: true,
+            }
+          # macOS ARM
+          - { os: "macOS-latest", target: "aarch64-apple-darwin", cross: true }
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Install Rust (${{ matrix.rust }})
+      - name: Install build inputs
+        run: sudo apt install musl-tools
+        if: runner.os == 'Linux'
+
+      - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
-          profile: default
-          toolchain: ${{ matrix.rust }}
+          profile: minimal
+          toolchain: nightly
           override: true
+          target: ${{ matrix.triple.target }}
 
-      - uses: actions/cache@v3
+      - name: Cache cargo
+        uses: actions/cache@v3
+        id: cache-cargo
         with:
           path: |
             ~/.cargo/bin/
@@ -37,10 +69,11 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Cargo Test
+      - name: Cargo test
         uses: actions-rs/cargo@v1
         with:
           command: test
+          use-cross: ${{ matrix.triple.cross }}
 
   # Compile napi-rs native Node.js library
   build-napi:
@@ -65,7 +98,7 @@ jobs:
             target: x86_64-unknown-linux-gnu
             build: |-
               set -e &&
-              ./node_modules/.bin/napi build --platform --release --js false --features napi-rs --cargo-flags=--lib --target x86_64-unknown-linux-gnu &&
+              ./node_modules/.bin/napi build --platform --release --js false --features napi-rs --cargo-flags=--lib --target x86_64-unknown-linux-gnu
 
     name: Build Node-API ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
@@ -104,11 +137,3 @@ jobs:
       - name: Build
         run: ${{ matrix.settings.build }}
         shell: bash
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: bindings-${{ matrix.settings.target }}
-          path: ${{ env.APP_NAME }}.*.node
-          if-no-files-found: error
-          retention-days: 1
