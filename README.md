@@ -123,7 +123,7 @@ build:
       if: needs.get-next-version.outputs.new-release-published == 'true'
       uses: taiki-e/install-action@v1
       with:
-        tool: semantic-release-cargo@2.0.0
+        tool: semantic-release-cargo@2.0.3
 
     - name: Prepare semantic-release for Rust
       if: needs.get-next-version.outputs.new-release-published == 'true'
