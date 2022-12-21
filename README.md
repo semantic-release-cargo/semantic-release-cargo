@@ -22,6 +22,14 @@ your Rust crate to crates.io.
 
 You must set the `CARGO_REGISTRY_TOKEN` environment variable.
 
+This workflow is supported on the following systems:
+
+| System        | Supported? |
+| ------------- | ---------- |
+| macOS aarch64 | ✓          |
+| macOS x64     | ✓          |
+| Linux x64 gnu | ✓          |
+
 ### Install
 
 Install `semantic-release-cargo` with npm:
@@ -58,6 +66,16 @@ macro.
 
 The compiled binaries can be uploaded to a GitHub release using the
 [@semantic-release/github] plugin.
+
+This workflow is supported on the following systems:
+
+| System        | Supported? |
+| ------------- | ---------- |
+| macOS aarch64 | ✓          |
+| macOS x64     | ✓          |
+| Linux aarch64 | ✓          |
+| Linux x64     | ✓          |
+| Linux x86     | ✓          |
 
 [clap::crate_version]: https://docs.rs/clap/latest/clap/macro.crate_version.html
 [@semantic-release/github]: https://github.com/semantic-release/github
