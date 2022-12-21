@@ -42,7 +42,7 @@ path = "src/main.rs"
 anyhow = "=1.0.68"
 guppy = "0.15.1"
 human-panic = "1.0.3"
-itertools = "0.10.0"
+itertools = "=0.10.5"
 log = "0.4.14"
 loggerv = "0.7.2"
 napi = { version = "2", features = ["error_anyhow"], optional = true}
