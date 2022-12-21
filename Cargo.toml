@@ -43,7 +43,7 @@ anyhow = "=1.0.68"
 guppy = "0.15.1"
 human-panic = "1.0.3"
 itertools = "=0.10.5"
-log = "0.4.14"
+log = "=0.4.17"
 loggerv = "0.7.2"
 napi = { version = "2", features = ["error_anyhow"], optional = true}
 napi-derive = { version = "2.9.3", optional = true }
