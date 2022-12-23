@@ -9,11 +9,8 @@
 //! Implementation of the sementic release steps to for integraing a cargo-based Rust
 //! project.
 
-// TODO: ERIC: see if we can enable this at the end of this adventure
-// #![forbid(unsafe_code)]
-// TODO: ERIC: see if we can enable this at the end of this adventure
-// #![deny(warnings, missing_docs)]
-// TODO: ERIC: see if you can salvage tests
+#![forbid(unsafe_code)]
+#![deny(warnings, missing_docs)]
 
 use std::{
     env, fmt, fs,
