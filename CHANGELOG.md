@@ -1,3 +1,10 @@
+## [2.0.12](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.11...v2.0.12) (2022-12-23)
+
+
+### Bug Fixes
+
+* make internal-only functions private ([bf679f7](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/bf679f7f4d0fb38d4a7e7c88d012f556f37595de))
+
 ## [2.0.11](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.10...v2.0.11) (2022-12-22)
 
 
