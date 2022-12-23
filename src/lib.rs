@@ -96,7 +96,7 @@ pub fn verify_conditions(
     internal_verify_conditions(output, manifest_path)
 }
 
-pub fn internal_verify_conditions(
+fn internal_verify_conditions(
     mut output: impl Write,
     manifest_path: Option<impl AsRef<Path>>,
 ) -> Result<()> {
@@ -229,7 +229,7 @@ pub fn prepare(
     internal_prepare(output, manifest_path, next_release_version)
 }
 
-pub fn internal_prepare(
+fn internal_prepare(
     _output: impl Write,
     manifest_path: Option<&Path>,
     next_release_version: String,
@@ -318,7 +318,7 @@ pub fn publish(output: impl Write, manifest_path: Option<&Path>, no_dirty: bool)
     internal_publish(output, manifest_path, no_dirty)
 }
 
-pub fn internal_publish(
+fn internal_publish(
     output: impl Write,
     manifest_path: Option<&Path>,
     no_dirty: bool,
