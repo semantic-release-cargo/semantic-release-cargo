@@ -38,15 +38,15 @@ jobs:
           node-version: lts/*
           cache: npm
 
-      - name: Cache NPM dependencies
+      - name: Cache npm dependencies
         uses: actions/cache@v3
+        id: cache-node-modules
         with:
-          path: .npm/cache
-          key: npm-cache-ubuntu-latest-publish
-          restore-keys: |
-            npm-cache-
+          path: node_modules
+          key: ${{ runner.os }}-master-node-${{ hashFiles('package-lock.json') }}
 
       - name: Install npm dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
 
       - name: Calculate next semantic-release version
@@ -191,14 +191,8 @@ jobs:
     name: Build Node-API ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: lts/*
-          check-latest: true
-          cache: npm
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Install
         uses: actions-rs/toolchain@v1
@@ -219,7 +213,22 @@ jobs:
             target/
           key: ${{ matrix.settings.target }}-cargo-registry
 
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+          check-latest: true
+          cache: npm
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v3
+        id: cache-node-modules
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-pr-node-${{ hashFiles('package-lock.json') }}
+
       - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
 
       - name: Build
@@ -254,15 +263,15 @@ jobs:
           check-latest: true
           cache: npm
 
-      - name: Cache NPM dependencies
+      - name: Cache npm dependencies
         uses: actions/cache@v3
+        id: cache-node-modules
         with:
-          path: .npm/cache
-          key: npm-cache-ubuntu-latest-publish
-          restore-keys: |
-            npm-cache-
+          path: node_modules
+          key: ${{ runner.os }}-pr-node-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts
 
       - name: Download artifacts
