@@ -204,7 +204,7 @@ jobs:
         id: rust-toolchain
         with:
           toolchain: stable
-          target: ${{ matrix.triple.target }}
+          target: ${{ matrix.settings.target }}
 
       - name: Cache cargo
         uses: actions/cache@v3
@@ -265,7 +265,6 @@ jobs:
         id: rust-toolchain
         with:
           toolchain: stable
-          target: ${{ matrix.triple.target }}
 
       - name: Cache cargo
         uses: actions/cache@v3
