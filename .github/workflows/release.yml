@@ -29,7 +29,7 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         id: rust-toolchain
         with:
-          toolchain: nightly
+          toolchain: stable
 
       - name: Cache cargo
         uses: actions/cache@v3
