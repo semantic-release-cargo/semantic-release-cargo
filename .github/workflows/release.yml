@@ -18,6 +18,34 @@ env:
   RUST_BACKTRACE: 1
 
 jobs:
+  test:
+    name: Cargo test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@master
+        id: rust-toolchain
+        with:
+          toolchain: nightly
+
+      - name: Cache cargo
+        uses: actions/cache@v3
+        id: cache-cargo
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ steps.rust-toolchain.outputs.cachekey }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cargo test
+        run: cargo test
+
   get-next-version:
     name: Calculate next release
     runs-on: ubuntu-latest
@@ -253,6 +281,8 @@ jobs:
     needs:
       - build-cli
       - build-node-api
+      - test
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
