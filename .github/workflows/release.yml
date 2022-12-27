@@ -90,15 +90,19 @@ jobs:
 
       - name: Install build inputs
         run: sudo apt install musl-tools
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && matrix.triple.cross == false
 
       - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
+        id: rust-toolchain
         with:
-          profile: minimal
-          toolchain: nightly
-          override: true
+          toolchain: stable
           target: ${{ matrix.triple.target }}
+
+      - name: Install cross
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cross
 
       - name: Cache cargo
         uses: actions/cache@v3
@@ -110,7 +114,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ steps.rust-toolchain.outputs.cachekey }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install semantic-release-cargo
         if: needs.get-next-version.outputs.new-release-published == 'true'
@@ -122,12 +126,13 @@ jobs:
         if: needs.get-next-version.outputs.new-release-published == 'true'
         run: semantic-release-cargo prepare ${{ needs.get-next-version.outputs.new-release-version }}
 
-      - name: Cargo build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --bin semantic-release-cargo --target=${{ matrix.triple.target }} --release --verbose
-          use-cross: ${{ matrix.triple.cross }}
+      - name: Cross-compile release binary
+        if: matrix.triple.cross == true
+        run: cross build --bin semantic-release-cargo --release --target ${{ matrix.triple.target }} --verbose
+
+      - name: Compile release binary
+        if: matrix.triple.cross == false
+        run: cargo build --bin semantic-release-cargo --release --target ${{ matrix.triple.target }} --verbose
 
       - name: Create release archive
         run: |
@@ -194,13 +199,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Install
-        uses: actions-rs/toolchain@v1
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@master
+        id: rust-toolchain
         with:
-          profile: minimal
-          override: true
           toolchain: stable
-          target: ${{ matrix.settings.target }}
+          target: ${{ matrix.triple.target }}
 
       - name: Cache cargo
         uses: actions/cache@v3
@@ -211,7 +215,7 @@ jobs:
             ~/.cargo/git/db/
             .cargo-cache
             target/
-          key: ${{ matrix.settings.target }}-cargo-registry
+          key: ${{ runner.os }}-cargo-${{ steps.rust-toolchain.outputs.cachekey }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Setup node
         uses: actions/setup-node@v3
@@ -255,6 +259,25 @@ jobs:
         with:
           # Fetch all history and tags for calculating next semantic version
           fetch-depth: 0
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@master
+        id: rust-toolchain
+        with:
+          toolchain: stable
+          target: ${{ matrix.triple.target }}
+
+      - name: Cache cargo
+        uses: actions/cache@v3
+        id: cache-cargo
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ steps.rust-toolchain.outputs.cachekey }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
