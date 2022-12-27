@@ -123,7 +123,7 @@ jobs:
         id: rust-toolchain
         with:
           toolchain: nightly
-          target: ${{ matrix.triple.target }}
+          target: ${{ matrix.settings.target }}
 
       - name: Cache cargo
         uses: actions/cache@v3
