@@ -14,13 +14,13 @@ env:
 jobs:
   # Compile native CLI binary
   build-cli:
-    name: Test CLI ${{ matrix.triple.target }}
-    runs-on: ${{ matrix.triple.os }}
-    container: ${{ matrix.triple.container }}
+    name: Test CLI ${{ matrix.build.target }}
+    runs-on: ${{ matrix.build.os }}
 
     strategy:
+      fail-fast: false
       matrix:
-        triple:
+        build:
           - {
               os: "ubuntu-latest",
               target: "x86_64-unknown-linux-musl",
@@ -47,14 +47,14 @@ jobs:
 
       - name: Install build inputs
         run: sudo apt install musl-tools
-        if: runner.os == 'Linux' && matrix.triple.cross == false
+        if: runner.os == 'Linux' && matrix.build.cross == false
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@master
         id: rust-toolchain
         with:
           toolchain: nightly
-          target: ${{ matrix.triple.target }}
+          target: ${{ matrix.build.target }}
 
       - name: Install cross
         uses: taiki-e/install-action@v2
@@ -74,22 +74,25 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ steps.rust-toolchain.outputs.cachekey }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Cross-compile release binary
-        if: matrix.triple.cross == true
+        if: matrix.build.cross == true
         run: cross test
 
       - name: Compile release binary
-        if: matrix.triple.cross == false
+        if: matrix.build.cross == false
         run: cargo test
 
   # Compile napi-rs native Node.js library
   build-napi:
+    name: Build Node-API ${{ matrix.build.target }}
+    runs-on: ${{ matrix.build.host }}
+
     strategy:
       fail-fast: false
       matrix:
-        settings:
+        build:
           - host: macos-latest
             target: aarch64-apple-darwin
-            build: |
+            script: |
               sudo rm -Rf /Library/Developer/CommandLineTools/SDKs/*;
               export CC=$(xcrun -f clang);
               export CXX=$(xcrun -f clang++);
@@ -98,16 +101,14 @@ jobs:
               ./node_modules/.bin/napi build --platform --release --js false --features napi-rs --cargo-flags=--lib --target aarch64-apple-darwin
           - host: macos-latest
             target: x86_64-apple-darwin
-            build: |
+            script: |
               ./node_modules/.bin/napi build --platform --release --js false --features napi-rs --cargo-flags=--lib --target x86_64-apple-darwin
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            build: |-
+            script: |-
               set -e &&
               ./node_modules/.bin/napi build --platform --release --js false --features napi-rs --cargo-flags=--lib --target x86_64-unknown-linux-gnu
 
-    name: Build Node-API ${{ matrix.settings.target }}
-    runs-on: ${{ matrix.settings.host }}
     steps:
       - uses: actions/checkout@v3
 
@@ -123,7 +124,7 @@ jobs:
         id: rust-toolchain
         with:
           toolchain: nightly
-          target: ${{ matrix.settings.target }}
+          target: ${{ matrix.build.target }}
 
       - name: Cache cargo
         uses: actions/cache@v3
@@ -148,5 +149,5 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Build
-        run: ${{ matrix.settings.build }}
+        run: ${{ matrix.build.script }}
         shell: bash

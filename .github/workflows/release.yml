@@ -58,15 +58,14 @@ jobs:
 
   # Compile native CLI binary
   build-cli:
-    name: Build CLI ${{ matrix.triple.target }}
-    runs-on: ${{ matrix.triple.os }}
-    container: ${{ matrix.triple.container }}
+    name: Build CLI ${{ matrix.build.target }}
+    runs-on: ${{ matrix.build.os }}
     needs:
       - get-next-version
 
     strategy:
       matrix:
-        triple:
+        build:
           - {
               os: "ubuntu-latest",
               target: "x86_64-unknown-linux-musl",
@@ -93,14 +92,14 @@ jobs:
 
       - name: Install build inputs
         run: sudo apt install musl-tools
-        if: runner.os == 'Linux' && matrix.triple.cross == false
+        if: runner.os == 'Linux' && matrix.build.cross == false
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@master
         id: rust-toolchain
         with:
           toolchain: stable
-          target: ${{ matrix.triple.target }}
+          target: ${{ matrix.build.target }}
 
       - name: Install cross
         uses: taiki-e/install-action@v2
@@ -130,23 +129,23 @@ jobs:
         run: semantic-release-cargo prepare ${{ needs.get-next-version.outputs.new-release-version }}
 
       - name: Cross-compile release binary
-        if: matrix.triple.cross == true
-        run: cross build --bin semantic-release-cargo --release --target ${{ matrix.triple.target }} --verbose
+        if: matrix.build.cross == true
+        run: cross build --bin semantic-release-cargo --release --target ${{ matrix.build.target }} --verbose
 
       - name: Compile release binary
-        if: matrix.triple.cross == false
-        run: cargo build --bin semantic-release-cargo --release --target ${{ matrix.triple.target }} --verbose
+        if: matrix.build.cross == false
+        run: cargo build --bin semantic-release-cargo --release --target ${{ matrix.build.target }} --verbose
 
       - name: Create release archive
         run: |
           mkdir dist
-          mkdir -p builds/semantic-release-cargo-${{ matrix.triple.target }}
-          cp target/${{ matrix.triple.target }}/release/semantic-release-cargo builds/semantic-release-cargo-${{ matrix.triple.target }}/
-          tar -C builds -czvf dist/semantic-release-cargo-${{ matrix.triple.target }}.tar.gz semantic-release-cargo-${{ matrix.triple.target }}
+          mkdir -p builds/semantic-release-cargo-${{ matrix.build.target }}
+          cp target/${{ matrix.build.target }}/release/semantic-release-cargo builds/semantic-release-cargo-${{ matrix.build.target }}/
+          tar -C builds -czvf dist/semantic-release-cargo-${{ matrix.build.target }}.tar.gz semantic-release-cargo-${{ matrix.build.target }}
 
       # Create a checksum of the tar archive for manual checksum verification of the archive before extraction.
       - name: Create tar checksum
-        run: shasum --algorithm 256 semantic-release-cargo-${{ matrix.triple.target }}.tar.gz > semantic-release-cargo-${{ matrix.triple.target }}-SHASUMS256.txt
+        run: shasum --algorithm 256 semantic-release-cargo-${{ matrix.build.target }}.tar.gz > semantic-release-cargo-${{ matrix.build.target }}-SHASUMS256.txt
         working-directory: ./dist
 
       # Create a checksum of the binary for automatic checksum verification in the post-install hook. In this code
@@ -154,29 +153,32 @@ jobs:
       # is ever written to disk, to minimize disk usage. This makes it impossible to validate the checksum of the
       # entire tar archive, so we calculate a checksum of the untarred binary instead.
       - name: Create binary checksum
-        run: shasum --algorithm 256 --binary semantic-release-cargo | tee ../../dist/semantic-release-cargo-${{ matrix.triple.target }}-binary-SHASUMS256.txt
-        working-directory: ./builds/semantic-release-cargo-${{ matrix.triple.target }}
+        run: shasum --algorithm 256 --binary semantic-release-cargo | tee ../../dist/semantic-release-cargo-${{ matrix.build.target }}-binary-SHASUMS256.txt
+        working-directory: ./builds/semantic-release-cargo-${{ matrix.build.target }}
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.triple.target }}
+          name: ${{ matrix.build.target }}
           path: |
-            dist/semantic-release-cargo-${{ matrix.triple.target }}.tar.gz
-            dist/semantic-release-cargo-${{ matrix.triple.target }}-binary-SHASUMS256.txt
-            dist/semantic-release-cargo-${{ matrix.triple.target }}-SHASUMS256.txt
+            dist/semantic-release-cargo-${{ matrix.build.target }}.tar.gz
+            dist/semantic-release-cargo-${{ matrix.build.target }}-binary-SHASUMS256.txt
+            dist/semantic-release-cargo-${{ matrix.build.target }}-SHASUMS256.txt
           if-no-files-found: error
           retention-days: 1
 
   # Compile napi-rs native Node.js modules
   build-node-api:
+    name: Build Node-API ${{ matrix.build.target }}
+    runs-on: ${{ matrix.build.host }}
+
     strategy:
       fail-fast: false
       matrix:
-        settings:
+        build:
           - host: macos-latest
             target: aarch64-apple-darwin
-            build: |
+            script: |
               sudo rm -Rf /Library/Developer/CommandLineTools/SDKs/*;
               export CC=$(xcrun -f clang);
               export CXX=$(xcrun -f clang++);
@@ -186,18 +188,16 @@ jobs:
               strip -x *.node
           - host: macos-latest
             target: x86_64-apple-darwin
-            build: |
+            script: |
               ./node_modules/.bin/napi build --platform --release --strip --js false --features napi-rs --cargo-flags=--lib --target x86_64-apple-darwin
               strip -x *.node
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            build: |-
+            script: |-
               set -e &&
               ./node_modules/.bin/napi build --platform --release --strip --js false --features napi-rs --cargo-flags=--lib --target x86_64-unknown-linux-gnu &&
               strip *.node
 
-    name: Build Node-API ${{ matrix.settings.target }}
-    runs-on: ${{ matrix.settings.host }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -207,7 +207,7 @@ jobs:
         id: rust-toolchain
         with:
           toolchain: stable
-          target: ${{ matrix.settings.target }}
+          target: ${{ matrix.build.target }}
 
       - name: Cache cargo
         uses: actions/cache@v3
@@ -239,13 +239,13 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Build
-        run: ${{ matrix.settings.build }}
+        run: ${{ matrix.build.script }}
         shell: bash
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: bindings-${{ matrix.settings.target }}
+          name: bindings-${{ matrix.build.target }}
           path: ${{ env.APP_NAME }}.*.node
           if-no-files-found: error
           retention-days: 1
