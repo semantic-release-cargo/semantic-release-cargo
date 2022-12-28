@@ -82,7 +82,7 @@ This workflow is supported on the following systems:
 
 ### Use
 
-In the first job, use the [semantic-release-export-data] plugin to save the
+In the first job, use the [next-release-version] Action to save the
 next release version as GitHub Actions outputs:
 
 ```yaml
@@ -95,24 +95,8 @@ jobs:
       new-release-version: ${{ steps.get-next-version.outputs.new-release-version }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          # Fetch all history and tags for calculating next semantic version
-          fetch-depth: 0
-
-      - name: Configure Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: lts/*
-          cache: npm
-
-      - name: Install npm dependencies
-        run: npm ci --ignore-scripts
-
-      - name: Calculate next semantic-release version
+      - uses: semantic-release-extras/next-release-version@v1
         id: get-next-version
-        run: ./node_modules/.bin/semantic-release --dry-run --verify-conditions semantic-release-export-data --generate-notes semantic-release-export-data
 ```
 
 In the next job, use **semantic-release-cargo** to set the crate version before
@@ -146,7 +130,7 @@ build:
       run: cargo build --release --target=x86_64-unknown-linux-gnu --all-targets
 ```
 
-[semantic-release-export-data]: https://github.com/felipecrs/semantic-release-export-data
+[next-release-version]: https://github.com/semantic-release-extras/next-release-version
 
 ## Example Workflow
 
