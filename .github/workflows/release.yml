@@ -12,7 +12,6 @@ concurrency:
 
 env:
   APP_NAME: semantic-release-cargo
-  CARGO_TERM_COLOR: always
   DEBUG: napi:*
   RUST_BACKTRACE: 1
 
