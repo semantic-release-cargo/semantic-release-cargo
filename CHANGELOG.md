@@ -1,3 +1,10 @@
+## [2.0.15](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.14...v2.0.15) (2022-12-28)
+
+
+### Bug Fixes
+
+* **docs:** remove unsupported action from example ([420a506](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/420a50655be90d8ae1e000b6bbf0449860bf0c93))
+
 ## [2.0.14](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.13...v2.0.14) (2022-12-27)
 
 
