@@ -16,38 +16,36 @@ jobs:
   build-cli:
     name: Test CLI ${{ matrix.build.target }}
     runs-on: ${{ matrix.build.os }}
+    env:
+      CARGO: cargo
 
     strategy:
       fail-fast: false
       matrix:
         build:
-          - {
-              os: "ubuntu-latest",
-              target: "x86_64-unknown-linux-musl",
-              cross: false,
-            }
-          - {
-              os: "ubuntu-latest",
-              target: "i686-unknown-linux-musl",
-              cross: true,
-            }
-          - { os: "macOS-latest", target: "x86_64-apple-darwin", cross: false }
-          # aarch64
-          - {
-              os: "ubuntu-latest",
-              target: "aarch64-unknown-linux-musl",
-              cross: true,
-            }
-          # macOS ARM
-          - { os: "macOS-latest", target: "aarch64-apple-darwin", cross: true }
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            cross: false
+          - os: ubuntu-latest
+            target: i686-unknown-linux-musl
+            cross: true
+          - os: macOS-latest
+            target: x86_64-apple-darwin
+            cross: false
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            cross: true
+          - os: macOS-latest
+            target: aarch64-apple-darwin
+            cross: true
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Install build inputs
+        if: runner.os == 'Linux' && !matrix.build.cross
         run: sudo apt install musl-tools
-        if: runner.os == 'Linux' && matrix.build.cross == false
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@master
@@ -73,13 +71,13 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ steps.rust-toolchain.outputs.cachekey }}-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Cross-compile release binary
-        if: matrix.build.cross == true
-        run: cross test
+      - name: Configure cross
+        if: matrix.build.cross
+        run: echo "CARGO=cross" >> "$GITHUB_ENV"
 
       - name: Compile release binary
-        if: matrix.build.cross == false
-        run: cargo test
+        if: matrix.build.cross
+        run: ${{ env.CARGO }} test
 
   # Compile napi-rs native Node.js library
   build-napi:
@@ -146,7 +144,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
+        run: npm ci --ignore-scripts --loglevel error
 
       - name: Build
         run: ${{ matrix.build.script }}
