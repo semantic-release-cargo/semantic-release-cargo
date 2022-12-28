@@ -129,14 +129,6 @@ build:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Install toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: nightly
-        override: true
-        target: x86_64-unknown-linux-gnu
-
     - name: Install semantic-release-cargo
       if: needs.get-next-version.outputs.new-release-published == 'true'
       uses: taiki-e/install-action@v1
@@ -147,11 +139,11 @@ build:
       if: needs.get-next-version.outputs.new-release-published == 'true'
       run: semantic-release-cargo prepare ${{ needs.get-next-version.outputs.new-release-version }}
 
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@master
+
     - name: Cargo build
-      uses: actions-rs/cargo@v1
-      with:
-        command: build
-        args: --all-targets --target=x86_64-unknown-linux-gnu --release --verbose
+      run: cargo build --release --target=x86_64-unknown-linux-gnu --all-targets
 ```
 
 [semantic-release-export-data]: https://github.com/felipecrs/semantic-release-export-data
