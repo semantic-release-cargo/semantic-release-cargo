@@ -49,7 +49,7 @@ jobs:
         run: sudo apt install musl-tools
         if: runner.os == 'Linux' && matrix.triple.cross == false
 
-      - name: Install toolchain
+      - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@master
         id: rust-toolchain
         with:
@@ -118,7 +118,7 @@ jobs:
           check-latest: true
           cache: npm
 
-      - name: Install toolchain
+      - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@master
         id: rust-toolchain
         with:

@@ -25,7 +25,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Install toolchain
+      - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@master
         id: rust-toolchain
         with:
@@ -120,7 +120,7 @@ jobs:
         run: sudo apt install musl-tools
         if: runner.os == 'Linux' && matrix.triple.cross == false
 
-      - name: Install toolchain
+      - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@master
         id: rust-toolchain
         with:
@@ -227,7 +227,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Install toolchain
+      - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@master
         id: rust-toolchain
         with:
@@ -290,7 +290,7 @@ jobs:
           # Fetch all history and tags for calculating next semantic version
           fetch-depth: 0
 
-      - name: Install toolchain
+      - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@master
         id: rust-toolchain
         with:
