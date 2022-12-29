@@ -527,9 +527,9 @@ dependencies = [
 
 [[package]]
 name = "napi"
-version = "2.10.3"
+version = "2.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a967e17e9ba4e015a7bf9b92f90aa8dc321c6d913f6a6d2afd5b66a8ab36fc81"
+checksum = "838b5b414a008e75b97edb3c3e6f189034af789a0608686299b149d3b0e66c39"
 dependencies = [
  "anyhow",
  "bitflags",
@@ -764,7 +764,7 @@ checksum = "71d301d4193d031abdd79ff7e3dd721168a9572ef3fe51a1517aba235bd8f86e"
 
 [[package]]
 name = "semantic-release-cargo"
-version = "2.0.14"
+version = "2.0.15"
 dependencies = [
  "anyhow",
  "assert_matches",
