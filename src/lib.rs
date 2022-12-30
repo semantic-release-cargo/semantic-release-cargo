@@ -257,6 +257,7 @@ fn internal_prepare(
                 "Setting the version for the dependencies of {}",
                 package.name()
             );
+
             for link in links {
                 if link.normal().is_present() {
                     set_dependencies_version(
@@ -577,8 +578,7 @@ fn read_cargo_toml(path: &Path) -> Result<Document> {
 }
 
 fn write_cargo_toml(path: &Path, cargo: Document) -> Result<()> {
-    fs::write(path, cargo.to_string_in_original_order())
-        .map_err(|err| Error::file_write_error(err, path).into())
+    fs::write(path, cargo.to_string()).map_err(|err| Error::file_write_error(err, path).into())
 }
 
 fn get_top_table<'a>(doc: &'a Document, key: &str) -> Option<&'a Table> {
@@ -586,23 +586,22 @@ fn get_top_table<'a>(doc: &'a Document, key: &str) -> Option<&'a Table> {
 }
 
 fn get_top_table_mut<'a>(doc: &'a mut Document, key: &str) -> Option<&'a mut Table> {
-    doc.as_table_mut().entry(key).as_table_mut()
+    doc.get_key_value_mut(key)
+        .and_then(|(_key, value)| value.as_table_mut())
 }
 
 fn table_add_or_update_value(table: &mut Table, key: &str, value: Value) -> Option<()> {
     let entry = table.entry(key);
 
-    if entry.is_none() {
-        *entry = Item::Value(value);
-        return Some(());
-    }
-
     match entry {
-        Item::Value(val) => {
-            *val = value;
+        toml_edit::Entry::Occupied(mut val) => {
+            val.insert(Item::Value(value));
             Some(())
         }
-        _ => None,
+        toml_edit::Entry::Vacant(val) => {
+            val.insert(Item::Value(value));
+            Some(())
+        }
     }
 }
 
@@ -643,22 +642,22 @@ fn set_package_version(doc: &mut Document, version: &str) -> result::Result<(), 
 }
 
 fn set_dependency_version(table: &mut Table, version: &str, name: &str) -> Option<()> {
-    let mut result = Some(());
+    match table.entry(name) {
+        toml_edit::Entry::Occupied(mut req) => {
+            let item = req.get_mut();
 
-    if table.contains_key(name) {
-        let req = table.entry(name);
-        if !req.is_table_like() {
-            return None;
+            if let Some(item) = item.as_inline_table_mut() {
+                inline_table_add_or_update_value(item, "version", version.into());
+                return Some(());
+            }
+            if let Some(item) = item.as_table_mut() {
+                return table_add_or_update_value(item, "version", version.into());
+            }
+
+            None
         }
-        if let Some(req) = req.as_inline_table_mut() {
-            inline_table_add_or_update_value(req, "version", version.into());
-        }
-        if let Some(req) = req.as_table_mut() {
-            result = table_add_or_update_value(req, "version", version.into());
-        }
+        toml_edit::Entry::Vacant(_) => Some(()),
     }
-
-    result
 }
 
 fn set_dependencies_version(
@@ -676,14 +675,20 @@ fn set_dependencies_version(
         let targets = table.iter().map(|(key, _)| key.to_owned()).collect_vec();
 
         for target in targets {
-            if let Some(target_deps) = table
-                .entry(&target)
-                .as_table_mut()
-                .and_then(|inner| inner[typ.key()].as_table_mut())
-            {
-                set_dependency_version(target_deps, version, name)
-                    .ok_or_else(|| CargoTomlError::set_version(name, version))?;
-            }
+            let target_deps = table.entry(&target);
+            match target_deps {
+                toml_edit::Entry::Occupied(mut target_deps) => {
+                    if let Some(target_deps) = target_deps
+                        .get_mut()
+                        .as_table_mut()
+                        .and_then(|inner| inner[typ.key()].as_table_mut())
+                    {
+                        set_dependency_version(target_deps, version, name)
+                            .ok_or_else(|| CargoTomlError::set_version(name, version))?;
+                    }
+                }
+                toml_edit::Entry::Vacant(_) => {}
+            };
         }
     };
 
@@ -695,14 +700,15 @@ fn set_lockfile_self_describing_metadata(
     next_release_version: &str,
     package_name: &str,
 ) -> result::Result<(), Error> {
-    let packages_entry = doc
-        .root
-        .as_table_mut()
-        .expect("Root of toml should always be a table")
-        .entry("package");
+    let packages_entry = doc.as_table_mut().entry("package");
 
     match packages_entry {
-        Item::ArrayOfTables(tables) => {
+        toml_edit::Entry::Occupied(mut entry) => {
+            let tables = entry
+                .get_mut()
+                .as_array_of_tables_mut()
+                .expect("Expected lockfile to contain an array of tables named 'packages'");
+
             let mut matching_index: Option<usize> = None;
             let mut index: usize = 0;
             for table in tables.iter() {
