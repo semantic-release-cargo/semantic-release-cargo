@@ -281,6 +281,31 @@ fn internal_prepare(
 
         debug!("writing {}", path.as_str());
         write_cargo_toml(path.as_std_path(), cargo)?;
+
+        // Update the lockfile metadata.
+        //
+        // This code currently only updates the version number of the crate's
+        // self-describing metadata.
+        //
+        // Unsupported: updating metadata of in-workspace dependencies. I
+        // didn't take a stab at this yet because I don't have this issue
+        // personall yet, and without a repository in which I can reproduce
+        // this problem I think it's most responsible to keep the code simple
+        // and readable.
+        let lockfile_path = get_cargo_lock(path.as_std_path());
+        if lockfile_path.exists() {
+            debug!("reading {}", lockfile_path.to_string_lossy());
+            let mut lockfile = read_cargo_toml(&lockfile_path)?;
+
+            set_lockfile_self_describing_metadata(
+                &mut lockfile,
+                &next_release_version,
+                package.name(),
+            )?;
+
+            debug!("writing {}", lockfile_path.to_string_lossy());
+            write_cargo_toml(&lockfile_path, lockfile)?;
+        }
     }
 
     Ok(())
@@ -538,6 +563,12 @@ fn log_bytes(level: Level, bytes: &[u8]) {
     }
 }
 
+/// Given the path to a cargo manifest, return the path to the associated
+/// lock file. This function does not test the existence of the lockfile.
+fn get_cargo_lock(path: &Path) -> PathBuf {
+    path.parent().unwrap().join("Cargo.lock")
+}
+
 fn read_cargo_toml(path: &Path) -> Result<Document> {
     fs::read_to_string(path)
         .map_err(|err| Error::file_read_error(err, path))?
@@ -653,6 +684,57 @@ fn set_dependencies_version(
                 set_dependency_version(target_deps, version, name)
                     .ok_or_else(|| CargoTomlError::set_version(name, version))?;
             }
+        }
+    };
+
+    Ok(())
+}
+
+fn set_lockfile_self_describing_metadata(
+    doc: &mut Document,
+    next_release_version: &str,
+    package_name: &str,
+) -> result::Result<(), Error> {
+    let packages_entry = doc
+        .root
+        .as_table_mut()
+        .expect("Root of toml should always be a table")
+        .entry("package");
+
+    match packages_entry {
+        Item::ArrayOfTables(tables) => {
+            let mut matching_index: Option<usize> = None;
+            let mut index: usize = 0;
+            for table in tables.iter() {
+                let is_match = table
+                    .get("name")
+                    .and_then(|item| item.as_str())
+                    .map(|name| name == package_name)
+                    .unwrap_or_default();
+                if is_match {
+                    matching_index = Some(index);
+                    break;
+                }
+                index += 1;
+            }
+
+            if let Some(matching_index) = matching_index {
+                let table = tables
+                    .get_mut(matching_index)
+                    .expect("Expected lockfile to contain reference to self");
+                table_add_or_update_value(table, "version", next_release_version.into());
+            } else {
+                return Err(Error::CargoLockfileUpdate {
+                    reason: "Unable to locate self-referential metadata in lockfile".into(),
+                    package_name: package_name.to_owned(),
+                });
+            }
+        }
+        _ => {
+            return Err(Error::CargoLockfileUpdate {
+                reason: "Cargo lockfile does not contain 'packages' array of tables".into(),
+                package_name: package_name.to_owned(),
+            })
         }
     };
 

@@ -128,6 +128,15 @@ pub enum Error {
     /// Error while attempting to write the release record as JSON.
     #[error(transparent)]
     WriteReleaseError(WriteReleaseError),
+
+    /// Error while attempting to update Cargo lockfile.
+    #[error("Unable to update Cargo lockfile")]
+    CargoLockfileUpdate {
+        /// The reason for the failed lockfile update.
+        reason: String,
+        /// The package name where lockfile updating failed.
+        package_name: String,
+    },
 }
 
 /// A specialized `Result` type for `semantic-release-cargo` operations.
