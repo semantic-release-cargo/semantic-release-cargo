@@ -1,3 +1,10 @@
+## [2.0.17](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.16...v2.0.17) (2022-12-30)
+
+
+### Bug Fixes
+
+* update next version number in Cargo.lock ([1d07266](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/1d072660b97b4ca1270cdc4ffc4e807623ea5d62))
+
 ## [2.0.16](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.15...v2.0.16) (2022-12-29)
 
 
