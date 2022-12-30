@@ -1,3 +1,10 @@
+## [2.0.18](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.17...v2.0.18) (2022-12-30)
+
+
+### Bug Fixes
+
+* **deps:** upgrade toml-edit to v0.16.2 ([bda683e](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/bda683e2b8eb0ea854320600451e9bb790974006))
+
 ## [2.0.17](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.16...v2.0.17) (2022-12-30)
 
 
