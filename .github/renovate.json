@@ -6,10 +6,6 @@
     {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
-    },
-    {
-      "matchPackageNames": ["toml_edit"],
-      "enabled": false
     }
   ],
   "timezone": "America/Chicago",
