@@ -59,6 +59,7 @@ jobs:
   # Compile native CLI binary
   build-cli:
     name: Build CLI ${{ matrix.build.target }}
+    if: needs.get-next-version.outputs.new-release-published == 'true'
     runs-on: ${{ matrix.build.os }}
     needs:
       - get-next-version
@@ -68,9 +69,19 @@ jobs:
     strategy:
       matrix:
         build:
+          # alphabatized by target
+          - os: macOS-latest
+            target: aarch64-apple-darwin
+            cross: true
           - os: ubuntu-latest
-            target: x86_64-unknown-linux-musl
-            cross: false
+            target: aarch64-unknown-linux-gnu
+            cross: true
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            cross: true
+          - os: ubuntu-latest
+            target: i686-unknown-linux-gnu
+            cross: true
           - os: ubuntu-latest
             target: i686-unknown-linux-musl
             cross: true
@@ -78,11 +89,11 @@ jobs:
             target: x86_64-apple-darwin
             cross: false
           - os: ubuntu-latest
-            target: aarch64-unknown-linux-musl
-            cross: true
-          - os: macOS-latest
-            target: aarch64-apple-darwin
-            cross: true
+            target: x86_64-unknown-linux-gnu
+            cross: false
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            cross: false
 
     steps:
       - name: Checkout
@@ -99,11 +110,6 @@ jobs:
           toolchain: stable
           target: ${{ matrix.build.target }}
 
-      - name: Install cross
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cross
-
       - name: Cache cargo
         uses: actions/cache@v3
         id: cache-cargo
@@ -117,50 +123,41 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ steps.rust-toolchain.outputs.cachekey }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install semantic-release-cargo
-        if: needs.get-next-version.outputs.new-release-published == 'true'
         uses: taiki-e/install-action@v2
         with:
           tool: semantic-release-cargo@2
 
       - name: Prepare semantic-release for Rust
-        if: needs.get-next-version.outputs.new-release-published == 'true'
         run: semantic-release-cargo prepare ${{ needs.get-next-version.outputs.new-release-version }}
+
+      - name: Install cross
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cross
 
       - name: Configure cross
         if: matrix.build.cross
         run: echo "CARGO=cross" >> "$GITHUB_ENV"
 
-      - name: Ccompile release binary
+      - name: Compile release binary
         run: ${{ env.CARGO }} build --bin semantic-release-cargo --release --target ${{ matrix.build.target }} --verbose
 
       - name: Create release archive
         run: |
           mkdir dist
-          mkdir -p builds/semantic-release-cargo-${{ matrix.build.target }}
-          cp target/${{ matrix.build.target }}/release/semantic-release-cargo builds/semantic-release-cargo-${{ matrix.build.target }}/
-          tar -C builds -czvf dist/semantic-release-cargo-${{ matrix.build.target }}.tar.gz semantic-release-cargo-${{ matrix.build.target }}
+          cp target/${{ matrix.build.target }}/release/semantic-release-cargo dist/semantic-release-cargo-${{ matrix.build.target }}
 
-      # Create a checksum of the tar archive for manual checksum verification of the archive before extraction.
-      - name: Create tar checksum
-        run: shasum --algorithm 256 semantic-release-cargo-${{ matrix.build.target }}.tar.gz > semantic-release-cargo-${{ matrix.build.target }}-SHASUMS256.txt
-        working-directory: ./dist
-
-      # Create a checksum of the binary for automatic checksum verification in the post-install hook. In this code
-      # path, the tar archive is streamed from the GitHub release page and the stream is untarred before a file
-      # is ever written to disk, to minimize disk usage. This makes it impossible to validate the checksum of the
-      # entire tar archive, so we calculate a checksum of the untarred binary instead.
       - name: Create binary checksum
-        run: shasum --algorithm 256 --binary semantic-release-cargo | tee ../../dist/semantic-release-cargo-${{ matrix.build.target }}-binary-SHASUMS256.txt
-        working-directory: ./builds/semantic-release-cargo-${{ matrix.build.target }}
+        run: shasum --algorithm 256 --binary semantic-release-cargo-${{ matrix.build.target }} | tee semantic-release-cargo-${{ matrix.build.target }}-SHA256SUM.txt
+        working-directory: ./dist
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.build.target }}
           path: |
-            dist/semantic-release-cargo-${{ matrix.build.target }}.tar.gz
-            dist/semantic-release-cargo-${{ matrix.build.target }}-binary-SHASUMS256.txt
-            dist/semantic-release-cargo-${{ matrix.build.target }}-SHASUMS256.txt
+            dist/semantic-release-cargo-${{ matrix.build.target }}
+            dist/semantic-release-cargo-${{ matrix.build.target }}-SHA256SUM.txt
           if-no-files-found: error
           retention-days: 1
 
@@ -300,7 +297,7 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --ignore-scripts --loglevel error
 
-      - name: Download artifacts
+      - name: Download release artifacts
         uses: actions/download-artifact@v3
         with:
           path: artifacts
@@ -328,14 +325,10 @@ jobs:
           mv artifacts/x86_64-unknown-linux-musl dist/
 
       - name: Combine checksums
-        run: cat dist/**/semantic-release-cargo-*-SHASUMS256.txt | tee dist/SHASUMS256.txt
+        run: cat dist/**/semantic-release-cargo-*-SHA256SUM.txt | tee dist/SHA256SUMS.txt
 
       - name: Prepare semantic-release-cargo for local use
-        run: |
-          cp dist/x86_64-unknown-linux-musl/semantic-release-cargo-x86_64-unknown-linux-musl.tar.gz .
-          tar -xvf semantic-release-cargo-x86_64-unknown-linux-musl.tar.gz
-          mv ./semantic-release-cargo-x86_64-unknown-linux-musl/semantic-release-cargo .
-          rmdir semantic-release-cargo-x86_64-unknown-linux-musl
+        run: cp dist/x86_64-unknown-linux-musl/semantic-release-cargo-x86_64-unknown-linux-musl ./semantic-release-cargo
 
       - name: Invoke semantic-release
         env:
