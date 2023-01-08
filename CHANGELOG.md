@@ -1,3 +1,11 @@
+## [2.0.20](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.19...v2.0.20) (2023-01-08)
+
+
+### Bug Fixes
+
+* **ci:** do not tar GitHub release assets ([0487004](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/0487004afa4510839ad51665b42eec9f1371da1b))
+* **ci:** mark downloaded archive as executable ([42ee385](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/42ee3856bda4f94591014f13b381d4842a3447a6))
+
 ## [2.0.19](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.18...v2.0.19) (2023-01-03)
 
 
