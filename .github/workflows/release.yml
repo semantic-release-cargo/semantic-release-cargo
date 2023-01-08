@@ -328,7 +328,9 @@ jobs:
         run: cat dist/**/semantic-release-cargo-*-SHA256SUM.txt | tee dist/SHA256SUMS.txt
 
       - name: Prepare semantic-release-cargo for local use
-        run: cp dist/x86_64-unknown-linux-musl/semantic-release-cargo-x86_64-unknown-linux-musl ./semantic-release-cargo
+        run: |
+          cp dist/x86_64-unknown-linux-musl/semantic-release-cargo-x86_64-unknown-linux-musl ./semantic-release-cargo
+          chmod +x ./semantic-release-cargo
 
       - name: Invoke semantic-release
         env:
