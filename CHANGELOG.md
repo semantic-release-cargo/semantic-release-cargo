@@ -1,3 +1,10 @@
+## [2.0.22](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.21...v2.0.22) (2023-01-08)
+
+
+### Bug Fixes
+
+* **ci:** include dynamic glibc compiled binaries in GitHub releases ([970c95b](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/970c95b05b262b1b5fead0f69de22bf371af4f9c))
+
 ## [2.0.21](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.20...v2.0.21) (2023-01-08)
 
 
