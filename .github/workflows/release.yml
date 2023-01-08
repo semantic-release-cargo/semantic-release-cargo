@@ -319,9 +319,12 @@ jobs:
         run: |
           mkdir dist/
           mv artifacts/aarch64-apple-darwin dist/
+          mv artifacts/aarch64-unknown-linux-gnu dist/
           mv artifacts/aarch64-unknown-linux-musl dist/
+          mv artifacts/i686-unknown-linux-gnu dist/
           mv artifacts/i686-unknown-linux-musl dist/
           mv artifacts/x86_64-apple-darwin dist/
+          mv artifacts/x86_64-unknown-linux-gnu dist/
           mv artifacts/x86_64-unknown-linux-musl dist/
 
       - name: Combine checksums
