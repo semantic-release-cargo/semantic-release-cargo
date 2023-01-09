@@ -13,6 +13,12 @@
     ],
     "@semantic-release/npm",
     [
+      "semantic-release-major-tag",
+      {
+        "customTags": ["v${major}", "v${major}.${minor}"]
+      }
+    ],
+    [
       "@semantic-release/github",
       {
         "assets": [
