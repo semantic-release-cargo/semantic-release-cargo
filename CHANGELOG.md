@@ -1,3 +1,10 @@
+## [2.0.24](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.23...v2.0.24) (2023-01-09)
+
+
+### Bug Fixes
+
+* **release:** use major and minor semantic tag versions ([92f55a4](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/92f55a451960fb6f40c8b5b6ac4b97a8e3a9bb33))
+
 ## [2.0.23](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.22...v2.0.23) (2023-01-09)
 
 
