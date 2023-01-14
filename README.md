@@ -130,7 +130,7 @@ build:
       run: cargo build --release --target=x86_64-unknown-linux-gnu --all-targets
 ```
 
-[next-release-version]: https://github.com/semantic-release-extras/next-release-version
+[next-release-version]: https://github.com/semantic-release-action/next-release-version
 
 ## Example Workflow
 
