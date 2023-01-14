@@ -1,3 +1,10 @@
+## [2.0.29](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.28...v2.0.29) (2023-01-14)
+
+
+### Bug Fixes
+
+* **deps:** migrate to semantic-release-action/next-release-version ([7a59aab](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/7a59aabfd8d9d2eadeeaef5d23bc23befe056bdf))
+
 ## [2.0.28](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.27...v2.0.28) (2023-01-14)
 
 
