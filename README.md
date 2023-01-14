@@ -95,7 +95,7 @@ jobs:
       new-release-version: ${{ steps.get-next-version.outputs.new-release-version }}
 
     steps:
-      - uses: semantic-release-extras/next-release-version@v1
+      - uses: semantic-release-action/next-release-version@v1
         id: get-next-version
 ```
 

@@ -26,7 +26,7 @@ jobs:
     steps:
       - name: Calculate next semantic-release version
         id: get-next-version
-        uses: semantic-release-extras/next-release-version@v1
+        uses: semantic-release-action/next-release-version@v1
 
   test:
     name: Cargo test
