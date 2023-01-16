@@ -40,6 +40,13 @@ export function verifyConditions(): void;
  * workspace.
  */
 export function prepare(nextReleaseVersion: string): void;
+/** Arguments to be passed to the `publish` function. */
+export interface PublishArgs {
+  /** Whether the `--no-dirty` flag should be passed to `cargo publish`. */
+  noDirty?: boolean
+  /** A map of packages and features to pass to `cargo publish`. */
+  features?: Record<string, Array<string>>
+};
 /**
  * Publish the publishable crates from the workspace.
  *
@@ -50,4 +57,4 @@ export function prepare(nextReleaseVersion: string): void;
  * This implments the `publish` step for `sementic-release` for a Cargo-based
  * Rust workspace.
  */
-export function publish(noDirty: boolean): void;
+export function publish(opts?: PublishArgs | undefined | null): void;

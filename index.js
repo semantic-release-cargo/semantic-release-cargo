@@ -26,7 +26,7 @@ function prepare(pluginConfig, context) {
 }
 
 function publish(pluginConfig, context) {
-  semanticReleaseCargo.publish(false);
+  semanticReleaseCargo.publish(pluginConfig);
 }
 
 module.exports = {
