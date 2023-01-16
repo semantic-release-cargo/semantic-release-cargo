@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.31...v2.1.0) (2023-01-16)
+
+
+### Features
+
+* **publish:** allow specifying features to publish to use when building ([2146426](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/2146426d6c809569c984275c2be062f5ec4f0c40))
+
 ## [2.0.31](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.30...v2.0.31) (2023-01-16)
 
 
