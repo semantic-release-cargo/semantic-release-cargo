@@ -13,6 +13,7 @@
 #![deny(warnings, missing_docs)]
 
 use std::{
+    collections::HashMap,
     env, fmt, fs,
     io::{BufRead, Cursor, Write},
     path::{Path, PathBuf},
@@ -310,6 +311,17 @@ fn internal_prepare(
     }
 
     Ok(())
+}
+
+#[cfg_attr(feature = "napi-rs", napi(object))]
+#[derive(Debug, Default)]
+/// Arguments to be passed to the `publish` function.
+pub struct PublishArgs {
+    /// Whether the `--no-dirty` flag should be passed to `cargo publish`.
+    pub no_dirty: Option<bool>,
+
+    /// A map of packages and features to pass to `cargo publish`.
+    pub features: Option<HashMap<String, Vec<String>>>,
 }
 
 /// Publish the publishable crates from the workspace.
