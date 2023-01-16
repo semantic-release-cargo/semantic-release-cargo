@@ -530,6 +530,10 @@ fn publish_package(pkg: &PackageMetadata, opts: &PublishArgs) -> Result<()> {
     if !opts.no_dirty.unwrap_or_default() {
         command.arg("--allow-dirty");
     }
+    if let Some(features) = opts.features.as_ref().and_then(|f| f.get(pkg.name())) {
+        command.arg("--features");
+        command.args(features);
+    }
 
     trace!("running: {:?}", command);
 
