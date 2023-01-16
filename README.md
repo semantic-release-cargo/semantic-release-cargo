@@ -88,15 +88,7 @@ next release version as GitHub Actions outputs:
 ```yaml
 jobs:
   get-next-version:
-    name: Calculate next release
-    runs-on: ubuntu-latest
-    outputs:
-      new-release-published: ${{ steps.get-next-version.outputs.new-release-published }}
-      new-release-version: ${{ steps.get-next-version.outputs.new-release-version }}
-
-    steps:
-      - uses: semantic-release-action/next-release-version@v1
-        id: get-next-version
+    uses: semantic-release-action/next-release-version/.github/workflows/next-release-version.yml@v2
 ```
 
 In the next job, use **semantic-release-cargo** to set the crate version before
@@ -115,9 +107,9 @@ build:
 
     - name: Install semantic-release-cargo
       if: needs.get-next-version.outputs.new-release-published == 'true'
-      uses: taiki-e/install-action@v1
+      uses: EricCrosson/install-github-release-binary@v2
       with:
-        tool: semantic-release-cargo@2
+        targets: semantic-release-cargo@2
 
     - name: Prepare semantic-release for Rust
       if: needs.get-next-version.outputs.new-release-published == 'true'
