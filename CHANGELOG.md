@@ -1,3 +1,10 @@
+## [2.0.31](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.30...v2.0.31) (2023-01-16)
+
+
+### Bug Fixes
+
+* **docs:** update readme with latest next-release-version ([a8b0f6c](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/a8b0f6ccae4dc499840f35cd2fad9c67c3be017b))
+
 ## [2.0.30](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.0.29...v2.0.30) (2023-01-14)
 
 
