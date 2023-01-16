@@ -57,4 +57,4 @@ export interface PublishArgs {
  * This implments the `publish` step for `sementic-release` for a Cargo-based
  * Rust workspace.
  */
-export function publish(noDirty: boolean): void;
+export function publish(opts?: PublishArgs | undefined | null): void;

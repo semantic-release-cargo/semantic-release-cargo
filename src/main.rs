@@ -18,7 +18,7 @@ use human_panic::setup_panic;
 use log::Level;
 use loggerv::{Logger, Output};
 
-use semantic_release_cargo::{list_packages, prepare, publish, verify_conditions};
+use semantic_release_cargo::{list_packages, prepare, publish, verify_conditions, PublishArgs};
 
 /// Run sementic-release steps in the context of a cargo based Rust project.
 #[derive(Parser)]
@@ -151,7 +151,20 @@ impl Subcommand {
                 opt.common.manifest_path(),
                 opt.next_version.clone(),
             )?),
-            Publish(opt) => Ok(publish(w, opt.common.manifest_path(), opt.no_dirty)?),
+            Publish(opt) => Ok(publish(
+                w,
+                opt.common.manifest_path(),
+                &PublishArgs {
+                    no_dirty: Some(opt.no_dirty),
+                    features: Some(opt.features.iter().cloned().fold(
+                        Default::default(),
+                        |mut a, (k, v)| {
+                            a.entry(k).or_default().push(v);
+                            a
+                        },
+                    )),
+                },
+            )?),
         }
     }
 }

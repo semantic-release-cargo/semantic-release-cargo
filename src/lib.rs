@@ -334,10 +334,10 @@ pub struct PublishArgs {
 /// Rust workspace.
 #[cfg(feature = "napi-rs")]
 #[napi]
-pub fn publish(no_dirty: bool) -> Result<()> {
+pub fn publish(opts: Option<PublishArgs>) -> Result<()> {
     let output = std::io::stdout();
     let manifest_path: Option<&Path> = None;
-    internal_publish(output, manifest_path, no_dirty)
+    internal_publish(output, manifest_path, &opts.unwrap_or_default())
 }
 
 /// Publish the publishable crates from the workspace.
@@ -349,14 +349,14 @@ pub fn publish(no_dirty: bool) -> Result<()> {
 /// This implments the `publish` step for `sementic-release` for a Cargo-based
 /// Rust workspace.
 #[cfg(not(feature = "napi-rs"))]
-pub fn publish(output: impl Write, manifest_path: Option<&Path>, no_dirty: bool) -> Result<()> {
-    internal_publish(output, manifest_path, no_dirty)
+pub fn publish(output: impl Write, manifest_path: Option<&Path>, opts: &PublishArgs) -> Result<()> {
+    internal_publish(output, manifest_path, opts)
 }
 
 fn internal_publish(
     output: impl Write,
     manifest_path: Option<&Path>,
-    no_dirty: bool,
+    opts: &PublishArgs,
 ) -> Result<()> {
     info!("getting the package graph");
     let graph = get_package_graph(manifest_path)?;
@@ -367,7 +367,7 @@ fn internal_publish(
     process_publishable_packages(&graph, |pkg| {
         count += 1;
         last_id = Some(pkg.id().clone());
-        publish_package(pkg, no_dirty)
+        publish_package(pkg, opts)
     })?;
 
     let main_crate = match graph.workspace().member_by_path("") {
@@ -516,7 +516,7 @@ fn get_crate_name<'a>(graph: &'a PackageGraph, id: &PackageId) -> &'a str {
         .name()
 }
 
-fn publish_package(pkg: &PackageMetadata, no_dirty: bool) -> Result<()> {
+fn publish_package(pkg: &PackageMetadata, opts: &PublishArgs) -> Result<()> {
     debug!("publishing package {}", pkg.name());
 
     let cargo = env::var("CARGO")
@@ -527,7 +527,7 @@ fn publish_package(pkg: &PackageMetadata, no_dirty: bool) -> Result<()> {
     command
         .args(&["publish", "--manifest-path"])
         .arg(pkg.manifest_path());
-    if !no_dirty {
+    if !opts.no_dirty.unwrap_or_default() {
         command.arg("--allow-dirty");
     }
 
