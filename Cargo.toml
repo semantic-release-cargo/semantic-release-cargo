@@ -45,7 +45,7 @@ human-panic = "=1.1.0"
 itertools = "=0.10.5"
 log = "=0.4.17"
 loggerv = "=0.7.2"
-napi = { version = "=2.10.16", features = ["error_anyhow"], optional = true}
+napi = { version = "=2.11.0", features = ["error_anyhow"], optional = true}
 napi-derive = { version = "=2.10.1", optional = true }
 serde_json = "=1.0.93"
 serde = { version = "=1.0.152", features = ["derive"] }
