@@ -88,7 +88,7 @@ next release version as GitHub Actions outputs:
 ```yaml
 jobs:
   get-next-version:
-    uses: semantic-release-action/next-release-version/.github/workflows/next-release-version.yml@v2
+    uses: semantic-release-action/next-release-version/.github/workflows/next-release-version.yml@v4
 ```
 
 In the next job, use **semantic-release-cargo** to set the crate version before
