@@ -17,7 +17,7 @@ env:
 
 jobs:
   get-next-version:
-    uses: semantic-release-action/next-release-version/.github/workflows/next-release-version.yml@v2
+    uses: semantic-release-action/next-release-version/.github/workflows/next-release-version.yml@v3
 
   test:
     name: Cargo test
