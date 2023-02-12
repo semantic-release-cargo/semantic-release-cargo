@@ -24,6 +24,7 @@ env:
 
 jobs:
   get-next-version:
+    name: Get next release version
     runs-on: ubuntu-latest
     outputs:
       new-release-published: ${{ steps.get-next-version.outputs.new-release-published }}
