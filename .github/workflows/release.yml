@@ -169,7 +169,10 @@ jobs:
   # Compile napi-rs native Node.js modules
   build-node-api:
     name: Build Node-API ${{ matrix.build.target }}
+    if: needs.get-next-version.outputs.new-release-published == 'true'
     runs-on: ${{ matrix.build.host }}
+    needs:
+      - get-next-version
 
     strategy:
       fail-fast: false
