@@ -41,7 +41,7 @@ path = "src/main.rs"
 [dependencies]
 anyhow = "=1.0.69"
 guppy = "=0.15.2"
-human-panic = "=1.1.0"
+human-panic = "=1.1.1"
 itertools = "=0.10.5"
 log = "=0.4.17"
 loggerv = "=0.7.2"
