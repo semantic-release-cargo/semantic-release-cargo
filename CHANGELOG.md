@@ -1,3 +1,10 @@
+## [2.1.44](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.1.43...v2.1.44) (2023-03-16)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate human-panic to v1.1.2 ([0fff874](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/0fff874188ba9420b2d37141714696a0006d5684))
+
 ## [2.1.43](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.1.42...v2.1.43) (2023-03-15)
 
 
