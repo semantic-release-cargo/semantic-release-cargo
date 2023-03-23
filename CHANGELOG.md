@@ -1,3 +1,10 @@
+## [2.1.55](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.1.54...v2.1.55) (2023-03-23)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate napi to v2.12.1 ([97f5bf2](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/97f5bf26c68078d53577d771ee587081f8b1b453))
+
 ## [2.1.54](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.1.53...v2.1.54) (2023-03-22)
 
 
