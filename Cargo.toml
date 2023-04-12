@@ -48,7 +48,7 @@ loggerv = "=0.7.2"
 napi = { version = "=2.12.4", features = ["error_anyhow"], optional = true}
 napi-derive = { version = "=2.12.3", optional = true }
 serde_json = "=1.0.95"
-serde = { version = "=1.0.159", features = ["derive"] }
+serde = { version = "=1.0.160", features = ["derive"] }
 clap = { version = "=4.2.1", features = ["cargo", "derive"]}
 thiserror = "=1.0.40"
 toml_edit = "=0.19.8"
