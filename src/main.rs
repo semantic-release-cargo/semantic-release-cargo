@@ -14,7 +14,6 @@ use std::{
 
 use anyhow::{Context, Error};
 use clap::{crate_version, Parser};
-use human_panic::setup_panic;
 use log::Level;
 use loggerv::{Logger, Output};
 
@@ -170,8 +169,6 @@ impl Subcommand {
 }
 
 fn main() -> Result<(), Error> {
-    setup_panic!();
-
     let opt: Opt = Opt::parse();
 
     Logger::new()
