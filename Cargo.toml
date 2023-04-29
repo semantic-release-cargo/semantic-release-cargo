@@ -39,7 +39,7 @@ name = "semantic-release-cargo"
 path = "src/main.rs"
 
 [dependencies]
-anyhow = "=1.0.70"
+anyhow = "=1.0.71"
 guppy = "=0.15.2"
 itertools = "=0.10.5"
 log = "=0.4.17"
