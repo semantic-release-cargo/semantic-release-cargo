@@ -45,7 +45,7 @@ itertools = "=0.10.5"
 log = "=0.4.17"
 loggerv = "=0.7.2"
 napi = { version = "=2.13.1", features = ["error_anyhow"], optional = true}
-napi-derive = { version = "=2.12.5", optional = true }
+napi-derive = { version = "=2.13.0", optional = true }
 serde_json = "=1.0.96"
 serde = { version = "=1.0.163", features = ["derive"] }
 clap = { version = "=4.3.0", features = ["cargo", "derive"]}
