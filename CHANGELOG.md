@@ -1,3 +1,10 @@
+## [2.1.84](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.1.83...v2.1.84) (2023-05-27)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate napi-derive to v2.13.0 ([52bec70](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/52bec70e27601da67304489d8180bf4c5122597d))
+
 ## [2.1.83](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.1.82...v2.1.83) (2023-05-27)
 
 
