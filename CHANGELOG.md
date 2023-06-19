@@ -1,3 +1,10 @@
+## [2.1.95](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.1.94...v2.1.95) (2023-06-19)
+
+
+### Bug Fixes
+
+* use ubuntu-20.04 runner to compile Node.js native module ([62000b1](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/62000b17044295f1685231f89ae65cdb82b8e1fc)), closes [#167](https://github.com/semantic-release-cargo/semantic-release-cargo/issues/167) [#167](https://github.com/semantic-release-cargo/semantic-release-cargo/issues/167)
+
 ## [2.1.94](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.1.93...v2.1.94) (2023-06-16)
 
 
