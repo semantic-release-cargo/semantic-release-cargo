@@ -101,11 +101,11 @@ jobs:
           - host: macos-latest
             target: aarch64-apple-darwin
             script: |
-              sudo rm -Rf /Library/Developer/CommandLineTools/SDKs/*;
-              export CC=$(xcrun -f clang);
-              export CXX=$(xcrun -f clang++);
-              SYSROOT=$(xcrun --sdk macosx --show-sdk-path);
-              export CFLAGS="-isysroot $SYSROOT -isystem $SYSROOT";
+              sudo rm -Rf /Library/Developer/CommandLineTools/SDKs/*
+              export CC=$(xcrun -f clang)
+              export CXX=$(xcrun -f clang++)
+              SYSROOT=$(xcrun --sdk macosx --show-sdk-path)
+              export CFLAGS="-isysroot $SYSROOT -isystem $SYSROOT"
               ./node_modules/.bin/napi build --platform --release --js false --features napi-rs --cargo-flags=--lib --target aarch64-apple-darwin
           - host: macos-latest
             target: x86_64-apple-darwin
@@ -114,7 +114,7 @@ jobs:
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             script: |-
-              set -e &&
+              set -e
               ./node_modules/.bin/napi build --platform --release --js false --features napi-rs --cargo-flags=--lib --target x86_64-unknown-linux-gnu
 
     steps:
