@@ -314,9 +314,9 @@ checksum = "42703706b716c37f96a77aea830392ad231f44c9e9a67872fa5548707e11b11c"
 
 [[package]]
 name = "guppy"
-version = "0.16.0"
+version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7908f6137bed4f010d97c1863652aad548026a3460c1849ee1cb32ba7654e444"
+checksum = "22219ab6b0d9381fbe7cffd093f766705d5973e3689fabbf6ff953a73a4778cb"
 dependencies = [
  "camino",
  "cargo_metadata",
@@ -800,13 +800,14 @@ checksum = "fd1ba337640d60c3e96bc6f0638a939b9c9a7f2c316a1598c279828b3d1dc8c5"
 
 [[package]]
 name = "target-spec"
-version = "2.0.1"
+version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "afb5c6b004c233467bdcdfbf856f45bfbe0e9aacf20cc31617c98fb4f5080af5"
+checksum = "9aba25be5b82a21b08cf544aa27804b3248e6f6eda913c362cad1aeef51ec89b"
 dependencies = [
  "cfg-expr",
  "guppy-workspace-hack",
  "target-lexicon",
+ "unicode-ident",
 ]
 
 [[package]]
@@ -892,9 +893,9 @@ checksum = "92888ba5573ff080736b3648696b70cafad7d250551175acbaa4e0385b3e1460"
 
 [[package]]
 name = "unicode-ident"
-version = "1.0.5"
+version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6ceab39d59e4c9499d4e5a8ee0e2735b891bb7308ac83dfb4e80cad195c9f6f3"
+checksum = "b15811caf2415fb889178633e7724bad2509101cde276048e013b9def5e51fa0"
 
 [[package]]
 name = "unicode-normalization"
