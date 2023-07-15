@@ -50,7 +50,7 @@ serde_json = "=1.0.102"
 serde = { version = "=1.0.171", features = ["derive"] }
 clap = { version = "=4.3.12", features = ["cargo", "derive"]}
 thiserror = "=1.0.43"
-toml_edit = "=0.19.13"
+toml_edit = "=0.19.14"
 url = { version = "=2.4.0", features = ["serde"] }
 
 [build-dependencies]
