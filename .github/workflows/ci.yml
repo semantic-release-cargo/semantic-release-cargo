@@ -85,9 +85,11 @@ jobs:
         if: matrix.build.cross
         run: echo "CARGO=cross" >> "$GITHUB_ENV"
 
+      # One test is ignored because it requires network access, which
+      # complicates building with the Nix flake.
       - name: Test release binary
         if: matrix.build.cross
-        run: ${{ env.CARGO }} test
+        run: ${{ env.CARGO }} test -- --include-ignored
 
   # Compile napi-rs native Node.js library
   build-napi:

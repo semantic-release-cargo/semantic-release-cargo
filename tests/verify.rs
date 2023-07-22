@@ -70,6 +70,7 @@ fn verify_with_git_dependency_is_error() {
     // );
 }
 
+#[ignore]
 #[test]
 fn verify_with_git_and_version_dependency_is_ok() {
     set_registry_token();

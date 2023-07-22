@@ -51,8 +51,10 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ steps.rust-toolchain.outputs.cachekey }}-${{ hashFiles('**/Cargo.lock') }}
 
+      # One test is ignored because it requires network access, which
+      # complicates building with the Nix flake.
       - name: Cargo test
-        run: cargo test
+        run: cargo test -- --include-ignored
 
   # Compile native CLI binary
   build-cli:
