@@ -6,6 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+use std::ffi::OsStr;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -47,6 +48,31 @@ fn prepare_with_depedencies() {
         get_dep_version(root, "build-dependencies", "build1"),
         "2.0.0"
     );
+}
+
+#[test]
+fn prepare_with_depedencies_from_alternate_registry() {
+    with_env_var(
+        "CARGO_REGISTRIES_TEST_INDEX",
+        "https://github.com/rust-lang/crates.io-index",
+        || {
+            let (_tempdir, manifest) = copy_workspace("dependencies_alternate_registry");
+
+            prepare(io::sink(), Some(&manifest), "2.0.0".into()).expect("prepare failed");
+
+            let graph = get_package_graph(&manifest);
+            for pkg in graph.workspace().iter() {
+                assert_eq!(pkg.version(), &Version::new(2, 0, 0));
+            }
+            let cargo_toml = get_toml_document(&manifest);
+            let root = cargo_toml.as_table();
+            assert_eq!(get_dep_version(root, "dependencies", "dep1"), "2.0.0");
+            assert_eq!(
+                get_dep_version(root, "build-dependencies", "build1"),
+                "2.0.0"
+            );
+        },
+    )
 }
 
 #[test]
@@ -119,4 +145,26 @@ fn get_sub_table<'a>(table: &'a Table, sub: &str) -> &'a Table {
     table[sub]
         .as_table()
         .unwrap_or_else(|| panic!("no {} table", sub))
+}
+
+fn with_env_var<K, V, F>(key: K, value: V, f: F)
+where
+    K: AsRef<OsStr>,
+    V: AsRef<OsStr>,
+    F: FnOnce(),
+{
+    use std::env;
+
+    // Store the previous value of the var, if defined.
+    let previous_val = env::var(key.as_ref()).ok();
+
+    env::set_var(key.as_ref(), value.as_ref());
+    (f)();
+
+    // Reset or clear the var after the test.
+    if let Some(previous_val) = previous_val {
+        env::set_var(key.as_ref(), previous_val);
+    } else {
+        env::remove_var(key.as_ref());
+    }
 }

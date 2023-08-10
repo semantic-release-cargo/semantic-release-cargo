@@ -481,9 +481,7 @@ fn link_is_publishable(link: &PackageLink) -> bool {
 fn package_is_publishable(pkg: &PackageMetadata) -> bool {
     let result = match pkg.publish() {
         guppy::graph::PackagePublish::Unrestricted => true,
-        guppy::graph::PackagePublish::Registries(registries) => {
-            registries.len() == 1 && registries[0] == "crates.io"
-        }
+        guppy::graph::PackagePublish::Registries(registries) => registries.len() == 1,
         _ => todo!(),
     };
 

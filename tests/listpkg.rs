@@ -52,19 +52,6 @@ fn list_dependencies_workspace() {
     }
 }
 
-fn with_env_var<K, V, F>(key: K, value: V, f: F)
-where
-    K: AsRef<OsStr>,
-    V: AsRef<OsStr>,
-    F: FnOnce(),
-{
-    use std::env;
-
-    env::set_var(key.as_ref(), value.as_ref());
-    (f)();
-    env::remove_var(key.as_ref());
-}
-
 #[test]
 fn list_dependencies_with_alternate_registry_in_workspace() {
     with_env_var(
@@ -80,7 +67,7 @@ fn list_dependencies_with_alternate_registry_in_workspace() {
             match lines {
                 Ok(lines) => {
                     if lines[0].starts_with("build1") {
-                        assert!(lines[1].starts_with("dep1"));
+                        assert!(lines[1].starts_with("dep1"), "{}", &lines.join("\n"));
                     } else {
                         assert!(lines[0].starts_with("dep1"));
                         assert!(lines[1].starts_with("build1"));
@@ -103,4 +90,26 @@ fn get_test_data_manifest_path(dir: impl AsRef<Path>) -> PathBuf {
     path.push("Cargo.toml");
 
     path
+}
+
+fn with_env_var<K, V, F>(key: K, value: V, f: F)
+where
+    K: AsRef<OsStr>,
+    V: AsRef<OsStr>,
+    F: FnOnce(),
+{
+    use std::env;
+
+    // Store the previous value of the var, if defined.
+    let previous_val = env::var(key.as_ref()).ok();
+
+    env::set_var(key.as_ref(), value.as_ref());
+    (f)();
+
+    // Reset or clear the var after the test.
+    if let Some(previous_val) = previous_val {
+        env::set_var(key.as_ref(), previous_val);
+    } else {
+        env::remove_var(key.as_ref());
+    }
 }
