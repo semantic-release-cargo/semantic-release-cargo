@@ -12,7 +12,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use semantic_release_cargo::list_packages;
+use semantic_release_cargo::{list_packages, list_packages_with_arguments, PublishArgs};
 
 #[test]
 fn list_basic_workspace() {
@@ -59,11 +59,37 @@ fn list_dependencies_with_alternate_registry_in_workspace() {
         "https://github.com/rust-lang/crates.io-index",
         || {
             let path = get_test_data_manifest_path("dependencies_alternate_registry");
-            let mut output = Vec::new();
 
-            list_packages(Cursor::new(&mut output), Some(path)).expect("unable to list packages");
+            // Test without target
+            let mut output = Vec::new();
+            list_packages(Cursor::new(&mut output), Some(path.clone()))
+                .expect("unable to list packages");
 
             let lines: Result<Vec<_>, _> = Cursor::new(&output).lines().collect();
+            match lines {
+                Ok(lines) => {
+                    if lines[0].starts_with("build1") {
+                        assert!(lines.len() == 1);
+                    } else {
+                        assert!(lines[0].starts_with("dep1"));
+                        assert!(lines[1].starts_with("build1"));
+                    }
+                }
+                Err(_) => panic!("Unable to collect output lines"),
+            }
+
+            // Test with a target registry set.
+            let opts = PublishArgs {
+                registry: Some("test".to_string()),
+                ..Default::default()
+            };
+
+            output.clear();
+            list_packages_with_arguments(Cursor::new(&mut output), &opts, Some(path))
+                .expect("unable to list packages");
+
+            let lines: Result<Vec<_>, _> = Cursor::new(&output).lines().collect();
+
             match lines {
                 Ok(lines) => {
                     if lines[0].starts_with("build1") {

@@ -363,18 +363,19 @@ fn internal_publish(
 ) -> Result<()> {
     info!("getting the package graph");
     let graph = get_package_graph(manifest_path)?;
+    let optional_registry = opts.registry.as_deref();
 
     let mut count = 0;
     let mut last_id = None;
 
-    process_publishable_packages(&graph, |pkg| {
+    process_publishable_packages(&graph, opts, |pkg| {
         count += 1;
         last_id = Some(pkg.id().clone());
         publish_package(pkg, opts)
     })?;
 
     let main_crate = match graph.workspace().member_by_path("") {
-        Ok(pkg) if package_is_publishable(&pkg) => Some(pkg.name()),
+        Ok(pkg) if package_is_publishable(&pkg, optional_registry) => Some(pkg.name()),
         _ => last_id.map(|id| {
             graph
                 .metadata(&id)
@@ -397,7 +398,7 @@ fn internal_publish(
 
 /// List the packages from the workspace in the order of their dependencies.
 ///
-/// The list of pacakges will be written to `output`. If `manifest_path` is provided
+/// The list of packages will be written to `output`. If `manifest_path` is provided
 /// then it is expected to give the path to the `Cargo.toml` file for the root of the
 /// workspace. If `manifest_path` is `None` then `list_packages` will look for the
 /// root of the workspace in a `Cargo.toml` file in the current directory.
@@ -405,7 +406,33 @@ fn internal_publish(
 /// This is a debuging aid and does not directly correspond to a sementic release
 /// step.
 pub fn list_packages(
+    #[cfg(not(feature = "napi-rs"))] output: impl Write,
+    manifest_path: Option<impl AsRef<Path>>,
+) -> Result<()> {
+    internal_list_packages(output, &PublishArgs::default(), manifest_path)
+}
+
+/// List the packages from the workspace in the order of their dependencies as
+/// matched against an argument set.
+///
+/// The list of packages will be written to `output`. If `manifest_path` is provided
+/// then it is expected to give the path to the `Cargo.toml` file for the root of the
+/// workspace. If `manifest_path` is `None` then `list_packages` will look for the
+/// root of the workspace in a `Cargo.toml` file in the current directory.
+///
+/// This is a debuging aid and does not directly correspond to a sementic release
+/// step.
+pub fn list_packages_with_arguments(
+    #[cfg(not(feature = "napi-rs"))] output: impl Write,
+    #[cfg(not(feature = "napi-rs"))] opts: &PublishArgs,
+    manifest_path: Option<impl AsRef<Path>>,
+) -> Result<()> {
+    internal_list_packages(output, opts, manifest_path)
+}
+
+fn internal_list_packages(
     #[cfg(not(feature = "napi-rs"))] mut output: impl Write,
+    #[cfg(not(feature = "napi-rs"))] opts: &PublishArgs,
     manifest_path: Option<impl AsRef<Path>>,
 ) -> Result<()> {
     #[cfg(feature = "napi-rs")]
@@ -414,7 +441,7 @@ pub fn list_packages(
     info!("Building package graph");
     let graph = get_package_graph(manifest_path)?;
 
-    process_publishable_packages(&graph, |pkg| {
+    process_publishable_packages(&graph, opts, |pkg| {
         writeln!(output, "{}({})", pkg.name(), pkg.version()).map_err(Error::output_error)?;
 
         Ok(())
@@ -478,10 +505,14 @@ fn link_is_publishable(link: &PackageLink) -> bool {
 ///
 /// A package is publishable if either publication is unrestricted or it can be
 /// published to one registry.
-fn package_is_publishable(pkg: &PackageMetadata) -> bool {
+fn package_is_publishable(pkg: &PackageMetadata, registry: Option<&str>) -> bool {
+    let registry_target = registry.unwrap_or("crates.io");
+
     let result = match pkg.publish() {
         guppy::graph::PackagePublish::Unrestricted => true,
-        guppy::graph::PackagePublish::Registries(registries) => registries.len() == 1,
+        guppy::graph::PackagePublish::Registries(registries) => {
+            registries.len() == 1 && registries[0] == registry_target
+        }
         _ => todo!(),
     };
 
@@ -492,16 +523,22 @@ fn package_is_publishable(pkg: &PackageMetadata) -> bool {
     result
 }
 
-fn process_publishable_packages<F>(graph: &PackageGraph, mut f: F) -> Result<()>
+fn process_publishable_packages<F>(
+    graph: &PackageGraph,
+    publish_args: &PublishArgs,
+    mut f: F,
+) -> Result<()>
 where
     F: FnMut(&PackageMetadata) -> Result<()>,
 {
+    let registry_target = publish_args.registry.as_deref();
+
     info!("iterating the workspace crates in dependency order");
     for pkg in graph
         .query_workspace()
         .resolve_with_fn(|_, link| !link.dev_only())
         .packages(DependencyDirection::Reverse)
-        .filter(|pkg| pkg.in_workspace() && package_is_publishable(pkg))
+        .filter(|pkg| pkg.in_workspace() && package_is_publishable(pkg, registry_target))
     {
         f(&pkg)?;
     }
