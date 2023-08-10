@@ -525,7 +525,7 @@ fn publish_package(pkg: &PackageMetadata, opts: &PublishArgs) -> Result<()> {
 
     let mut command = Command::new(cargo);
     command
-        .args(&["publish", "--manifest-path"])
+        .args(["publish", "--manifest-path"])
         .arg(pkg.manifest_path());
     if !opts.no_dirty.unwrap_or_default() {
         command.arg("--allow-dirty");
@@ -725,20 +725,18 @@ fn set_lockfile_self_describing_metadata(
                 .as_array_of_tables_mut()
                 .expect("Expected lockfile to contain an array of tables named 'packages'");
 
-            let mut matching_index: Option<usize> = None;
-            let mut index: usize = 0;
-            for table in tables.iter() {
-                let is_match = table
-                    .get("name")
-                    .and_then(|item| item.as_str())
-                    .map(|name| name == package_name)
-                    .unwrap_or_default();
-                if is_match {
-                    matching_index = Some(index);
-                    break;
-                }
-                index += 1;
-            }
+            let matching_index = tables
+                .iter()
+                .enumerate()
+                .filter_map(|(index, table)| {
+                    table
+                        .get("name")
+                        .and_then(|item| item.as_str())
+                        .map(|name| name == package_name)
+                        .map(|_| index)
+                })
+                .take(1)
+                .next();
 
             if let Some(matching_index) = matching_index {
                 let table = tables

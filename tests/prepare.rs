@@ -104,9 +104,9 @@ fn get_toml_document(path: impl AsRef<Path>) -> Document {
 fn get_dep_version<'a>(table: &'a Table, dep_table: &str, dep: &str) -> &'a str {
     get_sub_table(table, dep_table)
         .get(dep)
-        .expect(&format!("no {} dependency item", dep))
+        .unwrap_or_else(|| panic!("no {} dependency item", dep))
         .as_table_like()
-        .expect(&format!("no {} dependency table-like", dep))
+        .unwrap_or_else(|| panic!("no {} dependency table-like", dep))
         .get("version")
         .expect("no version item")
         .as_value()
@@ -116,5 +116,7 @@ fn get_dep_version<'a>(table: &'a Table, dep_table: &str, dep: &str) -> &'a str 
 }
 
 fn get_sub_table<'a>(table: &'a Table, sub: &str) -> &'a Table {
-    table[sub].as_table().expect(&format!("no {} table", sub))
+    table[sub]
+        .as_table()
+        .unwrap_or_else(|| panic!("no {} table", sub))
 }
