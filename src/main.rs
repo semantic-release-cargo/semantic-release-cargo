@@ -17,7 +17,9 @@ use clap::{crate_version, Parser};
 use log::Level;
 use loggerv::{Logger, Output};
 
-use semantic_release_cargo::{list_packages, prepare, publish, verify_conditions, PublishArgs};
+use semantic_release_cargo::{
+    list_packages_with_arguments, prepare, publish, verify_conditions, PublishArgs,
+};
 
 /// Run sementic-release steps in the context of a cargo based Rust project.
 #[derive(Parser)]
@@ -93,6 +95,10 @@ struct CommonOpt {
     /// The path to the `Cargo.toml` file for the root of the workspace.
     #[clap(long)]
     manifest_path: Option<PathBuf>,
+
+    /// Specify an alternate-registry to publish the target crate to.
+    #[clap(long)]
+    registry: Option<String>,
 }
 
 #[derive(Parser)]
@@ -120,10 +126,6 @@ struct PublishOpt {
     /// the `foo` package and the `qux` feature for the `baz` package.
     #[clap(long, value_parser = parse_key_val::<String, String>, value_delimiter = ',')]
     features: Vec<(String, String)>,
-
-    /// Specify an alternate-registry to publish the target crate to.
-    #[clap(long)]
-    registry: Option<String>,
 }
 
 /// Parse a single key-value pair
@@ -147,7 +149,14 @@ impl Subcommand {
         use Subcommand::*;
 
         match self {
-            ListPackages(opt) => Ok(list_packages(w, opt.manifest_path())?),
+            ListPackages(opt) => {
+                let alternate_registry = opt.registry.as_deref();
+                Ok(list_packages_with_arguments(
+                    w,
+                    alternate_registry,
+                    opt.manifest_path(),
+                )?)
+            }
             VerifyConditions(opt) => Ok(verify_conditions(w, opt.manifest_path())?),
             Prepare(opt) => Ok(prepare(
                 w,
@@ -166,7 +175,7 @@ impl Subcommand {
                             a
                         },
                     )),
-                    registry: opt.registry.clone(),
+                    registry: opt.common.registry.clone(),
                 },
             )?),
         }

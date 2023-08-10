@@ -84,7 +84,7 @@ pub fn verify_conditions() -> Result<()> {
 /// release are not satisfied then an explination for that will be written to
 /// `output`.
 ///
-/// This implments the `verifyConditions` step for `sementic-release` for a
+/// This implments the `verifyConditions` step for `semantic-release` for a
 /// Cargo-based rust workspace.
 #[cfg(not(feature = "napi-rs"))]
 pub fn verify_conditions(
@@ -368,7 +368,7 @@ fn internal_publish(
     let mut count = 0;
     let mut last_id = None;
 
-    process_publishable_packages(&graph, opts, |pkg| {
+    process_publishable_packages(&graph, optional_registry, |pkg| {
         count += 1;
         last_id = Some(pkg.id().clone());
         publish_package(pkg, opts)
@@ -409,7 +409,7 @@ pub fn list_packages(
     #[cfg(not(feature = "napi-rs"))] output: impl Write,
     manifest_path: Option<impl AsRef<Path>>,
 ) -> Result<()> {
-    internal_list_packages(output, &PublishArgs::default(), manifest_path)
+    internal_list_packages(output, None, manifest_path)
 }
 
 /// List the packages from the workspace in the order of their dependencies as
@@ -424,15 +424,15 @@ pub fn list_packages(
 /// step.
 pub fn list_packages_with_arguments(
     #[cfg(not(feature = "napi-rs"))] output: impl Write,
-    #[cfg(not(feature = "napi-rs"))] opts: &PublishArgs,
+    #[cfg(not(feature = "napi-rs"))] alternate_registry: Option<&str>,
     manifest_path: Option<impl AsRef<Path>>,
 ) -> Result<()> {
-    internal_list_packages(output, opts, manifest_path)
+    internal_list_packages(output, alternate_registry, manifest_path)
 }
 
 fn internal_list_packages(
     #[cfg(not(feature = "napi-rs"))] mut output: impl Write,
-    #[cfg(not(feature = "napi-rs"))] opts: &PublishArgs,
+    #[cfg(not(feature = "napi-rs"))] alternate_registry: Option<&str>,
     manifest_path: Option<impl AsRef<Path>>,
 ) -> Result<()> {
     #[cfg(feature = "napi-rs")]
@@ -441,7 +441,7 @@ fn internal_list_packages(
     info!("Building package graph");
     let graph = get_package_graph(manifest_path)?;
 
-    process_publishable_packages(&graph, opts, |pkg| {
+    process_publishable_packages(&graph, alternate_registry, |pkg| {
         writeln!(output, "{}({})", pkg.name(), pkg.version()).map_err(Error::output_error)?;
 
         Ok(())
@@ -507,12 +507,13 @@ fn link_is_publishable(link: &PackageLink) -> bool {
 /// published to one registry.
 fn package_is_publishable(pkg: &PackageMetadata, registry: Option<&str>) -> bool {
     use guppy::graph::PackagePublish;
-    let registry_target = registry.unwrap_or(PackagePublish::CRATES_IO);
+    let registry_target = registry;
 
     let result = match pkg.publish() {
         guppy::graph::PackagePublish::Unrestricted => true,
-        guppy::graph::PackagePublish::Registries(registries) => {
-            registries.len() == 1 && registries[0] == registry_target
+        guppy::graph::PackagePublish::Registries(registries) if registries.len() == 1 => {
+            let registry_target = registry_target.unwrap_or(PackagePublish::CRATES_IO);
+            registries[0] == registry_target
         }
         _ => todo!(),
     };
@@ -526,20 +527,18 @@ fn package_is_publishable(pkg: &PackageMetadata, registry: Option<&str>) -> bool
 
 fn process_publishable_packages<F>(
     graph: &PackageGraph,
-    publish_args: &PublishArgs,
+    alternate_registry: Option<&str>,
     mut f: F,
 ) -> Result<()>
 where
     F: FnMut(&PackageMetadata) -> Result<()>,
 {
-    let registry_target = publish_args.registry.as_deref();
-
     info!("iterating the workspace crates in dependency order");
     for pkg in graph
         .query_workspace()
         .resolve_with_fn(|_, link| !link.dev_only())
         .packages(DependencyDirection::Reverse)
-        .filter(|pkg| pkg.in_workspace() && package_is_publishable(pkg, registry_target))
+        .filter(|pkg| pkg.in_workspace() && package_is_publishable(pkg, alternate_registry))
     {
         f(&pkg)?;
     }
