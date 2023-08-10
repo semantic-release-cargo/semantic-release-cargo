@@ -732,18 +732,13 @@ fn set_lockfile_self_describing_metadata(
                 .as_array_of_tables_mut()
                 .expect("Expected lockfile to contain an array of tables named 'packages'");
 
-            let matching_index = tables
-                .iter()
-                .enumerate()
-                .filter_map(|(index, table)| {
-                    table
-                        .get("name")
-                        .and_then(|item| item.as_str())
-                        .map(|name| name == package_name)
-                        .map(|_| index)
-                })
-                .take(1)
-                .next();
+            let matching_index = tables.iter().position(|table| {
+                table
+                    .get("name")
+                    .and_then(|item| item.as_str())
+                    .map(|name| name == package_name)
+                    .unwrap_or_default()
+            });
 
             if let Some(matching_index) = matching_index {
                 let table = tables
