@@ -476,8 +476,8 @@ fn link_is_publishable(link: &PackageLink) -> bool {
 
 /// Is a particular package publishable.
 ///
-/// A package is publishable if either publication is unrestricted or the one
-/// and only registry it is allowed to be published to is "crates.io".
+/// A package is publishable if either publication is unrestricted or it can be
+/// published to one registry.
 fn package_is_publishable(pkg: &PackageMetadata) -> bool {
     let result = match pkg.publish() {
         guppy::graph::PackagePublish::Unrestricted => true,

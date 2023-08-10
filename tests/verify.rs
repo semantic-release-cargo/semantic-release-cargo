@@ -7,6 +7,7 @@
 // except according to those terms.
 
 use std::env;
+use std::ffi::OsStr;
 use std::io;
 use std::path::{Path, PathBuf};
 
@@ -20,7 +21,11 @@ fn verify_simple_workspaces_is_ok() {
     set_registry_token();
 
     verify_workspace_is_ok("basic");
-    verify_workspace_is_ok("dependencies");
+    with_env_var(
+        "CARGO_REGISTRIES_TEST_INDEX",
+        "https://github.com/rust-lang/crates.io-index",
+        || verify_workspace_is_ok("dependencies"),
+    );
 }
 
 #[test]
@@ -103,4 +108,24 @@ fn get_test_data_manifest_path(dir: impl AsRef<Path>) -> PathBuf {
 
 fn set_registry_token() {
     env::set_var("CARGO_REGISTRY_TOKEN", "fake_token");
+}
+
+fn with_env_var<K, V, F>(key: K, value: V, f: F)
+where
+    K: AsRef<OsStr>,
+    V: AsRef<OsStr>,
+    F: FnOnce(),
+{
+    // Store the previous value of the var, if defined.
+    let previous_val = env::var(key.as_ref()).ok();
+
+    env::set_var(key.as_ref(), value.as_ref());
+    (f)();
+
+    // Reset or clear the var after the test.
+    if let Some(previous_val) = previous_val {
+        env::set_var(key.as_ref(), previous_val);
+    } else {
+        env::remove_var(key.as_ref());
+    }
 }
