@@ -7,6 +7,7 @@
 // except according to those terms.
 
 use std::{
+    ffi::OsStr,
     io::{BufRead, Cursor},
     path::{Path, PathBuf},
 };
@@ -49,6 +50,47 @@ fn list_dependencies_workspace() {
         }
         Err(_) => panic!("Unable to collect output lines"),
     }
+}
+
+fn with_env_var<K, V, F>(key: K, value: V, f: F)
+where
+    K: AsRef<OsStr>,
+    V: AsRef<OsStr>,
+    F: FnOnce(),
+{
+    use std::env;
+
+    env::set_var(key.as_ref(), value.as_ref());
+    (f)();
+    env::remove_var(key.as_ref());
+}
+
+#[test]
+fn list_dependencies_with_alternate_registry_in_workspace() {
+    with_env_var(
+        "CARGO_REGISTRIES_TEST_INDEX",
+        "https://github.com/rust-lang/crates.io-index",
+        || {
+            let path = get_test_data_manifest_path("dependencies_alternate_registry");
+            let mut output = Vec::new();
+
+            list_packages(Cursor::new(&mut output), Some(path)).expect("unable to list packages");
+
+            let lines: Result<Vec<_>, _> = Cursor::new(&output).lines().collect();
+            match lines {
+                Ok(lines) => {
+                    if lines[0].starts_with("build1") {
+                        assert!(lines[1].starts_with("dep1"));
+                    } else {
+                        assert!(lines[0].starts_with("dep1"));
+                        assert!(lines[1].starts_with("build1"));
+                    }
+                    assert!(lines[2].starts_with("dependencies"));
+                }
+                Err(_) => panic!("Unable to collect output lines"),
+            }
+        },
+    )
 }
 
 fn get_test_data_manifest_path(dir: impl AsRef<Path>) -> PathBuf {
