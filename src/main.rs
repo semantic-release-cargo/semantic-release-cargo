@@ -120,6 +120,10 @@ struct PublishOpt {
     /// the `foo` package and the `qux` feature for the `baz` package.
     #[clap(long, value_parser = parse_key_val::<String, String>, value_delimiter = ',')]
     features: Vec<(String, String)>,
+
+    /// Specify an alternate-registry to publish the target crate to.
+    #[clap(long)]
+    registry: Option<String>,
 }
 
 /// Parse a single key-value pair
@@ -162,6 +166,7 @@ impl Subcommand {
                             a
                         },
                     )),
+                    registry: opt.registry.clone(),
                 },
             )?),
         }

@@ -322,6 +322,9 @@ pub struct PublishArgs {
 
     /// A map of packages and features to pass to `cargo publish`.
     pub features: Option<HashMap<String, Vec<String>>>,
+
+    /// Optionally passes a `--registry` flag `cargo publish`.
+    pub registry: Option<String>,
 }
 
 /// Publish the publishable crates from the workspace.
@@ -533,6 +536,10 @@ fn publish_package(pkg: &PackageMetadata, opts: &PublishArgs) -> Result<()> {
     if let Some(features) = opts.features.as_ref().and_then(|f| f.get(pkg.name())) {
         command.arg("--features");
         command.args(features);
+    }
+    if let Some(registry) = opts.registry.as_ref() {
+        command.arg("--registry");
+        command.arg(registry);
     }
 
     trace!("running: {:?}", command);
