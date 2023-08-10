@@ -506,7 +506,8 @@ fn link_is_publishable(link: &PackageLink) -> bool {
 /// A package is publishable if either publication is unrestricted or it can be
 /// published to one registry.
 fn package_is_publishable(pkg: &PackageMetadata, registry: Option<&str>) -> bool {
-    let registry_target = registry.unwrap_or("crates.io");
+    use guppy::graph::PackagePublish;
+    let registry_target = registry.unwrap_or(PackagePublish::CRATES_IO);
 
     let result = match pkg.publish() {
         guppy::graph::PackagePublish::Unrestricted => true,
