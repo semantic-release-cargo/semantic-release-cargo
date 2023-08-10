@@ -5,3 +5,4 @@
 /semantic-release-cargo*.node
 /target/
 /test_data/*/target
+/.devcontainer/
