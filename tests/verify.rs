@@ -13,18 +13,31 @@ use std::path::{Path, PathBuf};
 
 use assert_matches::assert_matches;
 
-use semantic_release_cargo::verify_conditions;
+use semantic_release_cargo::{verify_conditions, verify_conditions_with_alternate};
 // use semantic_release_cargo::Error;
 
 #[test]
 fn verify_simple_workspaces_is_ok() {
     set_registry_token();
 
-    verify_workspace_is_ok("basic");
+    verify_workspace_is_ok(None, "basic");
     with_env_var(
         "CARGO_REGISTRIES_TEST_INDEX",
         "https://github.com/rust-lang/crates.io-index",
-        || verify_workspace_is_ok("dependencies"),
+        || verify_workspace_is_ok(None, "dependencies"),
+    );
+}
+
+#[test]
+fn verify_workspace_with_alternate_registry_is_ok() {
+    with_env_var(
+        "CARGO_REGISTRIES_TEST_INDEX",
+        "https://github.com/rust-lang/crates.io-index",
+        || {
+            with_env_var("CARGO_REGISTRIES_TEST_TOKEN", "fake_value", || {
+                verify_workspace_is_ok(Some("test"), "dependencies_alternate_registry")
+            })
+        },
     );
 }
 
@@ -78,18 +91,19 @@ fn verify_with_git_dependency_is_error() {
 #[ignore]
 #[test]
 fn verify_with_git_and_version_dependency_is_ok() {
-    set_registry_token();
-    let path = get_test_data_manifest_path("git_dep_version");
+    with_env_var("CARGO_REGISTRY_TOKEN", "fake_token", || {
+        let path = get_test_data_manifest_path("git_dep_version");
 
-    let result = verify_conditions(io::sink(), Some(&path));
+        let result = verify_conditions(io::sink(), Some(&path));
 
-    assert_matches!(result, Ok(_));
+        assert_matches!(result, Ok(_));
+    });
 }
 
-fn verify_workspace_is_ok(dir: impl AsRef<Path>) {
+fn verify_workspace_is_ok(alternate_registry: Option<&str>, dir: impl AsRef<Path>) {
     let path = get_test_data_manifest_path(dir);
 
-    let result = verify_conditions(io::sink(), Some(&path));
+    let result = verify_conditions_with_alternate(io::sink(), alternate_registry, Some(&path));
 
     assert_matches!(result, Ok(_));
 }

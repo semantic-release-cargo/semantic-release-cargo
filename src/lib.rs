@@ -91,21 +91,63 @@ pub fn verify_conditions(
     output: impl Write,
     manifest_path: Option<impl AsRef<Path>>,
 ) -> Result<()> {
-    internal_verify_conditions(output, manifest_path)
+    internal_verify_conditions(output, None, manifest_path)
+}
+
+/// Verify that the conditions for a release are satisfied.
+///
+/// The conditions for a release checked by this function are:
+///
+///    1. That the CARGO_REGISTRY_TOKEN environment variable is set and is
+///       non-empty, if the registry field is not set. Otherwise, that the
+///       CARGO_REGISTRY_<NAME>_TOKEN environment variable is set and is
+///       non-empty.
+///    2. That it can construct the graph of all of the dependencies in the
+///       workspace.
+///    3. That the dependencies and build-dependencies of all of crates in the
+///       workspace are suitable for publishing to `crates.io`.
+///
+/// If `alternate_registry` is provided then it is expected to point to an
+/// [alternate registry](https://doc.rust-lang.org/cargo/reference/registries.html#using-an-alternate-registry)
+/// defined in a cargo.toml file.
+/// If `manifest_path` is provided then it is expect to give the path to the
+/// `Cargo.toml` file for the root of the workspace. If `manifest_path` is `None`
+/// then `verify_conditions` will look for the root of the workspace in a
+/// `Cargo.toml` file in the current directory. If one of the conditions for a
+/// release are not satisfied then an explination for that will be written to
+/// `output`.
+///
+/// This implments the `verifyConditions` step for `semantic-release` for a
+/// Cargo-based rust workspace.
+#[cfg(not(feature = "napi-rs"))]
+pub fn verify_conditions_with_alternate(
+    output: impl Write,
+    alternate_registry: Option<&str>,
+    manifest_path: Option<impl AsRef<Path>>,
+) -> Result<()> {
+    internal_verify_conditions(output, alternate_registry, manifest_path)
 }
 
 fn internal_verify_conditions(
     mut output: impl Write,
+    alternate_registry: Option<&str>,
     manifest_path: Option<impl AsRef<Path>>,
 ) -> Result<()> {
-    info!("Checking CARGO_REGISTRY_TOKEN");
-    env::var_os("CARGO_REGISTRY_TOKEN")
-        .and_then(|val| if val.is_empty() { None } else { Some(()) })
+    let registry_token_key = alternate_registry
+        .map(|registry| format!("CARGO_REGISTRIES_{}_TOKEN", registry.to_uppercase()))
+        .unwrap_or("CARGO_REGISTRY_TOKEN".to_string());
+
+    info!("Checking cargo registry token env var",);
+    env::var_os(&registry_token_key)
+        .and_then(|val: std::ffi::OsString| if val.is_empty() { None } else { Some(()) })
         .ok_or_else(|| {
-            writeln!(output, "CARGO_REGISTRY_TOKEN empty or not set.")
+            writeln!(output, "{} empty or not set.", &registry_token_key)
                 .map_err(Error::output_error)
                 .and_then::<(), _>(|()| {
-                    Err(Error::verify_error("CARGO_REGISTRY_TOKEN empty or not set"))
+                    Err(Error::verify_error(format!(
+                        "{} empty or not set",
+                        &registry_token_key
+                    )))
                 })
                 .unwrap_err()
         })?;

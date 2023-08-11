@@ -18,7 +18,7 @@ use log::Level;
 use loggerv::{Logger, Output};
 
 use semantic_release_cargo::{
-    list_packages_with_arguments, prepare, publish, verify_conditions, PublishArgs,
+    list_packages_with_arguments, prepare, publish, verify_conditions_with_alternate, PublishArgs,
 };
 
 /// Run sementic-release steps in the context of a cargo based Rust project.
@@ -149,15 +149,16 @@ impl Subcommand {
         use Subcommand::*;
 
         match self {
-            ListPackages(opt) => {
-                let alternate_registry = opt.registry.as_deref();
-                Ok(list_packages_with_arguments(
-                    w,
-                    alternate_registry,
-                    opt.manifest_path(),
-                )?)
-            }
-            VerifyConditions(opt) => Ok(verify_conditions(w, opt.manifest_path())?),
+            ListPackages(opt) => Ok(list_packages_with_arguments(
+                w,
+                opt.registry.as_deref(),
+                opt.manifest_path(),
+            )?),
+            VerifyConditions(opt) => Ok(verify_conditions_with_alternate(
+                w,
+                opt.registry.as_deref(),
+                opt.manifest_path(),
+            )?),
             Prepare(opt) => Ok(prepare(
                 w,
                 opt.common.manifest_path(),
