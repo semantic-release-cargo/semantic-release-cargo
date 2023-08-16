@@ -21,7 +21,7 @@ use semantic_release_cargo::{
     list_packages_with_arguments, prepare, publish, verify_conditions_with_alternate, PublishArgs,
 };
 
-/// Run sementic-release steps in the context of a cargo based Rust project.
+/// Run semantic-release steps in the context of a cargo based Rust project.
 #[derive(Parser)]
 #[clap(version = crate_version!())]
 struct Opt {
@@ -39,15 +39,15 @@ struct Opt {
 
 #[derive(Parser)]
 enum Subcommand {
-    /// List the packages that are included in the sementic release.
+    /// List the packages that are included in the semantic release.
     ///
     /// The listed packages are all of the packages in the workspace and are listed
     /// in order based on their dependencies (it is a topological sort of the
     /// dependency graph). Packages that will not be published will have such an
     /// indication given after the name of the package.
     ///
-    /// This is primarily a debuging aid and does not corresponde directly to a
-    /// sementic release step.
+    /// This is primarily a debugging aid and does not corresponds directly to
+    /// a semantic release step.
     ListPackages(CommonOpt),
 
     /// Verify that the conditions for a release are satisfied
@@ -61,7 +61,7 @@ enum Subcommand {
     ///     3. That it can parse the version for packages in the workspace in all of
     ///        the `Cargo.toml` files that form part of the workspace.
     ///
-    /// This implments the `verifyConditions` step for `sementic-release` for a
+    /// This implements the `verifyConditions` step for `semantic-release` for a
     /// Cargo-based Rust workspace.
     #[clap(verbatim_doc_comment)]
     VerifyConditions(CommonOpt),
@@ -73,7 +73,7 @@ enum Subcommand {
     /// version field of any workspace-relative path dependencies and
     /// build-dependencies.
     ///
-    /// This implments the `prepare` step for `semantic-release` for a Cargo-based
+    /// This implements the `prepare` step for `semantic-release` for a Cargo-based
     /// Rust workspace.
     Prepare(PrepareOpt),
 
@@ -85,7 +85,7 @@ enum Subcommand {
     /// with the `allow-dirty` flag but this can be excluded with the `no-dirty`
     /// flag to this subcommand.
     ///
-    /// This implments the `publish` step for `semantic-release` for a Cargo-based
+    /// This implements the `publish` step for `semantic-release` for a Cargo-based
     /// Rust workspace.
     Publish(PublishOpt),
 }

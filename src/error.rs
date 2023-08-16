@@ -20,7 +20,7 @@ use url::ParseError;
 
 use super::DependencyType;
 
-/// The error type for operations `sementic-release-rust` operations.
+/// The error type for operations `semantic-release-rust` operations.
 #[derive(Debug, Error)]
 pub enum Error {
     /// Error while parsing the structure of a workspace.
@@ -96,7 +96,7 @@ pub enum Error {
         #[source]
         inner: CargoTomlError,
 
-        /// The `Cargo.toml` file in which the error occured.
+        /// The `Cargo.toml` file in which the error occurred.
         manifest_path: PathBuf,
     },
 
@@ -107,7 +107,7 @@ pub enum Error {
         #[source]
         inner: io::Error,
 
-        /// The manifest path for the crate on which the error occured.
+        /// The manifest path for the crate on which the error occurred.
         manifest_path: PathBuf,
     },
 
@@ -117,7 +117,7 @@ pub enum Error {
         /// The exit status from `cargo publish`.
         status: ExitStatus,
 
-        /// The manifest path for the crate on which the error occured.
+        /// The manifest path for the crate on which the error occurred.
         manifest_path: PathBuf,
     },
 

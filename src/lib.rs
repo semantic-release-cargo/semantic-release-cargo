@@ -6,7 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-//! Implementation of the sementic release steps to for integraing a cargo-based Rust
+//! Implementation of the semantic release steps to for integrating a cargo-based Rust
 //! project.
 
 #![forbid(unsafe_code)]
@@ -53,10 +53,10 @@ pub use error::{CargoTomlError, Error, Result};
 /// `Cargo.toml` file for the root of the workspace. If `manifest_path` is `None`
 /// then `verify_conditions` will look for the root of the workspace in a
 /// `Cargo.toml` file in the current directory. If one of the conditions for a
-/// release are not satisfied then an explination for that will be written to
+/// release are not satisfied then an explanation for that will be written to
 /// `output`.
 ///
-/// This implments the `verifyConditions` step for `sementic-release` for a
+/// This implements the `verifyConditions` step for `semantic-release` for a
 /// Cargo-based rust workspace.
 #[cfg(feature = "napi-rs")]
 #[napi]
@@ -81,10 +81,10 @@ pub fn verify_conditions() -> Result<()> {
 /// `Cargo.toml` file for the root of the workspace. If `manifest_path` is `None`
 /// then `verify_conditions` will look for the root of the workspace in a
 /// `Cargo.toml` file in the current directory. If one of the conditions for a
-/// release are not satisfied then an explination for that will be written to
+/// release are not satisfied then an explanation for that will be written to
 /// `output`.
 ///
-/// This implments the `verifyConditions` step for `semantic-release` for a
+/// This implements the `verifyConditions` step for `semantic-release` for a
 /// Cargo-based rust workspace.
 #[cfg(not(feature = "napi-rs"))]
 pub fn verify_conditions(
@@ -114,10 +114,10 @@ pub fn verify_conditions(
 /// `Cargo.toml` file for the root of the workspace. If `manifest_path` is `None`
 /// then `verify_conditions` will look for the root of the workspace in a
 /// `Cargo.toml` file in the current directory. If one of the conditions for a
-/// release are not satisfied then an explination for that will be written to
+/// release are not satisfied then an explanation for that will be written to
 /// `output`.
 ///
-/// This implments the `verifyConditions` step for `semantic-release` for a
+/// This implements the `verifyConditions` step for `semantic-release` for a
 /// Cargo-based rust workspace.
 #[cfg(not(feature = "napi-rs"))]
 pub fn verify_conditions_with_alternate(
@@ -239,7 +239,7 @@ fn internal_verify_conditions(
 /// identified by a workspace-relative path dependencies is also set to the supplied
 /// version (the version filed will be added if it isn't already present).
 ///
-/// This implments the `prepare` step for `sementic-release` for a Cargo-based Rust
+/// This implements the `prepare` step for `semantic-release` for a Cargo-based Rust
 /// workspace.
 #[cfg(feature = "napi-rs")]
 #[napi]
@@ -258,7 +258,7 @@ pub fn prepare(next_release_version: String) -> Result<()> {
 /// identified by a workspace-relative path dependencies is also set to the supplied
 /// version (the version filed will be added if it isn't already present).
 ///
-/// This implments the `prepare` step for `sementic-release` for a Cargo-based Rust
+/// This implements the `prepare` step for `semantic-release` for a Cargo-based Rust
 /// workspace.
 #[cfg(not(feature = "napi-rs"))]
 pub fn prepare(
@@ -333,7 +333,7 @@ fn internal_prepare(
         //
         // Unsupported: updating metadata of in-workspace dependencies. I
         // didn't take a stab at this yet because I don't have this issue
-        // personall yet, and without a repository in which I can reproduce
+        // personal yet, and without a repository in which I can reproduce
         // this problem I think it's most responsible to keep the code simple
         // and readable.
         let lockfile_path = get_cargo_lock(path.as_std_path());
@@ -375,7 +375,7 @@ pub struct PublishArgs {
 /// whose `package.publish` field is set to `false` or that includes a registry other
 /// than `crates.io`.
 ///
-/// This implments the `publish` step for `sementic-release` for a Cargo-based
+/// This implements the `publish` step for `semantic-release` for a Cargo-based
 /// Rust workspace.
 #[cfg(feature = "napi-rs")]
 #[napi]
@@ -391,7 +391,7 @@ pub fn publish(opts: Option<PublishArgs>) -> Result<()> {
 /// whose `package.publish` field is set to `false` or that includes a registry other
 /// than `crates.io`.
 ///
-/// This implments the `publish` step for `sementic-release` for a Cargo-based
+/// This implements the `publish` step for `semantic-release` for a Cargo-based
 /// Rust workspace.
 #[cfg(not(feature = "napi-rs"))]
 pub fn publish(output: impl Write, manifest_path: Option<&Path>, opts: &PublishArgs) -> Result<()> {
@@ -445,7 +445,7 @@ fn internal_publish(
 /// workspace. If `manifest_path` is `None` then `list_packages` will look for the
 /// root of the workspace in a `Cargo.toml` file in the current directory.
 ///
-/// This is a debuging aid and does not directly correspond to a sementic release
+/// This is a debuging aid and does not directly correspond to a semantic release
 /// step.
 pub fn list_packages(
     #[cfg(not(feature = "napi-rs"))] output: impl Write,
@@ -462,7 +462,7 @@ pub fn list_packages(
 /// workspace. If `manifest_path` is `None` then `list_packages` will look for the
 /// root of the workspace in a `Cargo.toml` file in the current directory.
 ///
-/// This is a debuging aid and does not directly correspond to a sementic release
+/// This is a debuging aid and does not directly correspond to a semantic release
 /// step.
 pub fn list_packages_with_arguments(
     #[cfg(not(feature = "napi-rs"))] output: impl Write,
