@@ -428,9 +428,18 @@ fn internal_publish(
 
     if let Some(main_crate) = main_crate {
         debug!("printing release record with main crate: {}", main_crate);
-        let name = format!("crate.io packages ({} packages published)", count);
-        serde_json::to_writer(output, &Release::new(name, main_crate)?)
-            .map_err(|err| Error::write_release_error(err, main_crate))?;
+        let name = format!(
+            "{} packages ({} packages published)",
+            optional_registry.unwrap_or("crates.io"),
+            count
+        );
+        if optional_registry.is_none() {
+            serde_json::to_writer(output, &Release::new_crates_io_release(name, main_crate)?)
+                .map_err(|err| Error::write_release_error(err, main_crate))?;
+        } else {
+            serde_json::to_writer(output, &Release::new::<&str>(name, None, main_crate)?)
+                .map_err(|err| Error::write_release_error(err, main_crate))?;
+        }
     } else {
         debug!("no release record to print");
     }
@@ -875,11 +884,32 @@ impl fmt::Display for DependencyType {
 #[derive(Debug, Serialize)]
 struct Release {
     name: String,
-    url: Url,
+    url: Option<Url>,
 }
 
 impl Release {
-    fn new(name: impl AsRef<str>, main_crate: impl AsRef<str>) -> Result<Self> {
+    fn new<URL: AsRef<str>>(
+        name: impl AsRef<str>,
+        url: Option<URL>,
+        main_crate: impl AsRef<str>,
+    ) -> Result<Self> {
+        let url = if let Some(url) = url {
+            let base = Url::parse(url.as_ref()).map_err(Error::url_parse_error)?;
+            let url = base
+                .join(main_crate.as_ref())
+                .map_err(Error::url_parse_error)?;
+            Some(url)
+        } else {
+            None
+        };
+
+        Ok(Self {
+            name: name.as_ref().to_owned(),
+            url,
+        })
+    }
+
+    fn new_crates_io_release(name: impl AsRef<str>, main_crate: impl AsRef<str>) -> Result<Self> {
         let base = Url::parse("https://crates.io/crates/").map_err(Error::url_parse_error)?;
         let url = base
             .join(main_crate.as_ref())
@@ -887,7 +917,7 @@ impl Release {
 
         Ok(Self {
             name: name.as_ref().to_owned(),
-            url,
+            url: Some(url),
         })
     }
 }
