@@ -15,6 +15,11 @@
       src = ../.;
       filter = cargoOrTestFiles;
     };
+
+    nativeBuildInputs = pkgs.lib.optionals pkgs.stdenv.isDarwin [
+      pkgs.darwin.apple_sdk.frameworks.Security
+      pkgs.libiconv
+    ];
   };
 
   # Build *just* the cargo dependencies, so we can reuse
@@ -50,6 +55,7 @@
     });
 in {
   inherit
+    commonArgs
     myCrate
     myCrateClippy
     myCrateCoverage
