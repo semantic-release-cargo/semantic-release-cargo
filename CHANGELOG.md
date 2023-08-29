@@ -1,3 +1,12 @@
+## [2.1.127](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.1.126...v2.1.127) (2023-08-29)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate log to v0.4.20 ([d354635](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/d354635cca1e6b07884a1c107808ada8f55f714a))
+* **deps:** update rust crate serde to v1.0.188 ([6f585df](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/6f585df007db1fa3804d605161359caa145bf370))
+* **deps:** update rust crate thiserror to v1.0.47 ([ee0b9d9](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/ee0b9d965d80a2ce7f5f93b47a8247b48f9ac55f))
+
 ## [2.1.126](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.1.125...v2.1.126) (2023-08-29)
 
 
