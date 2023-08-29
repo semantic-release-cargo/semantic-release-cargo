@@ -87,9 +87,11 @@ jobs:
 
       # One test is ignored because it requires network access, which
       # complicates building with the Nix flake.
+      # However, I don't know how to pass `-- --include-ignored` in a way
+      # that doesn't break cross! So for now, we ignore the ignored test.
       - name: Test release binary
         if: matrix.build.cross
-        run: ${{ env.CARGO }} test -- --include-ignored
+        run: ${{ env.CARGO }} test
 
   # Compile napi-rs native Node.js library
   build-napi:
