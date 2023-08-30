@@ -46,7 +46,7 @@ log = "=0.4.20"
 loggerv = "=0.7.2"
 napi = { version = "=2.13.3", features = ["error_anyhow"], optional = true}
 napi-derive = { version = "=2.13.0", optional = true }
-serde_json = "=1.0.103"
+serde_json = "=1.0.105"
 serde = { version = "=1.0.188", features = ["derive"] }
 clap = { version = "=4.3.19", features = ["cargo", "derive"]}
 thiserror = "=1.0.47"
