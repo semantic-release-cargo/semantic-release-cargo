@@ -6,7 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-//! Implementation of the sementic release steps to for integraing a cargo-based Rust
+//! Implementation of the semantic release steps to for integrating a cargo-based Rust
 //! project.
 
 #![forbid(unsafe_code)]
@@ -53,17 +53,17 @@ pub use error::{CargoTomlError, Error, Result};
 /// `Cargo.toml` file for the root of the workspace. If `manifest_path` is `None`
 /// then `verify_conditions` will look for the root of the workspace in a
 /// `Cargo.toml` file in the current directory. If one of the conditions for a
-/// release are not satisfied then an explination for that will be written to
+/// release are not satisfied then an explanation for that will be written to
 /// `output`.
 ///
-/// This implments the `verifyConditions` step for `sementic-release` for a
+/// This implements the `verifyConditions` step for `semantic-release` for a
 /// Cargo-based rust workspace.
 #[cfg(feature = "napi-rs")]
 #[napi]
 pub fn verify_conditions() -> Result<()> {
     let output = std::io::stdout();
     let manifest_path: Option<&Path> = None;
-    internal_verify_conditions(output, manifest_path)
+    internal_verify_conditions(output, None, manifest_path)
 }
 
 /// Verify that the conditions for a release are satisfied.
@@ -81,31 +81,73 @@ pub fn verify_conditions() -> Result<()> {
 /// `Cargo.toml` file for the root of the workspace. If `manifest_path` is `None`
 /// then `verify_conditions` will look for the root of the workspace in a
 /// `Cargo.toml` file in the current directory. If one of the conditions for a
-/// release are not satisfied then an explination for that will be written to
+/// release are not satisfied then an explanation for that will be written to
 /// `output`.
 ///
-/// This implments the `verifyConditions` step for `sementic-release` for a
+/// This implements the `verifyConditions` step for `semantic-release` for a
 /// Cargo-based rust workspace.
 #[cfg(not(feature = "napi-rs"))]
 pub fn verify_conditions(
     output: impl Write,
     manifest_path: Option<impl AsRef<Path>>,
 ) -> Result<()> {
-    internal_verify_conditions(output, manifest_path)
+    internal_verify_conditions(output, None, manifest_path)
+}
+
+/// Verify that the conditions for a release are satisfied.
+///
+/// The conditions for a release checked by this function are:
+///
+///    1. That the CARGO_REGISTRY_TOKEN environment variable is set and is
+///       non-empty, if the registry field is not set. Otherwise, that the
+///       CARGO_REGISTRY_<NAME>_TOKEN environment variable is set and is
+///       non-empty.
+///    2. That it can construct the graph of all of the dependencies in the
+///       workspace.
+///    3. That the dependencies and build-dependencies of all of crates in the
+///       workspace are suitable for publishing to `crates.io`.
+///
+/// If `alternate_registry` is provided then it is expected to point to an
+/// [alternate registry](https://doc.rust-lang.org/cargo/reference/registries.html#using-an-alternate-registry)
+/// defined in a cargo.toml file.
+/// If `manifest_path` is provided then it is expect to give the path to the
+/// `Cargo.toml` file for the root of the workspace. If `manifest_path` is `None`
+/// then `verify_conditions` will look for the root of the workspace in a
+/// `Cargo.toml` file in the current directory. If one of the conditions for a
+/// release are not satisfied then an explanation for that will be written to
+/// `output`.
+///
+/// This implements the `verifyConditions` step for `semantic-release` for a
+/// Cargo-based rust workspace.
+#[cfg(not(feature = "napi-rs"))]
+pub fn verify_conditions_with_alternate(
+    output: impl Write,
+    alternate_registry: Option<&str>,
+    manifest_path: Option<impl AsRef<Path>>,
+) -> Result<()> {
+    internal_verify_conditions(output, alternate_registry, manifest_path)
 }
 
 fn internal_verify_conditions(
     mut output: impl Write,
+    alternate_registry: Option<&str>,
     manifest_path: Option<impl AsRef<Path>>,
 ) -> Result<()> {
-    info!("Checking CARGO_REGISTRY_TOKEN");
-    env::var_os("CARGO_REGISTRY_TOKEN")
-        .and_then(|val| if val.is_empty() { None } else { Some(()) })
+    let registry_token_key = alternate_registry
+        .map(|registry| format!("CARGO_REGISTRIES_{}_TOKEN", registry.to_uppercase()))
+        .unwrap_or("CARGO_REGISTRY_TOKEN".to_string());
+
+    info!("Checking cargo registry token env var",);
+    env::var_os(&registry_token_key)
+        .and_then(|val: std::ffi::OsString| if val.is_empty() { None } else { Some(()) })
         .ok_or_else(|| {
-            writeln!(output, "CARGO_REGISTRY_TOKEN empty or not set.")
+            writeln!(output, "{} empty or not set.", &registry_token_key)
                 .map_err(Error::output_error)
                 .and_then::<(), _>(|()| {
-                    Err(Error::verify_error("CARGO_REGISTRY_TOKEN empty or not set"))
+                    Err(Error::verify_error(format!(
+                        "{} empty or not set",
+                        &registry_token_key
+                    )))
                 })
                 .unwrap_err()
         })?;
@@ -197,7 +239,7 @@ fn internal_verify_conditions(
 /// identified by a workspace-relative path dependencies is also set to the supplied
 /// version (the version filed will be added if it isn't already present).
 ///
-/// This implments the `prepare` step for `sementic-release` for a Cargo-based Rust
+/// This implements the `prepare` step for `semantic-release` for a Cargo-based Rust
 /// workspace.
 #[cfg(feature = "napi-rs")]
 #[napi]
@@ -216,7 +258,7 @@ pub fn prepare(next_release_version: String) -> Result<()> {
 /// identified by a workspace-relative path dependencies is also set to the supplied
 /// version (the version filed will be added if it isn't already present).
 ///
-/// This implments the `prepare` step for `sementic-release` for a Cargo-based Rust
+/// This implements the `prepare` step for `semantic-release` for a Cargo-based Rust
 /// workspace.
 #[cfg(not(feature = "napi-rs"))]
 pub fn prepare(
@@ -291,7 +333,7 @@ fn internal_prepare(
         //
         // Unsupported: updating metadata of in-workspace dependencies. I
         // didn't take a stab at this yet because I don't have this issue
-        // personall yet, and without a repository in which I can reproduce
+        // personal yet, and without a repository in which I can reproduce
         // this problem I think it's most responsible to keep the code simple
         // and readable.
         let lockfile_path = get_cargo_lock(path.as_std_path());
@@ -322,6 +364,9 @@ pub struct PublishArgs {
 
     /// A map of packages and features to pass to `cargo publish`.
     pub features: Option<HashMap<String, Vec<String>>>,
+
+    /// Optionally passes a `--registry` flag `cargo publish`.
+    pub registry: Option<String>,
 }
 
 /// Publish the publishable crates from the workspace.
@@ -330,7 +375,7 @@ pub struct PublishArgs {
 /// whose `package.publish` field is set to `false` or that includes a registry other
 /// than `crates.io`.
 ///
-/// This implments the `publish` step for `sementic-release` for a Cargo-based
+/// This implements the `publish` step for `semantic-release` for a Cargo-based
 /// Rust workspace.
 #[cfg(feature = "napi-rs")]
 #[napi]
@@ -346,7 +391,7 @@ pub fn publish(opts: Option<PublishArgs>) -> Result<()> {
 /// whose `package.publish` field is set to `false` or that includes a registry other
 /// than `crates.io`.
 ///
-/// This implments the `publish` step for `sementic-release` for a Cargo-based
+/// This implements the `publish` step for `semantic-release` for a Cargo-based
 /// Rust workspace.
 #[cfg(not(feature = "napi-rs"))]
 pub fn publish(output: impl Write, manifest_path: Option<&Path>, opts: &PublishArgs) -> Result<()> {
@@ -360,18 +405,19 @@ fn internal_publish(
 ) -> Result<()> {
     info!("getting the package graph");
     let graph = get_package_graph(manifest_path)?;
+    let optional_registry = opts.registry.as_deref();
 
     let mut count = 0;
     let mut last_id = None;
 
-    process_publishable_packages(&graph, |pkg| {
+    process_publishable_packages(&graph, optional_registry, |pkg| {
         count += 1;
         last_id = Some(pkg.id().clone());
         publish_package(pkg, opts)
     })?;
 
     let main_crate = match graph.workspace().member_by_path("") {
-        Ok(pkg) if package_is_publishable(&pkg) => Some(pkg.name()),
+        Ok(pkg) if package_is_publishable(&pkg, optional_registry) => Some(pkg.name()),
         _ => last_id.map(|id| {
             graph
                 .metadata(&id)
@@ -382,9 +428,18 @@ fn internal_publish(
 
     if let Some(main_crate) = main_crate {
         debug!("printing release record with main crate: {}", main_crate);
-        let name = format!("crate.io packages ({} packages published)", count);
-        serde_json::to_writer(output, &Release::new(name, main_crate)?)
-            .map_err(|err| Error::write_release_error(err, main_crate))?;
+        let name = format!(
+            "{} packages ({} packages published)",
+            optional_registry.unwrap_or("crates.io"),
+            count
+        );
+        if optional_registry.is_none() {
+            serde_json::to_writer(output, &Release::new_crates_io_release(name, main_crate)?)
+                .map_err(|err| Error::write_release_error(err, main_crate))?;
+        } else {
+            serde_json::to_writer(output, &Release::new::<&str>(name, None, main_crate)?)
+                .map_err(|err| Error::write_release_error(err, main_crate))?;
+        }
     } else {
         debug!("no release record to print");
     }
@@ -394,15 +449,51 @@ fn internal_publish(
 
 /// List the packages from the workspace in the order of their dependencies.
 ///
-/// The list of pacakges will be written to `output`. If `manifest_path` is provided
+/// The list of packages will be written to `output`. If `manifest_path` is provided
 /// then it is expected to give the path to the `Cargo.toml` file for the root of the
 /// workspace. If `manifest_path` is `None` then `list_packages` will look for the
 /// root of the workspace in a `Cargo.toml` file in the current directory.
 ///
-/// This is a debuging aid and does not directly correspond to a sementic release
+/// This is a debuging aid and does not directly correspond to a semantic release
 /// step.
 pub fn list_packages(
+    #[cfg(not(feature = "napi-rs"))] output: impl Write,
+    manifest_path: Option<impl AsRef<Path>>,
+) -> Result<()> {
+    internal_list_packages(
+        #[cfg(not(feature = "napi-rs"))]
+        output,
+        None,
+        manifest_path,
+    )
+}
+
+/// List the packages from the workspace in the order of their dependencies as
+/// matched against an argument set.
+///
+/// The list of packages will be written to `output`. If `manifest_path` is provided
+/// then it is expected to give the path to the `Cargo.toml` file for the root of the
+/// workspace. If `manifest_path` is `None` then `list_packages` will look for the
+/// root of the workspace in a `Cargo.toml` file in the current directory.
+///
+/// This is a debuging aid and does not directly correspond to a semantic release
+/// step.
+pub fn list_packages_with_arguments(
+    #[cfg(not(feature = "napi-rs"))] output: impl Write,
+    alternate_registry: Option<&str>,
+    manifest_path: Option<impl AsRef<Path>>,
+) -> Result<()> {
+    internal_list_packages(
+        #[cfg(not(feature = "napi-rs"))]
+        output,
+        alternate_registry,
+        manifest_path,
+    )
+}
+
+fn internal_list_packages(
     #[cfg(not(feature = "napi-rs"))] mut output: impl Write,
+    alternate_registry: Option<&str>,
     manifest_path: Option<impl AsRef<Path>>,
 ) -> Result<()> {
     #[cfg(feature = "napi-rs")]
@@ -411,7 +502,7 @@ pub fn list_packages(
     info!("Building package graph");
     let graph = get_package_graph(manifest_path)?;
 
-    process_publishable_packages(&graph, |pkg| {
+    process_publishable_packages(&graph, alternate_registry, |pkg| {
         writeln!(output, "{}({})", pkg.name(), pkg.version()).map_err(Error::output_error)?;
 
         Ok(())
@@ -473,13 +564,17 @@ fn link_is_publishable(link: &PackageLink) -> bool {
 
 /// Is a particular package publishable.
 ///
-/// A package is publishable if either publication is unrestricted or the one
-/// and only registry it is allowed to be published to is "crates.io".
-fn package_is_publishable(pkg: &PackageMetadata) -> bool {
+/// A package is publishable if either publication is unrestricted or it can be
+/// published to one registry.
+fn package_is_publishable(pkg: &PackageMetadata, registry: Option<&str>) -> bool {
+    use guppy::graph::PackagePublish;
+    let registry_target = registry;
+
     let result = match pkg.publish() {
         guppy::graph::PackagePublish::Unrestricted => true,
-        guppy::graph::PackagePublish::Registries(registries) => {
-            registries.len() == 1 && registries[0] == "crates.io"
+        guppy::graph::PackagePublish::Registries(registries) if registries.len() == 1 => {
+            let registry_target = registry_target.unwrap_or(PackagePublish::CRATES_IO);
+            registries[0] == registry_target
         }
         _ => todo!(),
     };
@@ -491,7 +586,11 @@ fn package_is_publishable(pkg: &PackageMetadata) -> bool {
     result
 }
 
-fn process_publishable_packages<F>(graph: &PackageGraph, mut f: F) -> Result<()>
+fn process_publishable_packages<F>(
+    graph: &PackageGraph,
+    alternate_registry: Option<&str>,
+    mut f: F,
+) -> Result<()>
 where
     F: FnMut(&PackageMetadata) -> Result<()>,
 {
@@ -500,7 +599,7 @@ where
         .query_workspace()
         .resolve_with_fn(|_, link| !link.dev_only())
         .packages(DependencyDirection::Reverse)
-        .filter(|pkg| pkg.in_workspace() && package_is_publishable(pkg))
+        .filter(|pkg| pkg.in_workspace() && package_is_publishable(pkg, alternate_registry))
     {
         f(&pkg)?;
     }
@@ -525,7 +624,7 @@ fn publish_package(pkg: &PackageMetadata, opts: &PublishArgs) -> Result<()> {
 
     let mut command = Command::new(cargo);
     command
-        .args(&["publish", "--manifest-path"])
+        .args(["publish", "--manifest-path"])
         .arg(pkg.manifest_path());
     if !opts.no_dirty.unwrap_or_default() {
         command.arg("--allow-dirty");
@@ -533,6 +632,10 @@ fn publish_package(pkg: &PackageMetadata, opts: &PublishArgs) -> Result<()> {
     if let Some(features) = opts.features.as_ref().and_then(|f| f.get(pkg.name())) {
         command.arg("--features");
         command.args(features);
+    }
+    if let Some(registry) = opts.registry.as_ref() {
+        command.arg("--registry");
+        command.arg(registry);
     }
 
     trace!("running: {:?}", command);
@@ -725,20 +828,13 @@ fn set_lockfile_self_describing_metadata(
                 .as_array_of_tables_mut()
                 .expect("Expected lockfile to contain an array of tables named 'packages'");
 
-            let mut matching_index: Option<usize> = None;
-            let mut index: usize = 0;
-            for table in tables.iter() {
-                let is_match = table
+            let matching_index = tables.iter().position(|table| {
+                table
                     .get("name")
                     .and_then(|item| item.as_str())
                     .map(|name| name == package_name)
-                    .unwrap_or_default();
-                if is_match {
-                    matching_index = Some(index);
-                    break;
-                }
-                index += 1;
-            }
+                    .unwrap_or_default()
+            });
 
             if let Some(matching_index) = matching_index {
                 let table = tables
@@ -798,11 +894,32 @@ impl fmt::Display for DependencyType {
 #[derive(Debug, Serialize)]
 struct Release {
     name: String,
-    url: Url,
+    url: Option<Url>,
 }
 
 impl Release {
-    fn new(name: impl AsRef<str>, main_crate: impl AsRef<str>) -> Result<Self> {
+    fn new<URL: AsRef<str>>(
+        name: impl AsRef<str>,
+        url: Option<URL>,
+        main_crate: impl AsRef<str>,
+    ) -> Result<Self> {
+        let url = if let Some(url) = url {
+            let base = Url::parse(url.as_ref()).map_err(Error::url_parse_error)?;
+            let url = base
+                .join(main_crate.as_ref())
+                .map_err(Error::url_parse_error)?;
+            Some(url)
+        } else {
+            None
+        };
+
+        Ok(Self {
+            name: name.as_ref().to_owned(),
+            url,
+        })
+    }
+
+    fn new_crates_io_release(name: impl AsRef<str>, main_crate: impl AsRef<str>) -> Result<Self> {
         let base = Url::parse("https://crates.io/crates/").map_err(Error::url_parse_error)?;
         let url = base
             .join(main_crate.as_ref())
@@ -810,7 +927,7 @@ impl Release {
 
         Ok(Self {
             name: name.as_ref().to_owned(),
-            url,
+            url: Some(url),
         })
     }
 }

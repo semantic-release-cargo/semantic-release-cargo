@@ -1,0 +1,16 @@
+[package]
+name = "dependencies_alt_registry"
+version = "0.1.0"
+authors = ["Steven Bosnick <sbosnick@sympatico.ca>"]
+edition = "2018"
+publish = ["test"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+dep1 = { path = "dep1", version = "0.1", registry = "test" }
+
+[build-dependencies]
+build1 = { path = "build1" }
+
+[workspace]
