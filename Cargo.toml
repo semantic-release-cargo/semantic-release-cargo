@@ -51,7 +51,7 @@ serde = { version = "=1.0.188", features = ["derive"] }
 clap = { version = "=4.3.19", features = ["cargo", "derive"]}
 thiserror = "=1.0.47"
 toml_edit = "=0.19.14"
-url = { version = "=2.4.0", features = ["serde"] }
+url = { version = "=2.4.1", features = ["serde"] }
 
 [build-dependencies]
 napi-build = { version = "=2.0.1", optional = true }
