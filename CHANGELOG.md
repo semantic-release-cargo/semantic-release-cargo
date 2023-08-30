@@ -1,3 +1,10 @@
+## [2.1.130](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.1.129...v2.1.130) (2023-08-30)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate guppy to v0.17.1 ([fb87065](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/fb8706510c73265c065e4e7ad222b248d492c32f))
+
 ## [2.1.129](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.1.128...v2.1.129) (2023-08-30)
 
 
