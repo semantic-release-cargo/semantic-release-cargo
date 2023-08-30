@@ -1,3 +1,25 @@
+# [2.2.0](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.1.131...v2.2.0) (2023-08-30)
+
+
+### Bug Fixes
+
+* correct clippy lints ([c100a1f](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/c100a1f2dedfed2659339e68f01d6a3f3f5ffa8d))
+* get correct failing napi compilation ([17b5681](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/17b56816e74764af16bafc3e903259de224352e8))
+* package dependency gating ([f5a1007](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/f5a10073a14a19d3be020ffc1d3d0a4596ce2198))
+* registry should be "crates-io" not "crates.io" ([fe2f231](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/fe2f231c8feee7628e01267589877793db4b6899))
+* remove alternate registry from list packages ([bc089d8](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/bc089d8b2932acdc54526add5e4808a9861f5baf))
+* update index iterator to position ([0724779](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/07247793f112da0aaf0afd085daa3b2e8e6e25a7))
+
+
+### Features
+
+* add alternate registry data for testing ([e0486ad](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/e0486ad7907e738623b33ca38f782fc61d5fdef6))
+* add optional registry flag to publish subcommand ([17eb1c1](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/17eb1c1c38e59fd35b9c16e386de137531e9dd6b))
+* implement alternate_registry feature for verify stage ([556960d](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/556960ddb3627725a226bd95466db825113a8728))
+* mark non-crates.io crates as publishable ([f416aea](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/f416aea95fa8a189cc7f3596527b94e0a44befc6))
+* patch release to optionally output the package url ([7e52bb1](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/7e52bb1d55d55a1099fa81d20e4acf673884d2d2))
+* update the publishability to be based on the registry arg ([9134e4b](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/9134e4bdfa15082488067c2b628d3666a89d165c))
+
 ## [2.1.131](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.1.130...v2.1.131) (2023-08-30)
 
 
