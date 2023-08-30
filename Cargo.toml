@@ -48,7 +48,7 @@ napi = { version = "=2.13.3", features = ["error_anyhow"], optional = true}
 napi-derive = { version = "=2.13.0", optional = true }
 serde_json = "=1.0.105"
 serde = { version = "=1.0.188", features = ["derive"] }
-clap = { version = "=4.3.19", features = ["cargo", "derive"]}
+clap = { version = "=4.4.1", features = ["cargo", "derive"]}
 thiserror = "=1.0.47"
 toml_edit = "=0.19.14"
 url = { version = "=2.4.1", features = ["serde"] }
