@@ -19,13 +19,13 @@
  * `Cargo.toml` file for the root of the workspace. If `manifest_path` is `None`
  * then `verify_conditions` will look for the root of the workspace in a
  * `Cargo.toml` file in the current directory. If one of the conditions for a
- * release are not satisfied then an explination for that will be written to
+ * release are not satisfied then an explanation for that will be written to
  * `output`.
  *
- * This implments the `verifyConditions` step for `sementic-release` for a
+ * This implements the `verifyConditions` step for `semantic-release` for a
  * Cargo-based rust workspace.
  */
-export function verifyConditions(): void;
+export function verifyConditions(): void
 /**
  * Prepare the Rust workspace for a release.
  *
@@ -36,17 +36,19 @@ export function verifyConditions(): void;
  * identified by a workspace-relative path dependencies is also set to the supplied
  * version (the version filed will be added if it isn't already present).
  *
- * This implments the `prepare` step for `sementic-release` for a Cargo-based Rust
+ * This implements the `prepare` step for `semantic-release` for a Cargo-based Rust
  * workspace.
  */
-export function prepare(nextReleaseVersion: string): void;
+export function prepare(nextReleaseVersion: string): void
 /** Arguments to be passed to the `publish` function. */
 export interface PublishArgs {
   /** Whether the `--no-dirty` flag should be passed to `cargo publish`. */
   noDirty?: boolean
   /** A map of packages and features to pass to `cargo publish`. */
   features?: Record<string, Array<string>>
-};
+  /** Optionally passes a `--registry` flag `cargo publish`. */
+  registry?: string
+}
 /**
  * Publish the publishable crates from the workspace.
  *
@@ -54,7 +56,7 @@ export interface PublishArgs {
  * whose `package.publish` field is set to `false` or that includes a registry other
  * than `crates.io`.
  *
- * This implments the `publish` step for `sementic-release` for a Cargo-based
+ * This implements the `publish` step for `semantic-release` for a Cargo-based
  * Rust workspace.
  */
-export function publish(opts?: PublishArgs | undefined | null): void;
+export function publish(opts?: PublishArgs | undefined | null): void

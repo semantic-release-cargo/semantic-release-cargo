@@ -63,7 +63,7 @@ pub use error::{CargoTomlError, Error, Result};
 pub fn verify_conditions() -> Result<()> {
     let output = std::io::stdout();
     let manifest_path: Option<&Path> = None;
-    internal_verify_conditions(output, manifest_path)
+    internal_verify_conditions(output, None, manifest_path)
 }
 
 /// Verify that the conditions for a release are satisfied.
@@ -458,9 +458,15 @@ fn internal_publish(
 /// step.
 pub fn list_packages(
     #[cfg(not(feature = "napi-rs"))] output: impl Write,
+    alternate_registry: Option<&str>,
     manifest_path: Option<impl AsRef<Path>>,
 ) -> Result<()> {
-    internal_list_packages(output, None, manifest_path)
+    internal_list_packages(
+        #[cfg(not(feature = "napi-rs"))]
+        output,
+        alternate_registry,
+        manifest_path,
+    )
 }
 
 /// List the packages from the workspace in the order of their dependencies as
@@ -475,15 +481,20 @@ pub fn list_packages(
 /// step.
 pub fn list_packages_with_arguments(
     #[cfg(not(feature = "napi-rs"))] output: impl Write,
-    #[cfg(not(feature = "napi-rs"))] alternate_registry: Option<&str>,
+    alternate_registry: Option<&str>,
     manifest_path: Option<impl AsRef<Path>>,
 ) -> Result<()> {
-    internal_list_packages(output, alternate_registry, manifest_path)
+    internal_list_packages(
+        #[cfg(not(feature = "napi-rs"))]
+        output,
+        alternate_registry,
+        manifest_path,
+    )
 }
 
 fn internal_list_packages(
     #[cfg(not(feature = "napi-rs"))] mut output: impl Write,
-    #[cfg(not(feature = "napi-rs"))] alternate_registry: Option<&str>,
+    alternate_registry: Option<&str>,
     manifest_path: Option<impl AsRef<Path>>,
 ) -> Result<()> {
     #[cfg(feature = "napi-rs")]
