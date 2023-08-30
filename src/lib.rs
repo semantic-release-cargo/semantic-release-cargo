@@ -458,13 +458,12 @@ fn internal_publish(
 /// step.
 pub fn list_packages(
     #[cfg(not(feature = "napi-rs"))] output: impl Write,
-    alternate_registry: Option<&str>,
     manifest_path: Option<impl AsRef<Path>>,
 ) -> Result<()> {
     internal_list_packages(
         #[cfg(not(feature = "napi-rs"))]
         output,
-        alternate_registry,
+        None,
         manifest_path,
     )
 }
