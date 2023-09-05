@@ -7,7 +7,7 @@
 **semantic-release-cargo** integrates a cargo-based Rust project with [semantic-release].
 This solves two use cases:
 
-1. publishing to [crates.io], and
+1. publishing to [crates.io], or other alternate crate registries, and
 2. compiling release binaries
 
 [crates.io]: https://crates.io/
@@ -20,7 +20,10 @@ your Rust crate to crates.io.
 
 ### Requirements
 
-You must set the `CARGO_REGISTRY_TOKEN` environment variable.
+If publishing to [crates.io], you must set the `CARGO_REGISTRY_TOKEN` environment variable.
+
+If publishing to an [alternate registry](https://doc.rust-lang.org/cargo/reference/registries.html#using-an-alternate-registry), you must set the `CARGO_REGISTRIES_<YOUR REGISTRY>_TOKEN` environment variable.
+
 
 This workflow is supported on the following systems:
 
