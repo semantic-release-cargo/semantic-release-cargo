@@ -42,8 +42,7 @@ pub use error::{CargoTomlError, Error, Result};
 ///
 /// The conditions for a release checked by this function are:
 ///
-///    1. That the CARGO_REGISTRY_TOKEN environment variable is set and is
-///       non-empty.
+///    1. That the cargo registry token has been defined.
 ///    2. That it can construct the graph of all of the dependencies in the
 ///       workspace.
 ///    3. That the dependencies and build-dependencies of all of crates in the
@@ -70,8 +69,7 @@ pub fn verify_conditions() -> Result<()> {
 ///
 /// The conditions for a release checked by this function are:
 ///
-///    1. That the CARGO_REGISTRY_TOKEN environment variable is set and is
-///       non-empty.
+///    1. That the cargo registry token has been defined.
 ///    2. That it can construct the graph of all of the dependencies in the
 ///       workspace.
 ///    3. That the dependencies and build-dependencies of all of crates in the
@@ -98,10 +96,9 @@ pub fn verify_conditions(
 ///
 /// The conditions for a release checked by this function are:
 ///
-///    1. That the CARGO_REGISTRY_TOKEN environment variable is set and is
-///       non-empty, if the registry field is not set. Otherwise, that the
-///       CARGO_REGISTRY_<NAME>_TOKEN environment variable is set and is
-///       non-empty.
+///    1. That the cargo registry toekn has been defined and is non-empty, if
+///       the registry field is not set. Otherwise, that the alternate registry
+///       token has been defined and is non-empty.
 ///    2. That it can construct the graph of all of the dependencies in the
 ///       workspace.
 ///    3. That the dependencies and build-dependencies of all of crates in the
@@ -133,24 +130,42 @@ fn internal_verify_conditions(
     alternate_registry: Option<&str>,
     manifest_path: Option<impl AsRef<Path>>,
 ) -> Result<()> {
-    let registry_token_key = alternate_registry
-        .map(|registry| format!("CARGO_REGISTRIES_{}_TOKEN", registry.to_uppercase()))
-        .unwrap_or("CARGO_REGISTRY_TOKEN".to_string());
+    let cargo_config = cargo_config2::Config::load()?;
 
-    info!("Checking cargo registry token env var",);
-    env::var_os(&registry_token_key)
-        .and_then(|val: std::ffi::OsString| if val.is_empty() { None } else { Some(()) })
-        .ok_or_else(|| {
-            writeln!(output, "{} empty or not set.", &registry_token_key)
-                .map_err(Error::output_error)
-                .and_then::<(), _>(|()| {
-                    Err(Error::verify_error(format!(
-                        "{} empty or not set",
-                        &registry_token_key
-                    )))
-                })
-                .unwrap_err()
-        })?;
+    let registry_token_set = match alternate_registry {
+        Some(alternate_registry_id) => {
+            // The key can be both uppercased or lowercased depending on the
+            // source, uppercase if from environment variables, so we try both.
+            let registry_value = cargo_config
+                .registries
+                .get(alternate_registry_id)
+                .or_else(|| {
+                    let uppercased_registry = alternate_registry_id.to_uppercase();
+                    cargo_config.registries.get(&uppercased_registry)
+                });
+
+            registry_value.and_then(|registry| registry.token.as_ref().map(|_| ()))
+        }
+        None => cargo_config.registry.token.map(|_| ()),
+    };
+
+    info!("Checking cargo registry token is set",);
+    registry_token_set.ok_or_else(|| {
+        let registry_id = alternate_registry.unwrap_or("crates-io");
+        writeln!(
+            output,
+            "registry token for {} empty or not set.",
+            &registry_id
+        )
+        .map_err(Error::output_error)
+        .and_then::<(), _>(|()| {
+            Err(Error::verify_error(format!(
+                "registry token for {} empty or not set.",
+                &registry_id
+            )))
+        })
+        .unwrap_err()
+    })?;
 
     info!("Checking that workspace dependencies graph is buildable");
     let graph = match get_package_graph(manifest_path) {
