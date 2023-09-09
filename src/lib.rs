@@ -96,7 +96,7 @@ pub fn verify_conditions(
 ///
 /// The conditions for a release checked by this function are:
 ///
-///    1. That the cargo registry toekn has been defined and is non-empty, if
+///    1. That the cargo registry token has been defined and is non-empty, if
 ///       the registry field is not set. Otherwise, that the alternate registry
 ///       token has been defined and is non-empty.
 ///    2. That it can construct the graph of all of the dependencies in the
