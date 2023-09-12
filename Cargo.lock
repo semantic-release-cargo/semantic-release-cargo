@@ -120,14 +120,13 @@ dependencies = [
 
 [[package]]
 name = "cargo-config2"
-version = "0.1.10"
+version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9447c7fc85724e3e8b2b4a55077c6925973b25cd8f14a2fb6a597d29c5b40400"
+checksum = "66a0d2e34d32886e954dda29abe05e5e95806a7a5eebc016778dcaeec253f11c"
 dependencies = [
  "home",
  "once_cell",
  "serde",
- "shell-escape",
  "toml",
 ]
 
@@ -697,12 +696,6 @@ checksum = "96426c9936fd7a0124915f9185ea1d20aa9445cc9821142f0a73bc9207a2e186"
 dependencies = [
  "serde",
 ]
-
-[[package]]
-name = "shell-escape"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45bb67a18fa91266cc7807181f62f9178a6873bfad7dc788c42e6430db40184f"
 
 [[package]]
 name = "smallvec"
