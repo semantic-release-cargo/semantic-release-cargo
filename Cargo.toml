@@ -50,7 +50,7 @@ serde_json = "=1.0.106"
 serde = { version = "=1.0.188", features = ["derive"] }
 clap = { version = "=4.4.3", features = ["cargo", "derive"] }
 thiserror = "=1.0.48"
-toml_edit = "=0.19.15"
+toml_edit = "=0.20.0"
 url = { version = "=2.4.1", features = ["serde"] }
 cargo-config2 = "=0.1.11"
 
