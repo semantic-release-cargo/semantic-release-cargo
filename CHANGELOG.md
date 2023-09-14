@@ -1,3 +1,10 @@
+## [2.2.10](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.2.9...v2.2.10) (2023-09-14)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate serde_json to v1.0.107 ([28dcec1](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/28dcec11f75d3a320df6b7bd8ae37b5bdf689510))
+
 ## [2.2.9](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.2.8...v2.2.9) (2023-09-13)
 
 
