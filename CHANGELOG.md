@@ -1,3 +1,10 @@
+## [2.2.12](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.2.11...v2.2.12) (2023-09-19)
+
+
+### Bug Fixes
+
+* consider a package unpublishable if it can publish to zero registries ([098a917](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/098a917e4578f8b79cc7b5b50a6e7dea5c80572a))
+
 ## [2.2.11](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.2.10...v2.2.11) (2023-09-15)
 
 
