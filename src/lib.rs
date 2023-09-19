@@ -591,6 +591,7 @@ fn package_is_publishable(pkg: &PackageMetadata, registry: Option<&str>) -> bool
             let registry_target = registry_target.unwrap_or(PackagePublish::CRATES_IO);
             registries[0] == registry_target
         }
+        guppy::graph::PackagePublish::Registries(registries) if registries.len() == 0 => false,
         _ => todo!(),
     };
 
