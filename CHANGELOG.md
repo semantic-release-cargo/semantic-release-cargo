@@ -1,3 +1,10 @@
+## [2.2.13](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.2.12...v2.2.13) (2023-09-19)
+
+
+### Bug Fixes
+
+* force a release ([dbedbe0](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/dbedbe02500f2092d5fea6fea8a8c82826a3d12a))
+
 ## [2.2.12](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.2.11...v2.2.12) (2023-09-19)
 
 
