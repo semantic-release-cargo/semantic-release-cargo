@@ -120,9 +120,9 @@ dependencies = [
 
 [[package]]
 name = "cargo-config2"
-version = "0.1.12"
+version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6cd276612b1ae8f1ced9c4d53cc1a9ea7265ddece18429886b83963429e77f1b"
+checksum = "e0e19e819a17da9cbf620d23ad0972061b034cd1e6eae7c32766be854abc89f5"
 dependencies = [
  "home",
  "once_cell",
