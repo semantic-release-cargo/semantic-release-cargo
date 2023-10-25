@@ -120,15 +120,15 @@ dependencies = [
 
 [[package]]
 name = "cargo-config2"
-version = "0.1.14"
+version = "0.1.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "39dc0598aed91c1b6218d268e214d7bbd4976698e92c01c3e849c80c7e91175c"
+checksum = "d357907e87f152fa96500b410bdec7f72630a1e344096b8d33dbb015a246aa11"
 dependencies = [
  "home",
  "once_cell",
  "serde",
  "serde_derive",
- "toml",
+ "toml_edit",
 ]
 
 [[package]]
@@ -812,18 +812,6 @@ name = "tinyvec_macros"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
-
-[[package]]
-name = "toml"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c226a7bba6d859b63c92c4b4fe69c5b6b72d0cb897dbc8e6012298e6154cb56e"
-dependencies = [
- "serde",
- "serde_spanned",
- "toml_datetime",
- "toml_edit",
-]
 
 [[package]]
 name = "toml_datetime"
