@@ -128,7 +128,7 @@ dependencies = [
  "once_cell",
  "serde",
  "serde_derive",
- "toml_edit",
+ "toml_edit 0.20.7",
 ]
 
 [[package]]
@@ -645,7 +645,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "thiserror",
- "toml_edit",
+ "toml_edit 0.21.0",
  "url",
 ]
 
@@ -831,6 +831,17 @@ dependencies = [
  "indexmap 2.0.0",
  "serde",
  "serde_spanned",
+ "toml_datetime",
+ "winnow",
+]
+
+[[package]]
+name = "toml_edit"
+version = "0.21.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d34d383cd00a163b4a5b85053df514d45bc330f6de7737edfe0a93311d1eaa03"
+dependencies = [
+ "indexmap 2.0.0",
  "toml_datetime",
  "winnow",
 ]
