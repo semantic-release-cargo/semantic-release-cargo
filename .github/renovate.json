@@ -6,6 +6,10 @@
     {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
+    },
+    {
+      "matchPackagePatterns": ["napi"],
+      "groupName": "napi-rs"
     }
   ],
   "timezone": "America/Chicago",
