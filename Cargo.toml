@@ -40,7 +40,7 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "=1.0.75"
-guppy = "=0.17.2"
+guppy = "=0.17.3"
 itertools = "=0.12.0"
 log = "=0.4.20"
 loggerv = "=0.7.2"

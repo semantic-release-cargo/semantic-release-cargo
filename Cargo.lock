@@ -327,9 +327,9 @@ dependencies = [
 
 [[package]]
 name = "guppy"
-version = "0.17.2"
+version = "0.17.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "093c803ef6b36383ad83b2393f0def4d0d49a6af5a153cbc4147b644bf0fa9c1"
+checksum = "f2e77d05e22e97b4d677c2f95ff6886e6edb498ef77b159affc64141db97d871"
 dependencies = [
  "ahash",
  "camino",
@@ -339,7 +339,7 @@ dependencies = [
  "fixedbitset",
  "guppy-workspace-hack",
  "indexmap",
- "itertools 0.11.0",
+ "itertools",
  "nested",
  "once_cell",
  "pathdiff",
@@ -406,15 +406,6 @@ checksum = "d530e1a18b1cb4c484e6e34556a0d948706958449fca0cab753d649f2bce3d1f"
 dependencies = [
  "equivalent",
  "hashbrown",
-]
-
-[[package]]
-name = "itertools"
-version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1c173a5686ce8bfa551b3563d0c2170bf24ca44da99c7ca4bfdab5418c3fe57"
-dependencies = [
- "either",
 ]
 
 [[package]]
@@ -646,7 +637,7 @@ dependencies = [
  "clap",
  "fs_extra",
  "guppy",
- "itertools 0.12.0",
+ "itertools",
  "log",
  "loggerv",
  "napi",
