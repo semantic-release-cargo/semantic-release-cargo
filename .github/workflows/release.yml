@@ -152,7 +152,7 @@ jobs:
         working-directory: ./dist
 
       - name: Upload release artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.build.target }}
           path: |
@@ -243,7 +243,7 @@ jobs:
         shell: bash
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bindings-${{ matrix.build.target }}
           path: ${{ env.APP_NAME }}.*.node
