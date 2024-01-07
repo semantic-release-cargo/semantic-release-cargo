@@ -1,3 +1,10 @@
+## [2.2.57](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.2.56...v2.2.57) (2024-01-07)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate thiserror to v1.0.56 ([e816e07](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/e816e074e4dfe4c15ddd737464c6797570ec1dc2))
+
 ## [2.2.56](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.2.55...v2.2.56) (2024-01-06)
 
 
