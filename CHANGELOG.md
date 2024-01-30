@@ -1,3 +1,10 @@
+## [2.2.68](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.2.67...v2.2.68) (2024-01-30)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate itertools to v0.12.1 ([90078bc](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/90078bcdf43996a9a7eda843e5ac75df6c07e821))
+
 ## [2.2.67](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.2.66...v2.2.67) (2024-01-29)
 
 
