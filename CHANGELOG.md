@@ -1,3 +1,10 @@
+## [2.2.86](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.2.85...v2.2.86) (2024-02-28)
+
+
+### Bug Fixes
+
+* **deps:** update napi-rs to v2.16.0 ([1e12e56](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/1e12e56878f516bb7b3cea3088370e566622d834))
+
 ## [2.2.85](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.2.84...v2.2.85) (2024-02-27)
 
 
