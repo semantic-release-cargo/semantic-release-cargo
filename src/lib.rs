@@ -587,11 +587,11 @@ fn package_is_publishable(pkg: &PackageMetadata, registry: Option<&str>) -> bool
 
     let result = match pkg.publish() {
         guppy::graph::PackagePublish::Unrestricted => true,
-        guppy::graph::PackagePublish::Registries(registries) if registries.len() == 1 => {
+        guppy::graph::PackagePublish::Registries([registry]) => {
             let registry_target = registry_target.unwrap_or(PackagePublish::CRATES_IO);
-            registries[0] == registry_target
+            registry == registry_target
         }
-        guppy::graph::PackagePublish::Registries(registries) if registries.len() == 0 => false,
+        guppy::graph::PackagePublish::Registries([]) => false,
         _ => todo!(),
     };
 
