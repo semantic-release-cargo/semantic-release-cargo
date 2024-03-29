@@ -750,10 +750,7 @@ fn inline_table_add_or_update_value(table: &mut InlineTable, key: &str, value: V
 }
 
 fn dependency_has_version(doc: &Document, link: &PackageLink, typ: DependencyType) -> Result<()> {
-    let top_key = match typ {
-        DependencyType::Normal => "dependencies",
-        DependencyType::Build => "build-dependencies",
-    };
+    let top_key = typ.key();
 
     trace!(
         "Checking for version key for {} in {} section of {}",
@@ -883,6 +880,9 @@ pub enum DependencyType {
 
     /// A build dependency (i.e. "build-dependencies" section of `Cargo.toml`).
     Build,
+
+    /// A dev dependency (i.e. "dev-dependencies" section of `Cargo.toml`).
+    Dev,
 }
 
 impl DependencyType {
@@ -892,6 +892,7 @@ impl DependencyType {
         match self {
             Normal => "dependencies",
             Build => "build-dependencies",
+            Dev => "dev-dependencies",
         }
     }
 }
@@ -903,6 +904,7 @@ impl fmt::Display for DependencyType {
         match self {
             Normal => write!(f, "Dependency"),
             Build => write!(f, "Build dependency"),
+            Dev => write!(f, "Dev dependency"),
         }
     }
 }
