@@ -250,9 +250,10 @@ fn internal_verify_conditions(
 /// Preparing the release updates the version of each crate in the workspace and of
 /// the intra-workspace dependencies. The `version` field in the `packages` table of
 /// each `Cargo.toml` file in the workspace is set to the supplied version. The
-/// `version` field of each dependency or build-dependency that is otherwise
-/// identified by a workspace-relative path dependencies is also set to the supplied
-/// version (the version filed will be added if it isn't already present).
+/// `version` field of each dependency, build-dependency and dev-dependency that
+/// is otherwise identified by a workspace-relative path dependencies is also set
+/// to the supplied version (the version filed will be added if it isn't
+/// already present).
 ///
 /// This implements the `prepare` step for `semantic-release` for a Cargo-based Rust
 /// workspace.
@@ -269,9 +270,10 @@ pub fn prepare(next_release_version: String) -> Result<()> {
 /// Preparing the release updates the version of each crate in the workspace and of
 /// the intra-workspace dependencies. The `version` field in the `packages` table of
 /// each `Cargo.toml` file in the workspace is set to the supplied version. The
-/// `version` field of each dependency or build-dependency that is otherwise
-/// identified by a workspace-relative path dependencies is also set to the supplied
-/// version (the version filed will be added if it isn't already present).
+/// `version` field of each dependency, build-dependency and dev-dependency that
+/// is otherwise identified by a workspace-relative path dependencies is also set
+/// to the supplied version (the version filed will be added if it isn't
+/// already present).
 ///
 /// This implements the `prepare` step for `semantic-release` for a Cargo-based Rust
 /// workspace.
@@ -296,7 +298,10 @@ fn internal_prepare(
         .workspace()
         .iter()
         .flat_map(|package| package.direct_links())
-        .filter(|link| !link.dev_only() && link.to().in_workspace())
+        // check that the link neither only a dev dependency or a dev
+        // dependency with an explicit version
+        .filter(|link| !link.dev_only() || !link.version_req().comparators.is_empty())
+        .filter(|link| link.to().in_workspace())
         .map(|link| (link.from().id(), link))
         .into_group_map();
 
@@ -331,6 +336,15 @@ fn internal_prepare(
                         &mut cargo,
                         &next_release_version,
                         DependencyType::Build,
+                        link.to().name(),
+                    )
+                    .map_err(|err| err.into_error(path))?;
+                }
+                if link.dev().is_present() {
+                    set_dependencies_version(
+                        &mut cargo,
+                        &next_release_version,
+                        DependencyType::Dev,
                         link.to().name(),
                     )
                     .map_err(|err| err.into_error(path))?;
