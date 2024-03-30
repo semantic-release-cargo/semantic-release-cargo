@@ -52,7 +52,7 @@ clap = { version = "=4.5.4", features = ["cargo", "derive"] }
 thiserror = "=1.0.58"
 toml_edit = "=0.22.6"
 url = { version = "=2.5.0", features = ["serde"] }
-cargo-config2 = "=0.1.22"
+cargo-config2 = "=0.1.23"
 
 [build-dependencies]
 napi-build = { version = "=2.1.2", optional = true }
