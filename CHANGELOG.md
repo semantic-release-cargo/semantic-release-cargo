@@ -1,3 +1,10 @@
+## [2.2.97](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.2.96...v2.2.97) (2024-04-08)
+
+
+### Bug Fixes
+
+* add tests for explicitly versioned dev-dependencies ([78f36a6](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/78f36a66940a59a11ddb280eb3331c181c674a3b))
+
 ## [2.2.96](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.2.95...v2.2.96) (2024-03-30)
 
 
