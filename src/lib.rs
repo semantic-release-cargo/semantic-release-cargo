@@ -149,7 +149,7 @@ fn internal_verify_conditions(
         None => cargo_config.registry.token.map(|_| ()),
     };
 
-    info!("Checking cargo registry token is set",);
+    info!("Checking cargo registry token is set");
     registry_token_set.ok_or_else(|| {
         let registry_id = alternate_registry.unwrap_or("crates-io");
         writeln!(
@@ -311,18 +311,23 @@ fn internal_prepare(
         debug!("reading {}", path.as_str());
         let mut cargo = read_cargo_toml(path.as_std_path())?;
 
-        debug!("Setting the version for {}", package.name());
+        info!(
+            "Setting the version of {} to {}",
+            package.name(),
+            &next_release_version
+        );
         set_package_version(&mut cargo, &next_release_version)
             .map_err(|err| err.into_error(path))?;
 
         if let Some(links) = link_map.get(package.id()) {
-            debug!(
-                "Setting the version for the dependencies of {}",
-                package.name()
-            );
-
             for link in links {
                 if link.normal().is_present() {
+                    info!(
+                        "Upgrading dependency of {} to {}@{}",
+                        link.to().name(),
+                        package.name(),
+                        &next_release_version
+                    );
                     set_dependencies_version(
                         &mut cargo,
                         &next_release_version,
@@ -332,6 +337,12 @@ fn internal_prepare(
                     .map_err(|err| err.into_error(path))?;
                 }
                 if link.build().is_present() {
+                    info!(
+                        "Upgrading build-dependency of {} to {}@{}",
+                        link.to().name(),
+                        package.name(),
+                        &next_release_version
+                    );
                     set_dependencies_version(
                         &mut cargo,
                         &next_release_version,
@@ -341,6 +352,12 @@ fn internal_prepare(
                     .map_err(|err| err.into_error(path))?;
                 }
                 if link.dev().is_present() {
+                    info!(
+                        "Upgrading dev-dependency of {} to {}@{}",
+                        link.to().name(),
+                        package.name(),
+                        &next_release_version
+                    );
                     set_dependencies_version(
                         &mut cargo,
                         &next_release_version,
