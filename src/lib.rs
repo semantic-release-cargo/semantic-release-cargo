@@ -149,7 +149,7 @@ fn internal_verify_conditions(
         None => cargo_config.registry.token.map(|_| ()),
     };
 
-    info!("Checking cargo registry token is set");
+    debug!("Checking cargo registry token is set");
     registry_token_set.ok_or_else(|| {
         let registry_id = alternate_registry.unwrap_or("crates-io");
         writeln!(
@@ -167,7 +167,7 @@ fn internal_verify_conditions(
         .unwrap_err()
     })?;
 
-    info!("Checking that workspace dependencies graph is buildable");
+    debug!("Checking that workspace dependencies graph is buildable");
     let graph = match get_package_graph(manifest_path) {
         Ok(graph) => graph,
         Err(err) => {
@@ -181,7 +181,7 @@ fn internal_verify_conditions(
         }
     };
 
-    info!("Checking that the workspace does not contain any cycles");
+    debug!("Checking that the workspace does not contain any cycles");
     if let Some(cycle) = graph.cycles().all_cycles().next() {
         assert!(cycle.len() >= 2);
         let crate0 = get_crate_name(&graph, cycle[0]);
@@ -201,7 +201,7 @@ fn internal_verify_conditions(
         });
     }
 
-    info!("Checking that dependencies are suitable for publishing");
+    debug!("Checking that dependencies are suitable for publishing");
     for (from, links) in graph
         .workspace()
         .iter()
