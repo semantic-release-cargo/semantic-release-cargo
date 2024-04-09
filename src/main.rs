@@ -10,10 +10,11 @@ use std::{
     fs::File,
     io::{self, BufWriter, Write},
     path::{Path, PathBuf},
+    str::FromStr,
 };
 
 use anyhow::{Context, Error};
-use clap::{crate_version, Parser};
+use clap::{builder::TypedValueParser, crate_version, Parser};
 use log::Level;
 use loggerv::{Logger, Output};
 
@@ -21,13 +22,47 @@ use semantic_release_cargo::{
     list_packages_with_arguments, prepare, publish, verify_conditions_with_alternate, PublishArgs,
 };
 
+/// A wrapper type for converting between [log::Level] into [loggerv] verbosity.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct Verbosity(log::Level);
+
+impl Verbosity {
+    fn as_loggerv_compatible_verbosity(&self) -> u64 {
+        // [log::Level] variants are represented as a 1-indexed usize
+        let repr = self.0 as usize;
+
+        // loggerv verbosity is 0-indexed but otherwise aligns with [log::Level]
+        repr.saturating_sub(1) as u64
+    }
+}
+
+impl FromStr for Verbosity {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        s.parse::<log::Level>()
+            .map(Verbosity)
+            .map_err(|_| "attempted to convert a string that doesn't match an existing log level")
+    }
+}
+
 /// Run semantic-release steps in the context of a cargo based Rust project.
 #[derive(Parser)]
 #[clap(version = crate_version!())]
 struct Opt {
     /// Increases the logging level (use multiple times for more detail).
-    #[clap(short, long, action = clap::ArgAction::Count)]
+    #[clap(short, long, group = "logging", action = clap::ArgAction::Count)]
     verbose: u8,
+
+    /// Explicitly set the log level.
+    #[clap(
+        short,
+        long,
+        group = "logging",
+        value_parser = clap::builder::PossibleValuesParser::new(["error", "warn", "info", "debug", "trace"])
+            .map(|s| s.parse::<Verbosity>().unwrap()),
+    )]
+    log_level: Option<Verbosity>,
 
     /// Specifies the output file to use instead of standard out.
     #[structopt(short, long)]
@@ -186,11 +221,17 @@ impl Subcommand {
 fn main() -> Result<(), Error> {
     let opt: Opt = Opt::parse();
 
+    let verbosity = if let Some(log_level_verbosity) = opt.log_level {
+        log_level_verbosity.as_loggerv_compatible_verbosity()
+    } else {
+        opt.verbose.into()
+    };
+
     Logger::new()
         .output(&Level::Trace, Output::Stderr)
         .output(&Level::Debug, Output::Stderr)
         .output(&Level::Info, Output::Stderr)
-        .verbosity(opt.verbose.into())
+        .verbosity(verbosity)
         .init()?;
 
     match opt.output {
