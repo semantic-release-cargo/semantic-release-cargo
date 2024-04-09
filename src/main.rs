@@ -13,7 +13,7 @@ use std::{
 };
 
 use anyhow::{Context, Error};
-use clap::{crate_version, Parser};
+use clap::{builder::TypedValueParser, crate_version, Parser};
 use log::Level;
 use loggerv::{Logger, Output};
 
@@ -26,8 +26,18 @@ use semantic_release_cargo::{
 #[clap(version = crate_version!())]
 struct Opt {
     /// Increases the logging level (use multiple times for more detail).
-    #[clap(short, long, action = clap::ArgAction::Count)]
+    #[clap(short, long, group = "logging", action = clap::ArgAction::Count)]
     verbose: u8,
+
+    /// Explicitly set the log level.
+    #[clap(
+        short,
+        long,
+        group = "logging",
+        value_parser = clap::builder::PossibleValuesParser::new(["error", "warn", "info", "debug", "trace"])
+            .map(|s| s.parse::<log::Level>().unwrap()),
+    )]
+    log_level: Option<Level>,
 
     /// Specifies the output file to use instead of standard out.
     #[structopt(short, long)]
@@ -186,12 +196,17 @@ impl Subcommand {
 fn main() -> Result<(), Error> {
     let opt: Opt = Opt::parse();
 
-    Logger::new()
+    let logger = Logger::new()
         .output(&Level::Trace, Output::Stderr)
-        .output(&Level::Debug, Output::Stderr)
-        .output(&Level::Info, Output::Stderr)
-        .verbosity(opt.verbose.into())
-        .init()?;
+        .output(&Level::Debug, Output::Stderr);
+
+    // Set the max level to initialize to based on the `log-level` flag if it's
+    // available, otherwise fall back to verbosity.
+    if let Some(log_level) = opt.log_level {
+        logger.max_level(log_level).init()?;
+    } else {
+        logger.verbosity(opt.verbose.into()).init()?
+    };
 
     match opt.output {
         Some(path) => {

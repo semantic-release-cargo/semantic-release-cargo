@@ -149,7 +149,7 @@ fn internal_verify_conditions(
         None => cargo_config.registry.token.map(|_| ()),
     };
 
-    info!("Checking cargo registry token is set",);
+    debug!("Checking cargo registry token is set");
     registry_token_set.ok_or_else(|| {
         let registry_id = alternate_registry.unwrap_or("crates-io");
         writeln!(
@@ -167,7 +167,7 @@ fn internal_verify_conditions(
         .unwrap_err()
     })?;
 
-    info!("Checking that workspace dependencies graph is buildable");
+    debug!("Checking that workspace dependencies graph is buildable");
     let graph = match get_package_graph(manifest_path) {
         Ok(graph) => graph,
         Err(err) => {
@@ -181,7 +181,7 @@ fn internal_verify_conditions(
         }
     };
 
-    info!("Checking that the workspace does not contain any cycles");
+    debug!("Checking that the workspace does not contain any cycles");
     if let Some(cycle) = graph.cycles().all_cycles().next() {
         assert!(cycle.len() >= 2);
         let crate0 = get_crate_name(&graph, cycle[0]);
@@ -201,7 +201,7 @@ fn internal_verify_conditions(
         });
     }
 
-    info!("Checking that dependencies are suitable for publishing");
+    debug!("Checking that dependencies are suitable for publishing");
     for (from, links) in graph
         .workspace()
         .iter()
@@ -291,7 +291,7 @@ fn internal_prepare(
     manifest_path: Option<&Path>,
     next_release_version: String,
 ) -> Result<()> {
-    info!("Building package graph");
+    debug!("Building package graph");
     let graph = get_package_graph(manifest_path)?;
 
     let link_map = graph
@@ -305,24 +305,29 @@ fn internal_prepare(
         .map(|link| (link.from().id(), link))
         .into_group_map();
 
-    info!("Setting version information for packages in the workspace.");
+    debug!("Setting version information for packages in the workspace.");
     for package in graph.workspace().iter() {
         let path = package.manifest_path();
         debug!("reading {}", path.as_str());
         let mut cargo = read_cargo_toml(path.as_std_path())?;
 
-        debug!("Setting the version for {}", package.name());
+        info!(
+            "Setting the version of {} to {}",
+            package.name(),
+            &next_release_version
+        );
         set_package_version(&mut cargo, &next_release_version)
             .map_err(|err| err.into_error(path))?;
 
         if let Some(links) = link_map.get(package.id()) {
-            debug!(
-                "Setting the version for the dependencies of {}",
-                package.name()
-            );
-
             for link in links {
                 if link.normal().is_present() {
+                    info!(
+                        "Upgrading dependency of {} to {}@{}",
+                        link.to().name(),
+                        package.name(),
+                        &next_release_version
+                    );
                     set_dependencies_version(
                         &mut cargo,
                         &next_release_version,
@@ -332,6 +337,12 @@ fn internal_prepare(
                     .map_err(|err| err.into_error(path))?;
                 }
                 if link.build().is_present() {
+                    info!(
+                        "Upgrading build-dependency of {} to {}@{}",
+                        link.to().name(),
+                        package.name(),
+                        &next_release_version
+                    );
                     set_dependencies_version(
                         &mut cargo,
                         &next_release_version,
@@ -341,6 +352,12 @@ fn internal_prepare(
                     .map_err(|err| err.into_error(path))?;
                 }
                 if link.dev().is_present() {
+                    info!(
+                        "Upgrading dev-dependency of {} to {}@{}",
+                        link.to().name(),
+                        package.name(),
+                        &next_release_version
+                    );
                     set_dependencies_version(
                         &mut cargo,
                         &next_release_version,
@@ -432,7 +449,7 @@ fn internal_publish(
     manifest_path: Option<&Path>,
     opts: &PublishArgs,
 ) -> Result<()> {
-    info!("getting the package graph");
+    debug!("Getting the package graph");
     let graph = get_package_graph(manifest_path)?;
     let optional_registry = opts.registry.as_deref();
 
@@ -646,7 +663,12 @@ fn get_crate_name<'a>(graph: &'a PackageGraph, id: &PackageId) -> &'a str {
 }
 
 fn publish_package(pkg: &PackageMetadata, opts: &PublishArgs) -> Result<()> {
-    debug!("publishing package {}", pkg.name());
+    info!(
+        "Publishing version {} of {} to {} registry",
+        pkg.version(),
+        pkg.name(),
+        opts.registry.as_deref().unwrap_or("crates.io")
+    );
 
     let cargo = env::var("CARGO")
         .map(PathBuf::from)
@@ -689,6 +711,12 @@ fn publish_package(pkg: &PackageMetadata, opts: &PublishArgs) -> Result<()> {
     log_bytes(level, &output.stderr);
 
     if output.status.success() {
+        info!(
+            "Published {}@{} to {} registry",
+            pkg.name(),
+            pkg.version(),
+            opts.registry.as_deref().unwrap_or("crates.io")
+        );
         Ok(())
     } else {
         error!(
