@@ -291,7 +291,7 @@ fn internal_prepare(
     manifest_path: Option<&Path>,
     next_release_version: String,
 ) -> Result<()> {
-    info!("Building package graph");
+    debug!("Building package graph");
     let graph = get_package_graph(manifest_path)?;
 
     let link_map = graph
@@ -305,7 +305,7 @@ fn internal_prepare(
         .map(|link| (link.from().id(), link))
         .into_group_map();
 
-    info!("Setting version information for packages in the workspace.");
+    debug!("Setting version information for packages in the workspace.");
     for package in graph.workspace().iter() {
         let path = package.manifest_path();
         debug!("reading {}", path.as_str());
