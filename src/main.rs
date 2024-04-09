@@ -230,7 +230,6 @@ fn main() -> Result<(), Error> {
     Logger::new()
         .output(&Level::Trace, Output::Stderr)
         .output(&Level::Debug, Output::Stderr)
-        .output(&Level::Info, Output::Stderr)
         .verbosity(verbosity)
         .init()?;
 
