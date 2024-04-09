@@ -1,3 +1,18 @@
+# [2.3.0](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.2.98...v2.3.0) (2024-04-09)
+
+
+### Bug Fixes
+
+* correctly set debug level log lines in internal_prepare ([671ace2](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/671ace21cfac403229abb4cef0c075ce06ec1c01))
+* increase verify-conditions logging from info to debug ([53f2cf6](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/53f2cf68a725f9ced3c54bf0a5e145df2525846a))
+
+
+### Features
+
+* add a log-level flag as an alternative to verbosity ([ec19bbe](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/ec19bbec041bf413c97a9c6d8a89f837af66c268))
+* add crate publish info level logging ([12b8347](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/12b8347f63d471d21d6f022c5aed439e131b7764))
+* add upgrading info outputs to internal-prepare ([731e427](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/731e4277e9fba6d3fa3a66fa63eb7a1bd6243daf))
+
 ## [2.2.98](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.2.97...v2.2.98) (2024-04-09)
 
 
