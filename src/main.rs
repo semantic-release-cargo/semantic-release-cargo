@@ -15,7 +15,8 @@ use std::{
 use anyhow::{Context, Error};
 use clap::{builder::TypedValueParser, crate_version, Parser};
 use log::Level;
-use loggerv::{Logger, Output};
+
+mod logger;
 
 use semantic_release_cargo::{
     list_packages_with_arguments, prepare, publish, verify_conditions_with_alternate, PublishArgs,
@@ -196,16 +197,16 @@ impl Subcommand {
 fn main() -> Result<(), Error> {
     let opt: Opt = Opt::parse();
 
-    let logger = Logger::new()
-        .output(&Level::Trace, Output::Stderr)
-        .output(&Level::Debug, Output::Stderr);
+    let log_builder = logger::LoggerBuilder::default()
+        .output(Level::Trace, std::io::stderr())
+        .output(Level::Debug, std::io::stderr());
 
     // Set the max level to initialize to based on the `log-level` flag if it's
     // available, otherwise fall back to verbosity.
     if let Some(log_level) = opt.log_level {
-        logger.max_level(log_level).init()?;
+        log_builder.max_level(log_level).init()?;
     } else {
-        logger.verbosity(opt.verbose.into()).init()?
+        log_builder.verbosity(opt.verbose).init()?
     };
 
     match opt.output {

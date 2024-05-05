@@ -1,7 +1,10 @@
 [package]
 name = "semantic-release-cargo"
 version = "2.3.80"
-authors = ["Steven Bosnick <sbosnick@sympatico.ca>", "Eric Crosson <eric.s.crosson@utexas.edu>"]
+authors = [
+  "Steven Bosnick <sbosnick@sympatico.ca>",
+  "Eric Crosson <eric.s.crosson@utexas.edu>",
+]
 edition = "2021"
 description = "A CLI to integrate Rust into a semantic-release workflow."
 readme = "README.md"
@@ -41,7 +44,7 @@ path = "src/main.rs"
 [dependencies]
 anyhow = "=1.0.95"
 guppy = "=0.17.11"
-log = "=0.4.22"
+log = { version = "=0.4.22", features = ["std"] }
 loggerv = "=0.7.2"
 napi = { version = "=2.16.13", features = ["error_anyhow"], optional = true }
 napi-derive = { version = "=2.16.13", optional = true }
