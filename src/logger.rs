@@ -15,6 +15,21 @@ fn default_log_dest_for_level(level: Level) -> LogDestination {
     }
 }
 
+#[derive(Debug)]
+pub enum Error {
+    Initialization,
+}
+
+impl std::error::Error for Error {}
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Initialization => writeln!(f, "unable to initialize logger"),
+        }
+    }
+}
+
 /// LogDestinationWriter represents a Boxed dynamic trait object for Writing
 /// logs to. This will exclusively be exposed behind a [Mutex] and assigned to.
 /// an owning [Logger]
@@ -78,10 +93,10 @@ impl LoggerBuilder {
     /// An error is returned if this is already set. Caller must guarantee this
     /// is called no more than once.
     #[allow(unused)]
-    pub fn init(self) -> Result<(), String> {
+    pub fn init(self) -> Result<(), Error> {
         let boxed_logger = Box::new(self.logger);
 
-        log::set_boxed_logger(boxed_logger).map_err(|e| e.to_string())
+        log::set_boxed_logger(boxed_logger).map_err(|_| Error::Initialization)
     }
 
     /// Set the error log level destination
@@ -131,7 +146,8 @@ impl LoggerBuilder {
     }
 
     /// Sets the maximum log level explicitly to the value passed.
-    pub fn max_level(mut self, max_level: Level) -> Self {
+    #[allow(unused)]
+    pub(crate) fn max_level(mut self, max_level: Level) -> Self {
         self.logger.max_level = max_level;
 
         self
@@ -141,7 +157,8 @@ impl LoggerBuilder {
     /// The verbosity argument functions as an offset from the default log
     /// level where a value of `0` represents the default. Any value exceeding
     /// the offset of `Trace`, will be counted as `Trace`.
-    pub fn verbosity(mut self, verbosity: u8) -> Self {
+    #[allow(unused)]
+    pub(crate) fn verbosity(mut self, verbosity: u8) -> Self {
         let verbosity = verbosity as usize;
 
         // The new verbosity offset from the default log level.
