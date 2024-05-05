@@ -35,6 +35,7 @@ use napi_derive::napi;
 
 mod error;
 mod itertools;
+mod logger;
 
 pub use error::{CargoTomlError, Error, Result};
 
