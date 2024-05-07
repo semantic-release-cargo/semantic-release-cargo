@@ -221,7 +221,7 @@ impl Logger {
 
 impl Log for Logger {
     fn enabled(&self, metadata: &log::Metadata) -> bool {
-        metadata.level() >= self.max_level
+        metadata.level() <= self.max_level
     }
 
     fn log(&self, record: &log::Record) {
