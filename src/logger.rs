@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 use std::sync::Mutex;
 
-use log::{Level, Log};
+use log::{Level, LevelFilter, Log};
 
 /// The default log level to use if no other is specified
 const DEFAULT_LOG_LEVEL: Level = Level::Warn;
@@ -15,7 +15,18 @@ fn default_log_dest_for_level(level: Level) -> LogDestination {
     }
 }
 
+const fn level_into_level_filter(level: Level) -> LevelFilter {
+    match level {
+        Level::Error => LevelFilter::Error,
+        Level::Warn => LevelFilter::Warn,
+        Level::Info => LevelFilter::Info,
+        Level::Debug => LevelFilter::Debug,
+        Level::Trace => LevelFilter::Trace,
+    }
+}
+
 #[derive(Debug)]
+#[allow(unused)]
 pub enum Error {
     Initialization,
 }
@@ -94,9 +105,12 @@ impl LoggerBuilder {
     /// is called no more than once.
     #[allow(unused)]
     pub fn init(self) -> Result<(), Error> {
+        let max_level_filter = self.logger.max_level;
         let boxed_logger = Box::new(self.logger);
 
-        log::set_boxed_logger(boxed_logger).map_err(|_| Error::Initialization)
+        log::set_boxed_logger(boxed_logger)
+            .map(|()| log::set_max_level(max_level_filter))
+            .map_err(|_| Error::Initialization)
     }
 
     /// Set the error log level destination
@@ -148,7 +162,7 @@ impl LoggerBuilder {
     /// Sets the maximum log level explicitly to the value passed.
     #[allow(unused)]
     pub(crate) fn max_level(mut self, max_level: Level) -> Self {
-        self.logger.max_level = max_level;
+        self.logger.max_level = level_into_level_filter(max_level);
 
         self
     }
@@ -175,7 +189,8 @@ impl LoggerBuilder {
             _ => Level::Trace,
         };
 
-        self.logger.max_level = adjusted_max_level;
+        let adjusted_max_level_filter = level_into_level_filter(adjusted_max_level);
+        self.logger.max_level = adjusted_max_level_filter;
 
         self
     }
@@ -184,7 +199,7 @@ impl LoggerBuilder {
 impl Default for LoggerBuilder {
     fn default() -> Self {
         let logger = Logger {
-            max_level: Self::DEFAULT_LOG_LEVEL,
+            max_level: level_into_level_filter(Self::DEFAULT_LOG_LEVEL),
             error: default_log_dest_for_level(Level::Error),
             warn: default_log_dest_for_level(Level::Warn),
             info: default_log_dest_for_level(Level::Info),
@@ -199,7 +214,7 @@ impl Default for LoggerBuilder {
 /// A generic logger type that allows an arbitrary destination for each level.
 #[allow(unused)]
 struct Logger {
-    max_level: Level,
+    max_level: LevelFilter,
     error: LogDestination,
     warn: LogDestination,
     info: LogDestination,
@@ -216,6 +231,11 @@ impl Logger {
             Level::Debug => &self.debug,
             Level::Trace => &self.trace,
         }
+    }
+
+    #[allow(unused)]
+    pub fn max_level_filter(&self) -> LevelFilter {
+        self.max_level
     }
 }
 
@@ -235,7 +255,7 @@ impl Log for Logger {
         if let Ok(mut log_writer) = level_oriented_log_destination.lock() {
             let _ = writeln!(
                 log_writer,
-                "{}:{} -- {}",
+                "{}: {} {}",
                 record.level(),
                 record.target(),
                 record.args()

@@ -206,7 +206,7 @@ fn main() -> Result<(), Error> {
     if let Some(log_level) = opt.log_level {
         log_builder.max_level(log_level).init()?;
     } else {
-        log_builder.verbosity(opt.verbose).init()?
+        log_builder.verbosity(opt.verbose).init()?;
     };
 
     match opt.output {
