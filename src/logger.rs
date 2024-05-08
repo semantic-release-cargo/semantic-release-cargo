@@ -46,26 +46,34 @@ impl std::fmt::Display for Error {
 /// an owning [Logger]
 type LogDestinationWriter = Box<dyn Write + Send + Sync>;
 
-struct LogDestination {
-    dest: Mutex<LogDestinationWriter>,
+/// A [Mutex]-wrapped dynamic [LogDestinationWriter]
+type LockableLogDestinationWriter = Mutex<LogDestinationWriter>;
+
+#[allow(unused)]
+enum LogDestination {
+    Single(LockableLogDestinationWriter),
+    Multi(Vec<LockableLogDestinationWriter>),
 }
 
-// Delegate methods for the inner mutex
 impl LogDestination {
-    /// Acquire a mutex on the destination. Blocking on the current thread
-    /// until it is able to do so.
-    pub fn lock(&self) -> std::sync::LockResult<std::sync::MutexGuard<'_, LogDestinationWriter>> {
-        self.dest.lock()
-    }
-
-    /// Attempt to acquire the lock.
-    ///
-    /// If it is unable to do so, an `Err` is returned.
     #[allow(unused)]
-    pub fn try_lock(
-        &self,
-    ) -> std::sync::TryLockResult<std::sync::MutexGuard<'_, LogDestinationWriter>> {
-        self.dest.try_lock()
+    fn push<W>(self, writer: W) -> Self
+    where
+        W: Write + Send + Sync + Sized + 'static,
+    {
+        let dest = {
+            let boxed_dest = Box::new(writer) as LogDestinationWriter;
+
+            Mutex::new(boxed_dest)
+        };
+
+        match self {
+            LogDestination::Single(inner) => Self::Multi(vec![inner, dest]),
+            LogDestination::Multi(mut inner) => {
+                inner.push(dest);
+                Self::Multi(inner)
+            }
+        }
     }
 }
 
@@ -75,12 +83,12 @@ where
 {
     fn from(writer: W) -> Self {
         let dest = {
-            let boxed_dest = Box::new(writer) as Box<dyn Write + Send + Sync>;
+            let boxed_dest = Box::new(writer) as LogDestinationWriter;
 
             Mutex::new(boxed_dest)
         };
 
-        LogDestination { dest }
+        LogDestination::Single(dest)
     }
 }
 
@@ -252,14 +260,33 @@ impl Log for Logger {
         let record_level = record.level();
         let level_oriented_log_destination = self.as_logdestination_from_level(record_level);
 
-        if let Ok(mut log_writer) = level_oriented_log_destination.lock() {
-            let _ = writeln!(
-                log_writer,
-                "{}: {} {}",
-                record.level(),
-                record.target(),
-                record.args()
-            );
+        match level_oriented_log_destination {
+            LogDestination::Single(writer) => {
+                if let Ok(mut log_writer) = writer.lock() {
+                    let _ = writeln!(
+                        log_writer,
+                        "{}: {} {}",
+                        record.level(),
+                        record.target(),
+                        record.args()
+                    );
+                }
+            }
+            LogDestination::Multi(writers) => {
+                let lockable_writers = writers
+                    .iter()
+                    .flat_map(|lockable_writer| lockable_writer.lock());
+
+                for mut log_writer in lockable_writers {
+                    let _ = writeln!(
+                        log_writer,
+                        "{}: {} {}",
+                        record.level(),
+                        record.target(),
+                        record.args()
+                    );
+                }
+            }
         }
     }
 
