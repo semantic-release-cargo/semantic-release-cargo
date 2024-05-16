@@ -121,33 +121,78 @@ impl LoggerBuilder {
             .map_err(|_| Error::Initialization)
     }
 
-    /// Set the error log level destination
+    /// Set the error log level destination.
     fn set_error_dest(mut self, dest: LogDestination) -> Self {
         self.logger.error = dest;
         self
     }
 
-    /// Set the warn log level destination
+    /// Set the warn log level destination.
     fn set_warn_dest(mut self, dest: LogDestination) -> Self {
         self.logger.warn = dest;
         self
     }
 
-    /// Set the info log level destination
+    /// Set the info log level destination.
     fn set_info_dest(mut self, dest: LogDestination) -> Self {
-        self.logger.warn = dest;
+        self.logger.info = dest;
         self
     }
 
-    /// Set the debug log level destination
+    /// Set the debug log level destination.
     fn set_debug_dest(mut self, dest: LogDestination) -> Self {
         self.logger.debug = dest;
         self
     }
 
-    /// Set the trace log level destination
+    /// Set the trace log level destination.
     fn set_trace_dest(mut self, dest: LogDestination) -> Self {
         self.logger.trace = dest;
+        self
+    }
+
+    /// Append a error log level destination writer.
+    fn append_error_dest<W>(mut self, dest: W) -> Self
+    where
+        W: Write + Send + Sync + Sized + 'static,
+    {
+        self.logger.error = self.logger.error.push(dest);
+        self
+    }
+
+    /// Append a warn log level destination writer.
+    fn append_warn_dest<W>(mut self, dest: W) -> Self
+    where
+        W: Write + Send + Sync + Sized + 'static,
+    {
+        self.logger.warn = self.logger.warn.push(dest);
+        self
+    }
+
+    /// Append a info log level destination writer.
+    fn append_info_dest<W>(mut self, dest: W) -> Self
+    where
+        W: Write + Send + Sync + Sized + 'static,
+    {
+        self.logger.info = self.logger.info.push(dest);
+        self
+    }
+
+    /// Append a debug log level destination writer.
+    fn append_debug_dest<W>(mut self, dest: W) -> Self
+    where
+        W: Write + Send + Sync + Sized + 'static,
+    {
+        self.logger.debug = self.logger.debug.push(dest);
+        self
+    }
+
+    /// Append a trace log level destination writer.
+    fn append_trace_dest<W>(mut self, dest: W) -> Self
+    where
+        W: Write + Send + Sync + Sized + 'static,
+    {
+        self.logger.trace = self.logger.trace.push(dest);
         self
     }
 
@@ -164,6 +209,21 @@ impl LoggerBuilder {
             Level::Info => self.set_info_dest(log_destination),
             Level::Debug => self.set_debug_dest(log_destination),
             Level::Trace => self.set_trace_dest(log_destination),
+        }
+    }
+
+    /// Append an output destination for a given log level.
+    #[allow(unused)]
+    pub fn append_output<W>(mut self, level: Level, dest: W) -> Self
+    where
+        W: Write + Send + Sync + Sized + 'static,
+    {
+        match level {
+            Level::Error => self.append_error_dest(dest),
+            Level::Warn => self.append_warn_dest(dest),
+            Level::Info => self.append_info_dest(dest),
+            Level::Debug => self.append_debug_dest(dest),
+            Level::Trace => self.append_trace_dest(dest),
         }
     }
 
