@@ -263,13 +263,7 @@ impl Log for Logger {
         match level_oriented_log_destination {
             LogDestination::Single(writer) => {
                 if let Ok(mut log_writer) = writer.lock() {
-                    let _ = writeln!(
-                        log_writer,
-                        "{}: {} {}",
-                        record.level(),
-                        record.target(),
-                        record.args()
-                    );
+                    let _ = writeln!(log_writer, "{}", record.args());
                 }
             }
             LogDestination::Multi(writers) => {
@@ -278,13 +272,7 @@ impl Log for Logger {
                     .flat_map(|lockable_writer| lockable_writer.lock());
 
                 for mut log_writer in lockable_writers {
-                    let _ = writeln!(
-                        log_writer,
-                        "{}: {} {}",
-                        record.level(),
-                        record.target(),
-                        record.args()
-                    );
+                    let _ = writeln!(log_writer, "{}", record.args());
                 }
             }
         }
