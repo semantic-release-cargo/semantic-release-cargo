@@ -60,39 +60,8 @@ use crate::itertools::Itertools;
 ///
 /// This implements the `verifyConditions` step for `semantic-release` for a
 /// Cargo-based rust workspace.
-#[cfg(feature = "napi-rs")]
-#[napi]
-pub fn verify_conditions() -> Result<()> {
-    let output = std::io::stdout();
-    let manifest_path: Option<&Path> = None;
-    internal_verify_conditions(output, None, manifest_path)
-}
-
-/// Verify that the conditions for a release are satisfied.
-///
-/// The conditions for a release checked by this function are:
-///
-///    1. That the cargo registry token has been defined.
-///    2. That it can construct the graph of all of the dependencies in the
-///       workspace.
-///    3. That the dependencies and build-dependencies of all of crates in the
-///       workspace are suitable for publishing to `crates.io`.
-///
-/// If `manifest_path` is provided then it is expect to give the path to the
-/// `Cargo.toml` file for the root of the workspace. If `manifest_path` is `None`
-/// then `verify_conditions` will look for the root of the workspace in a
-/// `Cargo.toml` file in the current directory. If one of the conditions for a
-/// release are not satisfied then an explanation for that will be written to
-/// `output`.
-///
-/// This implements the `verifyConditions` step for `semantic-release` for a
-/// Cargo-based rust workspace.
-#[cfg(not(feature = "napi-rs"))]
-pub fn verify_conditions(
-    output: impl Write,
-    manifest_path: Option<impl AsRef<Path>>,
-) -> Result<()> {
-    internal_verify_conditions(output, None, manifest_path)
+pub fn verify_conditions(manifest_path: Option<impl AsRef<Path>>) -> Result<()> {
+    internal_verify_conditions(None, manifest_path)
 }
 
 /// Verify that the conditions for a release are satisfied.
@@ -121,15 +90,13 @@ pub fn verify_conditions(
 /// Cargo-based rust workspace.
 #[cfg(not(feature = "napi-rs"))]
 pub fn verify_conditions_with_alternate(
-    output: impl Write,
     alternate_registry: Option<&str>,
     manifest_path: Option<impl AsRef<Path>>,
 ) -> Result<()> {
-    internal_verify_conditions(output, alternate_registry, manifest_path)
+    internal_verify_conditions(alternate_registry, manifest_path)
 }
 
 fn internal_verify_conditions(
-    mut output: impl Write,
     alternate_registry: Option<&str>,
     manifest_path: Option<impl AsRef<Path>>,
 ) -> Result<()> {
@@ -155,53 +122,27 @@ fn internal_verify_conditions(
     debug!("Checking cargo registry token is set");
     registry_token_set.ok_or_else(|| {
         let registry_id = alternate_registry.unwrap_or("crates-io");
-        writeln!(
-            output,
-            "registry token for {} empty or not set.",
+
+        Error::verify_error(format!(
+            "Registry token for {} empty or not set.",
             &registry_id
-        )
-        .map_err(Error::output_error)
-        .and_then::<(), _>(|()| {
-            Err(Error::verify_error(format!(
-                "registry token for {} empty or not set.",
-                &registry_id
-            )))
-        })
-        .unwrap_err()
+        ))
     })?;
 
     debug!("Checking that workspace dependencies graph is buildable");
-    let graph = match get_package_graph(manifest_path) {
-        Ok(graph) => graph,
-        Err(err) => {
-            return writeln!(
-                output,
-                "Unable to build workspace dependencies graph: {}",
-                err
-            )
-            .map_err(|io_error| -> anyhow::Error { Error::output_error(io_error).into() })
-            .and(Err(err));
-        }
-    };
+    let graph = get_package_graph(manifest_path)?;
 
     debug!("Checking that the workspace does not contain any cycles");
     if let Some(cycle) = graph.cycles().all_cycles().next() {
         assert!(cycle.len() >= 2);
         let crate0 = get_crate_name(&graph, cycle[0]);
         let crate1 = get_crate_name(&graph, cycle[1]);
-        return writeln!(
-            output,
-            "Workspace contains a cycle that includes (at least) {} and {}",
-            crate0, crate1
-        )
-        .map_err(|io_error| -> anyhow::Error { Error::output_error(io_error).into() })
-        .and_then(|()| -> Result<()> {
-            Err(Error::WorkspaceCycles {
-                crate1: crate0.to_owned(),
-                crate2: crate1.to_owned(),
-            }
-            .into())
-        });
+        let workspace_error = Error::WorkspaceCycles {
+            crate1: crate0.to_owned(),
+            crate2: crate1.to_owned(),
+        };
+
+        return Err(workspace_error.into());
     }
 
     debug!("Checking that dependencies are suitable for publishing");
@@ -217,30 +158,10 @@ fn internal_verify_conditions(
         let cargo = read_cargo_toml(from.manifest_path().as_std_path())?;
         for link in links {
             if link.normal().is_present() {
-                dependency_has_version(&cargo, &link, DependencyType::Normal).map_err(|err| {
-                    writeln!(
-                        output,
-                        "Dependency {0} of {1} makes {1} not publishable.",
-                        link.to().name(),
-                        link.from().name()
-                    )
-                    .map_err(|io_error| -> anyhow::Error { Error::output_error(io_error).into() })
-                    .and::<()>(Err(err))
-                    .unwrap_err()
-                })?;
+                dependency_has_version(&cargo, &link, DependencyType::Normal)?;
             }
             if link.build().is_present() {
-                dependency_has_version(&cargo, &link, DependencyType::Build).map_err(|err| {
-                    writeln!(
-                        output,
-                        "Build dependency {0} of {1} makes {1} not publishable.",
-                        link.to().name(),
-                        link.from().name()
-                    )
-                    .map_err(|io_error| -> anyhow::Error { Error::output_error(io_error).into() })
-                    .and::<()>(Err(err))
-                    .unwrap_err()
-                })?;
+                dependency_has_version(&cargo, &link, DependencyType::Build)?;
             }
         }
     }

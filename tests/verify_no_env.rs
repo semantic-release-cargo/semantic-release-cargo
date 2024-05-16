@@ -6,9 +6,9 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+use std::env;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
-use std::{env, io};
 
 // use assert_matches::assert_matches;
 
@@ -19,7 +19,7 @@ use semantic_release_cargo::{verify_conditions, verify_conditions_with_alternate
 fn verify_without_env_var_is_error() {
     let path = get_test_data_manifest_path("basic");
 
-    let result = verify_conditions(io::sink(), Some(&path));
+    let result = verify_conditions(Some(&path));
 
     assert!(result.is_err());
     // assert_matches!(result, Err(Error::VerifyError { reason: _ }));
@@ -30,12 +30,12 @@ fn verify_alternate_registry_throws_error_if_correct_token_not_set() {
     let path = get_test_data_manifest_path("dependencies_alternate_registry");
 
     // fails if no registry is set.
-    let result = verify_conditions_with_alternate(io::sink(), Some("test"), Some(&path));
+    let result = verify_conditions_with_alternate(Some("test"), Some(&path));
     assert!(result.is_err());
 
     // fails if the wrong token is set.
     with_env_var("CARGO_REGISTRY_TOKEN", "fake_token", || {
-        let result = verify_conditions_with_alternate(io::sink(), Some("test"), Some(&path));
+        let result = verify_conditions_with_alternate(Some("test"), Some(&path));
         assert!(result.is_err());
     });
 }
