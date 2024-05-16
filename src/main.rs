@@ -166,7 +166,6 @@ impl Subcommand {
                 opt.manifest_path(),
             )?),
             VerifyConditions(opt) => Ok(verify_conditions_with_alternate(
-                w,
                 opt.registry.as_deref(),
                 opt.manifest_path(),
             )?),
@@ -203,20 +202,29 @@ fn main() -> Result<(), Error> {
 
     // Set the max level to initialize to based on the `log-level` flag if it's
     // available, otherwise fall back to verbosity.
-    if let Some(log_level) = opt.log_level {
-        log_builder.max_level(log_level).init()?;
+    let log_builder = if let Some(log_level) = opt.log_level {
+        log_builder.max_level(log_level)
     } else {
-        log_builder.verbosity(opt.verbose).init()?;
+        log_builder.verbosity(opt.verbose)
     };
 
     match opt.output {
         Some(path) => {
             let file = File::create(&path)
                 .with_context(|| format!("Failed to create output file {}", path.display()))?;
+
+            // initialize the log_builder into a logger
+            log_builder.init()?;
+
             opt.subcommand.run(BufWriter::new(file))
         }
 
-        None => opt.subcommand.run(BufWriter::new(io::stdout())),
+        None => {
+            // initialize the log_builder into a logger
+            log_builder.init()?;
+
+            opt.subcommand.run(BufWriter::new(io::stdout()))
+        }
     }
 }
 
