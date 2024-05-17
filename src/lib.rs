@@ -39,6 +39,8 @@ mod logger;
 
 pub use error::{CargoTomlError, Error, Result};
 
+pub use logger::LoggerBuilder;
+
 use crate::itertools::Itertools;
 
 /// Verify that the conditions for a release are satisfied.
@@ -426,16 +428,8 @@ fn internal_publish(
 ///
 /// This is a debuging aid and does not directly correspond to a semantic release
 /// step.
-pub fn list_packages(
-    #[cfg(not(feature = "napi-rs"))] output: impl Write,
-    manifest_path: Option<impl AsRef<Path>>,
-) -> Result<()> {
-    internal_list_packages(
-        #[cfg(not(feature = "napi-rs"))]
-        output,
-        None,
-        manifest_path,
-    )
+pub fn list_packages(manifest_path: Option<impl AsRef<Path>>) -> Result<()> {
+    internal_list_packages(None, manifest_path)
 }
 
 /// List the packages from the workspace in the order of their dependencies as
@@ -449,32 +443,21 @@ pub fn list_packages(
 /// This is a debuging aid and does not directly correspond to a semantic release
 /// step.
 pub fn list_packages_with_arguments(
-    #[cfg(not(feature = "napi-rs"))] output: impl Write,
     alternate_registry: Option<&str>,
     manifest_path: Option<impl AsRef<Path>>,
 ) -> Result<()> {
-    internal_list_packages(
-        #[cfg(not(feature = "napi-rs"))]
-        output,
-        alternate_registry,
-        manifest_path,
-    )
+    internal_list_packages(alternate_registry, manifest_path)
 }
 
 fn internal_list_packages(
-    #[cfg(not(feature = "napi-rs"))] mut output: impl Write,
     alternate_registry: Option<&str>,
     manifest_path: Option<impl AsRef<Path>>,
 ) -> Result<()> {
-    #[cfg(feature = "napi-rs")]
-    let mut output = std::io::stdout();
-
     info!("Building package graph");
     let graph = get_package_graph(manifest_path)?;
 
     process_publishable_packages(&graph, alternate_registry, |pkg| {
-        writeln!(output, "{}({})", pkg.name(), pkg.version()).map_err(Error::output_error)?;
-
+        error!("{}({})", pkg.name(), pkg.version());
         Ok(())
     })
 }

@@ -161,7 +161,6 @@ impl Subcommand {
 
         match self {
             ListPackages(opt) => Ok(list_packages_with_arguments(
-                w,
                 opt.registry.as_deref(),
                 opt.manifest_path(),
             )?),

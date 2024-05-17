@@ -95,7 +95,7 @@ where
 /// A builder for the internal logger. This exposes a builder pattern for
 /// setting all configurable options on the logger. Once finalized, init is
 /// called to finalize the configuration and set it globally..
-pub(crate) struct LoggerBuilder {
+pub struct LoggerBuilder {
     logger: Logger,
 }
 
@@ -197,8 +197,7 @@ impl LoggerBuilder {
     }
 
     /// Set the output destination for a given log level.
-    #[allow(unused)]
-    pub fn output<W>(mut self, level: Level, dest: W) -> Self
+    pub fn output<W>(self, level: Level, dest: W) -> Self
     where
         W: Write + Send + Sync + Sized + 'static,
     {
@@ -214,7 +213,7 @@ impl LoggerBuilder {
 
     /// Append an output destination for a given log level.
     #[allow(unused)]
-    pub fn append_output<W>(mut self, level: Level, dest: W) -> Self
+    pub fn append_output<W>(self, level: Level, dest: W) -> Self
     where
         W: Write + Send + Sync + Sized + 'static,
     {
@@ -228,8 +227,7 @@ impl LoggerBuilder {
     }
 
     /// Sets the maximum log level explicitly to the value passed.
-    #[allow(unused)]
-    pub(crate) fn max_level(mut self, max_level: Level) -> Self {
+    pub fn max_level(mut self, max_level: Level) -> Self {
         self.logger.max_level = level_into_level_filter(max_level);
 
         self
