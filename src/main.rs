@@ -213,14 +213,24 @@ fn main() -> Result<(), Error> {
                 .with_context(|| format!("Failed to create output file {}", path.display()))?;
 
             // initialize the log_builder into a logger
-            log_builder.init()?;
+            let boxed_logger = log_builder.finalize()?;
+            let max_level_filter = boxed_logger.max_level_filter();
+
+            log::set_boxed_logger(boxed_logger)
+                .map(|()| log::set_max_level(max_level_filter))
+                .map_err(|_| logger::Error::Initialization)?;
 
             opt.subcommand.run(BufWriter::new(file))
         }
 
         None => {
             // initialize the log_builder into a logger
-            log_builder.init()?;
+            let boxed_logger = log_builder.finalize()?;
+            let max_level_filter = boxed_logger.max_level_filter();
+
+            log::set_boxed_logger(boxed_logger)
+                .map(|()| log::set_max_level(max_level_filter))
+                .map_err(|_| logger::Error::Initialization)?;
 
             opt.subcommand.run(BufWriter::new(io::stdout()))
         }
