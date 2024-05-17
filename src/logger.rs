@@ -8,7 +8,7 @@ const DEFAULT_LOG_LEVEL: Level = Level::Warn;
 
 /// Return a default writer for a given level. In this case stderr for warn
 /// and error and stdout for all others.
-fn default_log_dest_for_level(level: Level) -> LogDestination {
+fn default_log_dest_for_level(level: Level) -> LogDestination<'static> {
     match level {
         Level::Error | Level::Warn => LogDestination::from(io::stderr()),
         Level::Info | Level::Debug | Level::Trace => LogDestination::from(io::stdout()),
@@ -44,22 +44,22 @@ impl std::fmt::Display for Error {
 /// LogDestinationWriter represents a Boxed dynamic trait object for Writing
 /// logs to. This will exclusively be exposed behind a [Mutex] and assigned to.
 /// an owning [Logger]
-type LogDestinationWriter = Box<dyn Write + Send + Sync>;
+type LogDestinationWriter<'a> = Box<dyn Write + Send + Sync + 'a>;
 
 /// A [Mutex]-wrapped dynamic [LogDestinationWriter]
-type LockableLogDestinationWriter = Mutex<LogDestinationWriter>;
+type LockableLogDestinationWriter<'a> = Mutex<LogDestinationWriter<'a>>;
 
 #[allow(unused)]
-enum LogDestination {
-    Single(LockableLogDestinationWriter),
-    Multi(Vec<LockableLogDestinationWriter>),
+enum LogDestination<'data> {
+    Single(LockableLogDestinationWriter<'data>),
+    Multi(Vec<LockableLogDestinationWriter<'data>>),
 }
 
-impl LogDestination {
+impl<'data> LogDestination<'data> {
     #[allow(unused)]
     fn push<W>(self, writer: W) -> Self
     where
-        W: Write + Send + Sync + Sized + 'static,
+        W: Write + Send + Sync + Sized + 'data,
     {
         let dest = {
             let boxed_dest = Box::new(writer) as LogDestinationWriter;
@@ -77,9 +77,9 @@ impl LogDestination {
     }
 }
 
-impl<W> From<W> for LogDestination
+impl<'data, W> From<W> for LogDestination<'data>
 where
-    W: Write + Send + Sync + Sized + 'static,
+    W: Write + Send + Sync + Sized + 'data,
 {
     fn from(writer: W) -> Self {
         let dest = {
@@ -95,16 +95,16 @@ where
 /// A builder for the internal logger. This exposes a builder pattern for
 /// setting all configurable options on the logger. Once finalized, init is
 /// called to finalize the configuration and set it globally..
-pub struct LoggerBuilder {
-    logger: Logger,
+pub struct LoggerBuilder<'data> {
+    logger: Logger<'data>,
 }
 
-impl LoggerBuilder {
+impl<'data> LoggerBuilder<'data> {
     // A mirror of the module level default rescoped to a static logger constant.
     const DEFAULT_LOG_LEVEL: Level = DEFAULT_LOG_LEVEL;
 }
 
-impl LoggerBuilder {
+impl<'data> LoggerBuilder<'data> {
     /// Finalizes a [Logger]'s configuration and assigns the global logger to
     /// the current settings.
     ///
@@ -112,41 +112,38 @@ impl LoggerBuilder {
     /// An error is returned if this is already set. Caller must guarantee this
     /// is called no more than once.
     #[allow(unused)]
-    pub fn init(self) -> Result<(), Error> {
-        let max_level_filter = self.logger.max_level;
+    pub fn finalize(self) -> Result<Box<Logger<'data>>, Error> {
         let boxed_logger = Box::new(self.logger);
 
-        log::set_boxed_logger(boxed_logger)
-            .map(|()| log::set_max_level(max_level_filter))
-            .map_err(|_| Error::Initialization)
+        Ok(boxed_logger)
     }
 
     /// Set the error log level destination.
-    fn set_error_dest(mut self, dest: LogDestination) -> Self {
+    fn set_error_dest(mut self, dest: LogDestination<'data>) -> Self {
         self.logger.error = dest;
         self
     }
 
     /// Set the warn log level destination.
-    fn set_warn_dest(mut self, dest: LogDestination) -> Self {
+    fn set_warn_dest(mut self, dest: LogDestination<'data>) -> Self {
         self.logger.warn = dest;
         self
     }
 
     /// Set the info log level destination.
-    fn set_info_dest(mut self, dest: LogDestination) -> Self {
+    fn set_info_dest(mut self, dest: LogDestination<'data>) -> Self {
         self.logger.info = dest;
         self
     }
 
     /// Set the debug log level destination.
-    fn set_debug_dest(mut self, dest: LogDestination) -> Self {
+    fn set_debug_dest(mut self, dest: LogDestination<'data>) -> Self {
         self.logger.debug = dest;
         self
     }
 
     /// Set the trace log level destination.
-    fn set_trace_dest(mut self, dest: LogDestination) -> Self {
+    fn set_trace_dest(mut self, dest: LogDestination<'data>) -> Self {
         self.logger.trace = dest;
         self
     }
@@ -262,7 +259,7 @@ impl LoggerBuilder {
     }
 }
 
-impl Default for LoggerBuilder {
+impl Default for LoggerBuilder<'static> {
     fn default() -> Self {
         let logger = Logger {
             max_level: level_into_level_filter(Self::DEFAULT_LOG_LEVEL),
@@ -279,17 +276,17 @@ impl Default for LoggerBuilder {
 
 /// A generic logger type that allows an arbitrary destination for each level.
 #[allow(unused)]
-struct Logger {
+pub struct Logger<'data> {
     max_level: LevelFilter,
-    error: LogDestination,
-    warn: LogDestination,
-    info: LogDestination,
-    debug: LogDestination,
-    trace: LogDestination,
+    error: LogDestination<'data>,
+    warn: LogDestination<'data>,
+    info: LogDestination<'data>,
+    debug: LogDestination<'data>,
+    trace: LogDestination<'data>,
 }
 
-impl Logger {
-    fn as_logdestination_from_level(&self, level: Level) -> &LogDestination {
+impl<'data> Logger<'data> {
+    fn as_logdestination_from_level(&self, level: Level) -> &LogDestination<'data> {
         match level {
             Level::Error => &self.error,
             Level::Warn => &self.warn,
@@ -305,7 +302,7 @@ impl Logger {
     }
 }
 
-impl Log for Logger {
+impl<'data> Log for Logger<'data> {
     fn enabled(&self, metadata: &log::Metadata) -> bool {
         metadata.level() <= self.max_level
     }
