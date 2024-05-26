@@ -846,7 +846,7 @@ fn set_dependencies_version(
     }
 
     if let Some(table) = get_top_table_mut(doc, "target") {
-        let targets = table.iter().map(|(key, _)| key.to_owned()).collect_vec();
+        let targets: Vec<_> = table.iter().map(|(key, _)| key.to_owned()).collect();
 
         for target in targets {
             let target_deps = table.entry(&target);
