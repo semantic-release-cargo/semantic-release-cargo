@@ -27,7 +27,7 @@ use guppy::{
 };
 use log::{debug, error, info, log, trace, Level};
 use serde::Serialize;
-use toml_edit::{Document, InlineTable, Item, Table, Value};
+use toml_edit::{DocumentMut, InlineTable, Item, Table, Value};
 use url::Url;
 
 #[cfg(feature = "napi-rs")]
@@ -748,22 +748,22 @@ fn get_cargo_lock(path: &Path) -> PathBuf {
     path.parent().unwrap().join("Cargo.lock")
 }
 
-fn read_cargo_toml(path: &Path) -> Result<Document> {
+fn read_cargo_toml(path: &Path) -> Result<DocumentMut> {
     fs::read_to_string(path)
         .map_err(|err| Error::file_read_error(err, path))?
         .parse()
         .map_err(|err| Error::toml_error(err, path).into())
 }
 
-fn write_cargo_toml(path: &Path, cargo: Document) -> Result<()> {
+fn write_cargo_toml(path: &Path, cargo: DocumentMut) -> Result<()> {
     fs::write(path, cargo.to_string()).map_err(|err| Error::file_write_error(err, path).into())
 }
 
-fn get_top_table<'a>(doc: &'a Document, key: &str) -> Option<&'a Table> {
+fn get_top_table<'a>(doc: &'a DocumentMut, key: &str) -> Option<&'a Table> {
     doc.as_table().get(key).and_then(Item::as_table)
 }
 
-fn get_top_table_mut<'a>(doc: &'a mut Document, key: &str) -> Option<&'a mut Table> {
+fn get_top_table_mut<'a>(doc: &'a mut DocumentMut, key: &str) -> Option<&'a mut Table> {
     doc.get_key_value_mut(key)
         .and_then(|(_key, value)| value.as_table_mut())
 }
@@ -792,7 +792,11 @@ fn inline_table_add_or_update_value(table: &mut InlineTable, key: &str, value: V
     }
 }
 
-fn dependency_has_version(doc: &Document, link: &PackageLink, typ: DependencyType) -> Result<()> {
+fn dependency_has_version(
+    doc: &DocumentMut,
+    link: &PackageLink,
+    typ: DependencyType,
+) -> Result<()> {
     let top_key = typ.key();
 
     trace!(
@@ -809,7 +813,7 @@ fn dependency_has_version(doc: &Document, link: &PackageLink, typ: DependencyTyp
         .ok_or_else(|| Error::bad_dependency(link, typ).into())
 }
 
-fn set_package_version(doc: &mut Document, version: &str) -> result::Result<(), CargoTomlError> {
+fn set_package_version(doc: &mut DocumentMut, version: &str) -> result::Result<(), CargoTomlError> {
     let table =
         get_top_table_mut(doc, "package").ok_or_else(|| CargoTomlError::no_table("package"))?;
     table_add_or_update_value(table, "version", version.into())
@@ -836,7 +840,7 @@ fn set_dependency_version(table: &mut Table, version: &str, name: &str) -> Optio
 }
 
 fn set_dependencies_version(
-    doc: &mut Document,
+    doc: &mut DocumentMut,
     version: &str,
     typ: DependencyType,
     name: &str,
@@ -871,7 +875,7 @@ fn set_dependencies_version(
 }
 
 fn set_lockfile_self_describing_metadata(
-    doc: &mut Document,
+    doc: &mut DocumentMut,
     next_release_version: &str,
     package_name: &str,
 ) -> result::Result<(), Error> {
