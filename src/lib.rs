@@ -25,7 +25,6 @@ use guppy::{
     graph::{DependencyDirection, PackageGraph, PackageLink, PackageMetadata, PackageSource},
     MetadataCommand, PackageId,
 };
-use itertools::Itertools;
 use log::{debug, error, info, log, trace, Level};
 use serde::Serialize;
 use toml_edit::{Document, InlineTable, Item, Table, Value};
@@ -37,6 +36,8 @@ use napi_derive::napi;
 mod error;
 
 pub use error::{CargoTomlError, Error, Result};
+
+use vendored_itertools::Itertools;
 
 /// Verify that the conditions for a release are satisfied.
 ///
@@ -207,7 +208,7 @@ fn internal_verify_conditions(
         .iter()
         .flat_map(|package| package.direct_links())
         .filter(|link| !link_is_publishable(link))
-        .group_by(PackageLink::from)
+        .chunk_by(PackageLink::from)
         .into_iter()
     {
         debug!("Checking links for package {}", from.name());
@@ -846,7 +847,7 @@ fn set_dependencies_version(
     }
 
     if let Some(table) = get_top_table_mut(doc, "target") {
-        let targets = table.iter().map(|(key, _)| key.to_owned()).collect_vec();
+        let targets: Vec<_> = table.iter().map(|(key, _)| key.to_owned()).collect();
 
         for target in targets {
             let target_deps = table.entry(&target);

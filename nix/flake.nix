@@ -46,10 +46,11 @@
     });
 
     devShells = forEachSystem (system: let
-      craneDerivations = nixpkgs.legacyPackages.${system}.callPackage ./default.nix {inherit crane;};
+      pkgs = nixpkgs.legacyPackages.${system};
+      craneDerivations = pkgs.callPackage ./default.nix {inherit crane;};
     in {
-      default = nixpkgs.legacyPackages.${system}.mkShell {
-        nativeBuildInputs = with nixpkgs.legacyPackages.${system};
+      default = pkgs.mkShell {
+        nativeBuildInputs = with pkgs;
           [
             cargo
             clippy
@@ -60,6 +61,8 @@
             nodejs
           ]
           ++ craneDerivations.commonArgs.nativeBuildInputs;
+
+        RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
 
         inherit (self.checks.${system}.pre-commit-check) shellHook;
       };
