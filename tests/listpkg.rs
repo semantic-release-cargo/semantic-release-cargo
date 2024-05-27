@@ -1,60 +1,81 @@
-// Copyright 2020 Steven Bosnick
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE-2.0 or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
+#![allow(clippy::unwrap_used)]
 
-use std::{
-    ffi::OsStr,
-    path::{Path, PathBuf},
-};
+use std::env;
+use std::ffi::OsStr;
+use std::path::{Path, PathBuf};
+use std::process;
+use std::process::Output;
 
+use log::Level;
+use semantic_release_cargo::LoggerBuilder;
 use semantic_release_cargo::{list_packages, list_packages_with_arguments};
 
-#[test]
-fn list_basic_workspace() {
+enum TestVariants {
+    Basic,
+    Workspace,
+    AlternateRegistryRestrictionInWorkspace,
+    AlternateRegistryRestrictionInWorkspaceUnsetAlt,
+}
+
+impl TestVariants {
+    const fn test_name_repr_str(&self) -> &'static str {
+        match self {
+            Self::Basic => "basic",
+            Self::Workspace => "workspace",
+            Self::AlternateRegistryRestrictionInWorkspace => {
+                "alternate_registry_restriction_in_workspace"
+            }
+            Self::AlternateRegistryRestrictionInWorkspaceUnsetAlt => {
+                "alternate_registry_restriction_in_workspace_with_unset_alt"
+            }
+        }
+    }
+}
+
+fn initialize_logger_with_level(max_level: Level) {
+    let log_builder = LoggerBuilder::default().max_level(max_level);
+
+    // initialize the log_builder into a logger
+    let boxed_logger = log_builder.finalize().unwrap();
+    let max_level_filter = boxed_logger.max_level_filter();
+
+    log::set_boxed_logger(boxed_logger)
+        .map(|()| log::set_max_level(max_level_filter))
+        .unwrap();
+}
+
+fn list_dependencies_basic_child_main() {
+    initialize_logger_with_level(Level::Error);
     let path = get_test_data_manifest_path("basic");
 
     list_packages(Some(path)).expect("unable to list packages");
-
-    /*
-    let lines: Result<Vec<_>, _> = Cursor::new(&output).lines().collect();
-    match lines {
-        Ok(lines) => {
-            assert!(lines[0].starts_with("basic"));
-        }
-        Err(_) => panic!("Unable to collect output lines"),
-    }
-    */
 }
 
-#[test]
-fn list_dependencies_workspace() {
+fn list_dependencies_workspace_child_main() {
+    initialize_logger_with_level(Level::Error);
     let path = get_test_data_manifest_path("dependencies");
 
     list_packages(Some(path)).expect("unable to list packages");
-
-    /*
-    let lines: Result<Vec<_>, _> = Cursor::new(&output).lines().collect();
-    match lines {
-        Ok(lines) => {
-            if lines[0].starts_with("build1") {
-                assert!(lines[1].starts_with("dep1"));
-            } else {
-                assert!(lines[0].starts_with("dep1"));
-                assert!(lines[1].starts_with("build1"));
-            }
-            assert!(lines[2].starts_with("dependencies"));
-        }
-        Err(_) => panic!("Unable to collect output lines"),
-    }
-    */
 }
 
-#[test]
-fn list_dependencies_with_alternate_registry_restriction_in_workspace() {
+fn list_dependencies_with_alternate_registry_restriction_in_workspace_child_main() {
+    initialize_logger_with_level(Level::Error);
+    with_env_var(
+        "CARGO_REGISTRIES_TEST_INDEX",
+        "https://github.com/rust-lang/crates.io-index",
+        || {
+            let path = get_test_data_manifest_path("dependencies_alternate_registry");
+
+            // Test with a target registry set.
+            let alternate_registry = Some("test");
+            list_packages_with_arguments(alternate_registry, Some(path))
+                .expect("unable to list packages");
+        },
+    )
+}
+
+fn list_dependencies_with_alternate_registry_restriction_in_workspace_unset_alt_child_main() {
+    initialize_logger_with_level(Level::Error);
     with_env_var(
         "CARGO_REGISTRIES_TEST_INDEX",
         "https://github.com/rust-lang/crates.io-index",
@@ -62,66 +83,28 @@ fn list_dependencies_with_alternate_registry_restriction_in_workspace() {
             let path = get_test_data_manifest_path("dependencies_alternate_registry");
 
             list_packages(Some(path.clone())).expect("unable to list packages");
-            /*
-            let lines: Result<Vec<_>, _> = Cursor::new(&output).lines().collect();
-            match lines {
-                Ok(lines) => {
-                    assert!(lines.is_empty())
-                }
-                Err(_) => panic!("Unable to collect output lines"),
-            }
-            */
-
-            // Test with a target registry set.
-            let alternate_registry = Some("test");
-            // output.clear();
-            list_packages_with_arguments(alternate_registry, Some(path))
-                .expect("unable to list packages");
-
-            /*
-             let lines: Result<Vec<_>, _> = Cursor::new(&output).lines().collect();
-
-             match lines {
-                 Ok(lines) => {
-                     if lines[0].starts_with("build1") {
-                         assert!(lines[1].starts_with("dep1"), "{}", &lines.join("\n"));
-                     } else {
-                         assert!(lines[0].starts_with("dep1"));
-                         assert!(lines[1].starts_with("build1"));
-                     }
-                     assert!(lines[2].starts_with("dependencies_alt_registry"));
-                 }
-                 Err(_) => panic!("Unable to collect output lines"),
-             }
-            */
         },
     )
 }
 
-#[test]
-fn list_dependencies_with_alternate_registry_and_unrestricted_packages_in_workspace() {
-    let path = get_test_data_manifest_path("dependencies");
+fn run_child(child_test_variant: TestVariants) -> Result<Output, std::io::Error> {
+    let exe = env::current_exe().unwrap();
+    process::Command::new(exe)
+        .env("LISTPKGS_TEST", child_test_variant.test_name_repr_str())
+        .output()
+}
 
-    // Test with a target registry set.
-    let alternate_registry = Some("test");
-    list_packages_with_arguments(alternate_registry, Some(path)).expect("unable to list packages");
+fn rust_child_test_with_assertion_fn(
+    test_name: &str,
+    child_test_variant: TestVariants,
+    assert_fn: impl Fn(Output),
+) {
+    print!("test {} ... ", test_name);
+    let output = run_child(child_test_variant)
+        .unwrap_or_else(|e| panic!("Unable to start child process: {}", e));
 
-    /*
-    let lines: Result<Vec<_>, _> = Cursor::new(&output).lines().collect();
-
-    match lines {
-        Ok(lines) => {
-            if lines[0].starts_with("build1") {
-                assert!(lines[1].starts_with("dep1"), "{}", &lines.join("\n"));
-            } else {
-                assert!(lines[0].starts_with("dep1"));
-                assert!(lines[1].starts_with("build1"));
-            }
-            assert!(lines[2].starts_with("dependencies"));
-        }
-        Err(_) => panic!("Unable to collect output lines"),
-    }
-    */
+    assert_fn(output);
+    println!("ok");
 }
 
 fn get_test_data_manifest_path(dir: impl AsRef<Path>) -> PathBuf {
@@ -156,4 +139,92 @@ where
     } else {
         env::remove_var(key.as_ref());
     }
+}
+
+fn main() {
+    let maybe_test_name = env::var("LISTPKGS_TEST").ok();
+
+    match maybe_test_name.as_deref() {
+        Some("basic") => {
+            list_dependencies_basic_child_main();
+        }
+        Some("workspace") => {
+            list_dependencies_workspace_child_main();
+        }
+        Some("alternate_registry_restriction_in_workspace") => {
+            list_dependencies_with_alternate_registry_restriction_in_workspace_child_main()
+        }
+        Some("alternate_registry_restriction_in_workspace_with_unset_alt") => {
+            list_dependencies_with_alternate_registry_restriction_in_workspace_unset_alt_child_main()
+        }
+        _ => {
+            parent_main();
+        }
+    }
+}
+
+fn parent_main() {
+    let test_cnt = 4_usize;
+    println!("running {} tests", test_cnt);
+
+    rust_child_test_with_assertion_fn(
+        "list_dependencies_basic_workspace",
+        TestVariants::Basic,
+        |output| {
+            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+            let lines: Vec<_> = stderr.lines().collect();
+
+            assert!(lines[0].starts_with("basic"));
+        },
+    );
+
+    rust_child_test_with_assertion_fn(
+        "list_dependencies_workspace",
+        TestVariants::Workspace,
+        |output| {
+            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+            let lines: Vec<_> = stderr.lines().collect();
+
+            if lines[0].starts_with("build1") {
+                assert!(lines[1].starts_with("dep1"));
+            } else {
+                assert!(lines[0].starts_with("dep1"));
+                assert!(lines[1].starts_with("build1"));
+            }
+            assert!(lines[2].starts_with("dependencies"));
+        },
+    );
+
+    rust_child_test_with_assertion_fn(
+        "list_dependencies_with_alternate_registry_restriction_in_workspace_with_unset_alternate_registry",
+        TestVariants::AlternateRegistryRestrictionInWorkspaceUnsetAlt,
+        |output| {
+            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+            let lines: Vec<_> = stderr.lines().collect();
+
+           assert!(lines.is_empty()) 
+        },
+    );
+
+    rust_child_test_with_assertion_fn(
+        "list_dependencies_with_alternate_registry_restriction_in_workspace",
+        TestVariants::AlternateRegistryRestrictionInWorkspace,
+        |output| {
+            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+            let lines: Vec<_> = stderr.lines().collect();
+
+            if lines[0].starts_with("build1") {
+                assert!(lines[1].starts_with("dep1"), "{}", &lines.join("\n"));
+            } else {
+                assert!(lines[0].starts_with("dep1"));
+                assert!(lines[1].starts_with("build1"));
+            }
+            assert!(lines[2].starts_with("dependencies_alt_registry"));
+        },
+    );
+
+    println!(
+        "\ntest result: ok. {} passed; 0 failed; 0 ignored; 0 measured; 0 filtered out",
+        test_cnt
+    )
 }

@@ -72,3 +72,8 @@ napi-rs = ["napi", "napi-build", "napi-derive"]
 lto = true
 codegen-units = 1
 strip = true
+
+
+[[test]]
+name = "listpkg"
+harness = false
