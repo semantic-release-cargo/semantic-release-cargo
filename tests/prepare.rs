@@ -74,6 +74,8 @@ fn prepare_with_dependencies_with_explicit_version() {
 fn prepare_with_depedencies_from_alternate_registry() {
     with_env_var(
         "CARGO_REGISTRIES_TEST_INDEX",
+        // DISCUSS: what's the significance of this env var? Is it not out of sync now?
+        // Should that not cause an error?
         "https://github.com/rust-lang/crates.io-index",
         || {
             let (_tempdir, manifest) = copy_workspace("dependencies_alternate_registry");

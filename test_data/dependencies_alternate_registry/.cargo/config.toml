@@ -1,2 +1,2 @@
 [registries]
-test = { index = "https://github.com/rust-lang/crates.io-index" }
+test = { index = "https://github.com/rust-lang/my-custom-registry-index" }
