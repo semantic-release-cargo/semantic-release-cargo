@@ -15,7 +15,7 @@ use fs_extra::dir::{copy, CopyOptions};
 use guppy::{graph::PackageGraph, MetadataCommand};
 use semver::Version;
 use tempfile::{tempdir, TempDir};
-use toml_edit::{Document, Table};
+use toml_edit::{DocumentMut, Table};
 
 use semantic_release_cargo::prepare;
 
@@ -142,7 +142,7 @@ fn get_package_graph(manifest_path: impl Into<PathBuf>) -> PackageGraph {
         .expect("Couldn't build graph")
 }
 
-fn get_toml_document(path: impl AsRef<Path>) -> Document {
+fn get_toml_document(path: impl AsRef<Path>) -> DocumentMut {
     let toml = fs::read_to_string(path).expect("Couldn't read file");
     toml.parse().expect("Couldn't parse toml file")
 }
