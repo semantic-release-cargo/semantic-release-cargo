@@ -1,3 +1,12 @@
+## [2.3.20](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.3.19...v2.3.20) (2024-05-27)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate itertools to v0.13.0 ([edcad30](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/edcad302d9b2398cbb5a0c790800a9f790014011))
+* **deps:** update rust crate toml_edit to v0.22.13 ([6520592](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/6520592d56ea7aaac60ce13e45ecfd990316401b))
+* **deps:** vendor itertools v0.13.0 ([bbb0776](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/bbb07764cc1ada4f211ab5a517102156dfb6f679))
+
 ## [2.3.19](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.3.18...v2.3.19) (2024-05-26)
 
 
