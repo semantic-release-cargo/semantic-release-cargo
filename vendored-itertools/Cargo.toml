@@ -1,6 +1,0 @@
-[package]
-name = "vendored-itertools"
-version = "0.13.0"
-edition = "2021"
-
-description = "Vendored and minified version of itertools"

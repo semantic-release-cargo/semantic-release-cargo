@@ -34,10 +34,11 @@ use url::Url;
 use napi_derive::napi;
 
 mod error;
+mod itertools;
 
 pub use error::{CargoTomlError, Error, Result};
 
-use vendored_itertools::Itertools;
+use crate::itertools::Itertools;
 
 /// Verify that the conditions for a release are satisfied.
 ///
