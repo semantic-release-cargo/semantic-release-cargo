@@ -156,7 +156,7 @@ where
 }
 
 impl Subcommand {
-    fn run(&self, w: impl Write) -> Result<(), Error> {
+    fn run(&self) -> Result<(), Error> {
         use Subcommand::*;
 
         match self {
@@ -173,7 +173,6 @@ impl Subcommand {
                 opt.next_version.clone(),
             )?),
             Publish(opt) => Ok(publish(
-                w,
                 opt.common.manifest_path(),
                 &PublishArgs {
                     no_dirty: Some(opt.no_dirty),
@@ -219,7 +218,7 @@ fn main() -> Result<(), Error> {
                 .map(|()| log::set_max_level(max_level_filter))
                 .map_err(|_| logger::Error::Initialization)?;
 
-            opt.subcommand.run(BufWriter::new(file))
+            opt.subcommand.run()
         }
 
         None => {
@@ -231,7 +230,7 @@ fn main() -> Result<(), Error> {
                 .map(|()| log::set_max_level(max_level_filter))
                 .map_err(|_| logger::Error::Initialization)?;
 
-            opt.subcommand.run(BufWriter::new(io::stdout()))
+            opt.subcommand.run()
         }
     }
 }
