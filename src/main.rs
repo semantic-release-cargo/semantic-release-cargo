@@ -8,7 +8,6 @@
 
 use std::{
     fs::File,
-    io::{self, BufWriter, Write},
     path::{Path, PathBuf},
 };
 
@@ -210,8 +209,11 @@ fn main() -> Result<(), Error> {
             let file = File::create(&path)
                 .with_context(|| format!("Failed to create output file {}", path.display()))?;
 
+            // If an output file is specified, append it as an Info level log target
+            let log_builder_with_output = log_builder.append_output(Level::Info, file);
+
             // initialize the log_builder into a logger
-            let boxed_logger = log_builder.finalize()?;
+            let boxed_logger = log_builder_with_output.finalize()?;
             let max_level_filter = boxed_logger.max_level_filter();
 
             log::set_boxed_logger(boxed_logger)
