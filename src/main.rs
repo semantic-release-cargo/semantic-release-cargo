@@ -169,7 +169,6 @@ impl Subcommand {
                 opt.manifest_path(),
             )?),
             Prepare(opt) => Ok(prepare(
-                w,
                 opt.common.manifest_path(),
                 opt.next_version.clone(),
             )?),
