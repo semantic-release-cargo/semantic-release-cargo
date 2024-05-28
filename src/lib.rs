@@ -15,7 +15,7 @@
 use std::{
     collections::HashMap,
     env, fmt, fs,
-    io::{BufRead, Cursor, Write},
+    io::{BufRead, Cursor},
     path::{Path, PathBuf},
     process::Command,
     result,
@@ -186,9 +186,8 @@ fn internal_verify_conditions(
 #[cfg(feature = "napi-rs")]
 #[napi]
 pub fn prepare(next_release_version: String) -> Result<()> {
-    let output = std::io::stdout();
     let manifest_path: Option<&Path> = None;
-    internal_prepare(output, manifest_path, next_release_version)
+    internal_prepare(manifest_path, next_release_version)
 }
 
 /// Prepare the Rust workspace for a release.
@@ -344,9 +343,8 @@ pub struct PublishArgs {
 #[cfg(feature = "napi-rs")]
 #[napi]
 pub fn publish(opts: Option<PublishArgs>) -> Result<()> {
-    let output = std::io::stdout();
     let manifest_path: Option<&Path> = None;
-    internal_publish(output, manifest_path, &opts.unwrap_or_default())
+    internal_publish(manifest_path, &opts.unwrap_or_default())
 }
 
 /// Publish the publishable crates from the workspace.
@@ -358,15 +356,11 @@ pub fn publish(opts: Option<PublishArgs>) -> Result<()> {
 /// This implements the `publish` step for `semantic-release` for a Cargo-based
 /// Rust workspace.
 #[cfg(not(feature = "napi-rs"))]
-pub fn publish(output: impl Write, manifest_path: Option<&Path>, opts: &PublishArgs) -> Result<()> {
-    internal_publish(output, manifest_path, opts)
+pub fn publish(manifest_path: Option<&Path>, opts: &PublishArgs) -> Result<()> {
+    internal_publish(manifest_path, opts)
 }
 
-fn internal_publish(
-    output: impl Write,
-    manifest_path: Option<&Path>,
-    opts: &PublishArgs,
-) -> Result<()> {
+fn internal_publish(manifest_path: Option<&Path>, opts: &PublishArgs) -> Result<()> {
     debug!("Getting the package graph");
     let graph = get_package_graph(manifest_path)?;
     let optional_registry = opts.registry.as_deref();
@@ -398,11 +392,9 @@ fn internal_publish(
             count
         );
         if optional_registry.is_none() {
-            serde_json::to_writer(output, &Release::new_crates_io_release(name, main_crate)?)
-                .map_err(|err| Error::write_release_error(err, main_crate))?;
+            info!("{:?}", &Release::new_crates_io_release(name, main_crate)?);
         } else {
-            serde_json::to_writer(output, &Release::new::<&str>(name, None, main_crate)?)
-                .map_err(|err| Error::write_release_error(err, main_crate))?;
+            info!("{:?}", &Release::new::<&str>(name, None, main_crate)?);
         }
     } else {
         debug!("no release record to print");
