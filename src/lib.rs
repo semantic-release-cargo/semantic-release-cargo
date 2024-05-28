@@ -204,19 +204,11 @@ pub fn prepare(next_release_version: String) -> Result<()> {
 /// This implements the `prepare` step for `semantic-release` for a Cargo-based Rust
 /// workspace.
 #[cfg(not(feature = "napi-rs"))]
-pub fn prepare(
-    output: impl Write,
-    manifest_path: Option<&Path>,
-    next_release_version: String,
-) -> Result<()> {
-    internal_prepare(output, manifest_path, next_release_version)
+pub fn prepare(manifest_path: Option<&Path>, next_release_version: String) -> Result<()> {
+    internal_prepare(manifest_path, next_release_version)
 }
 
-fn internal_prepare(
-    _output: impl Write,
-    manifest_path: Option<&Path>,
-    next_release_version: String,
-) -> Result<()> {
+fn internal_prepare(manifest_path: Option<&Path>, next_release_version: String) -> Result<()> {
     debug!("Building package graph");
     let graph = get_package_graph(manifest_path)?;
 
