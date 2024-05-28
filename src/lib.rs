@@ -391,11 +391,16 @@ fn internal_publish(manifest_path: Option<&Path>, opts: &PublishArgs) -> Result<
             optional_registry.unwrap_or("crates.io"),
             count
         );
-        if optional_registry.is_none() {
-            info!("{:?}", &Release::new_crates_io_release(name, main_crate)?);
+
+        // format the release metadata for writing to json
+        let release_meta_json = if optional_registry.is_none() {
+            serde_json::to_string(&Release::new_crates_io_release(name, main_crate)?)
         } else {
-            info!("{:?}", &Release::new::<&str>(name, None, main_crate)?);
+            serde_json::to_string(&Release::new::<&str>(name, None, main_crate)?)
         }
+        .map_err(|err| Error::write_release_error(err, main_crate))?;
+
+        info!("{:?}", release_meta_json);
     } else {
         debug!("no release record to print");
     }
