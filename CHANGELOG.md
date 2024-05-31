@@ -1,3 +1,23 @@
+# [2.4.0-beta.1](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.3.20...v2.4.0-beta.1) (2024-05-31)
+
+
+### Bug Fixes
+
+* add non-static lifetime specifiers to logger ([570c291](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/570c291aa4fc07e4f50054aaefff0df8b9ca1d17))
+* Correctly  filter by log-level ([86b24cc](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/86b24cc13bba494fb96fd00ac315aed95159cc7d))
+* Enabled condition for logger is inverted ([a1ecb52](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/a1ecb5204d0b61ccb5f1b1d94c56d413805dab10))
+* re-add missing output logger for release metadata ([93c3039](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/93c30393c4532113287f01a4d1c1783f9433a462))
+* remove unused itertools dep ([194e97a](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/194e97a9571ab4ea1c0706f52689b193c444723c))
+
+
+### Features
+
+* Add append destination support ([c0561f0](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/c0561f060f9cda4e302bfe1ec818540f3294e11e))
+* add max_level and verbosity funcs ([60fcf6d](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/60fcf6d7d133832e26c8e4c7452a13d52bc768e3))
+* add multi-destination logging ([cdea29e](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/cdea29ed7f093dc20cde1b548d827f6472406644))
+* begin stubbing out logger implementation ([e5d184c](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/e5d184c9acd267ca714996910273dcb58dc0af50))
+* replace loggerv with internal logger ([4aae6c4](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/4aae6c4e5cef5576e2db3e7e8274611d8961cc79))
+
 ## [2.3.20](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.3.19...v2.3.20) (2024-05-27)
 
 
