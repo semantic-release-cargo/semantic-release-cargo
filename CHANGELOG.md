@@ -1,3 +1,13 @@
+## [2.3.44](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.3.43...v2.3.44) (2024-08-04)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate clap to v4.5.13 ([f2ffa43](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/f2ffa43e47133c4c12240df0f82b7b55bc6fa0bd))
+* **deps:** update rust crate guppy to v0.17.7 ([9781957](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/9781957d90257926f43640dd578e369674a4a8bd))
+* **deps:** update rust crate serde_json to v1.0.122 ([6c30475](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/6c304755278466c968c148a79a6db54d903b9aff))
+* **deps:** update rust crate toml_edit to v0.22.20 ([7ed9f6b](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/7ed9f6b903f69cabb3e9f361072f1003abdbdfc5))
+
 ## [2.3.43](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.3.42...v2.3.43) (2024-07-26)
 
 
