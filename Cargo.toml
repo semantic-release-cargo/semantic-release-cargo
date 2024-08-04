@@ -40,7 +40,7 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "=1.0.86"
-guppy = "=0.17.5"
+guppy = "=0.17.7"
 log = "=0.4.22"
 loggerv = "=0.7.2"
 napi = { version = "=2.16.8", features = ["error_anyhow"], optional = true }
