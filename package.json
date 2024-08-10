@@ -1,6 +1,6 @@
 {
   "name": "@semantic-release-cargo/semantic-release-cargo",
-  "version": "2.3.46",
+  "version": "2.3.47",
   "description": "Integrate a Rust project with semantic-release",
   "main": "index.js",
   "types": "index.d.ts",
