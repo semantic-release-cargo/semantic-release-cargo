@@ -1,3 +1,10 @@
+## [2.3.55](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.3.54...v2.3.55) (2024-08-20)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate cargo-config2 to v0.1.27 ([3eeafe5](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/3eeafe5dc151e2d7db239a784b10ae870862010f))
+
 ## [2.3.54](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.3.53...v2.3.54) (2024-08-16)
 
 
