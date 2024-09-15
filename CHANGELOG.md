@@ -1,3 +1,10 @@
+## [2.3.65](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.3.64...v2.3.65) (2024-09-15)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate anyhow to v1.0.89 ([65c8e51](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/65c8e51ce0dc25f8ee66ec39a0b2e1f904e05480))
+
 ## [2.3.64](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.3.63...v2.3.64) (2024-09-13)
 
 
