@@ -1,3 +1,36 @@
+## [2.3.75](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.3.74...v2.3.75) (2024-12-11)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate anyhow to v1.0.90 ([0ad4776](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/0ad477697d2cfb3603a818fbcdf13cf9181a280f))
+* **deps:** update rust crate anyhow to v1.0.91 ([2364946](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/2364946be23a637b8a43809146b13ac04d5973d3))
+* **deps:** update rust crate anyhow to v1.0.92 ([ac92c53](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/ac92c538e8f620cee100dcd42020a8612a4631db))
+* **deps:** update rust crate anyhow to v1.0.93 ([da862de](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/da862de7443cb7eb55a4e2878e7ce0a14a81ab7f))
+* **deps:** update rust crate anyhow to v1.0.94 ([0541212](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/0541212bf02152812aa56fa1dfff5f534c8b2980))
+* **deps:** update rust crate clap to v4.5.21 ([d74c100](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/d74c10066d20b942a38a6c3dec4476aacfb2b023))
+* **deps:** update rust crate clap to v4.5.22 ([c0bd31c](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/c0bd31cb4ded5e6f73feca4d78544f0dbd7e6e59))
+* **deps:** update rust crate clap to v4.5.23 ([e149054](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/e14905424aa3b053f7c8ba3c29fe96ee652528cd))
+* **deps:** update rust crate guppy to v0.17.10 ([7affb7f](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/7affb7f9c70f8ccfcf08e1f2ad4588353816c504))
+* **deps:** update rust crate napi to v2.16.13 ([6f6711c](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/6f6711cad8022ba58ebd646e90b326ae12890463))
+* **deps:** update rust crate napi-derive to v2.16.13 ([a30929a](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/a30929a4c53984b93ebc8e41746a20061b18c63d))
+* **deps:** update rust crate serde to v1.0.211 ([a030ba2](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/a030ba21231c2748eeaa7ad227e7db8f348c20ea))
+* **deps:** update rust crate serde to v1.0.213 ([0424a80](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/0424a80c568bf950beb23d42241160e4ed6a8f1e))
+* **deps:** update rust crate serde to v1.0.214 ([34406c2](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/34406c289ec0a6938ef202dff7c093ef1e57ce64))
+* **deps:** update rust crate serde to v1.0.215 ([94f2883](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/94f2883b3d9be1183095dbc708171095d0d5e5ab))
+* **deps:** update rust crate serde to v1.0.216 ([e1b32f0](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/e1b32f0c017c9d4d5b9f2451711c850964f66639))
+* **deps:** update rust crate serde_json to v1.0.129 ([25d2918](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/25d291843f82d502f3c6e19fc42fc0ab77f037a1))
+* **deps:** update rust crate serde_json to v1.0.131 ([398422b](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/398422bbebd0e27dedda3c75a9109861d6ed6e49))
+* **deps:** update rust crate serde_json to v1.0.132 ([ceb81e1](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/ceb81e13f0a8d62b00ddf84f9521939819f0e641))
+* **deps:** update rust crate serde_json to v1.0.133 ([10346bb](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/10346bb63411dd1918e540add27b0ddfe76e356f))
+* **deps:** update rust crate thiserror to v1.0.65 ([fb61b33](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/fb61b33e59212d707f29fec3bde09b696814abc8))
+* **deps:** update rust crate thiserror to v1.0.66 ([bf85350](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/bf85350ee81308be6dc12a3adaf8a17d7299dcdb))
+* **deps:** update rust crate thiserror to v1.0.67 ([35b4669](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/35b4669993046c48838fb0ae41170560e6507af3))
+* **deps:** update rust crate thiserror to v1.0.68 ([1605009](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/1605009e1de77b2efc234b9c5127033c70a13392))
+* **deps:** update rust crate thiserror to v1.0.69 ([79afc3a](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/79afc3a351caa8006db88e9855c93b989912af5c))
+* **deps:** update rust crate url to v2.5.3 ([2d422a0](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/2d422a09b0a49179fb3a238c9b54fd713bbcd0e7))
+* **deps:** update rust crate url to v2.5.4 ([88ad1c9](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/88ad1c92ddf844d8476dba9aac50296878570fee))
+
 ## [2.3.74](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.3.73...v2.3.74) (2024-10-13)
 
 
