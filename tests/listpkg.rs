@@ -125,6 +125,28 @@ fn list_dependencies_with_alternate_registry_and_unrestricted_packages_in_worksp
     }
 }
 
+#[test]
+fn list_dependencies_with_aliased_packages() {
+    let path = get_test_data_manifest_path("dependencies_with_aliased_pkg");
+    let mut output = Vec::new();
+
+    list_packages(Cursor::new(&mut output), Some(path)).expect("unable to list packages");
+
+    let lines: Result<Vec<_>, _> = Cursor::new(&output).lines().collect();
+    match lines {
+        Ok(lines) => {
+            if lines[0].starts_with("build1") {
+                assert!(lines[1].starts_with("dep1"));
+            } else {
+                assert!(lines[0].starts_with("dep1"));
+                assert!(lines[1].starts_with("build1"));
+            }
+            assert!(lines[2].starts_with("dependencies"));
+        }
+        Err(_) => panic!("Unable to collect output lines"),
+    }
+}
+
 fn get_test_data_manifest_path(dir: impl AsRef<Path>) -> PathBuf {
     let mut path = PathBuf::from(file!());
 

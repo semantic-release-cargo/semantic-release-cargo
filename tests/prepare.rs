@@ -71,6 +71,25 @@ fn prepare_with_dependencies_with_explicit_version() {
 }
 
 #[test]
+fn prepare_with_dependencies_with_aliased_package_names() {
+    let (_tempdir, manifest) = copy_workspace("dependencies_with_aliased_pkg");
+
+    prepare(io::sink(), Some(&manifest), "2.0.0".into()).expect("prepare failed");
+
+    let graph = get_package_graph(&manifest);
+    for pkg in graph.workspace().iter() {
+        assert_eq!(pkg.version(), &Version::new(2, 0, 0));
+    }
+    let cargo_toml = get_toml_document(&manifest);
+    let root = cargo_toml.as_table();
+    assert_eq!(get_dep_version(root, "dependencies", "dep_one"), "2.0.0");
+    assert_eq!(
+        get_dep_version(root, "build-dependencies", "build_one"),
+        "2.0.0"
+    );
+}
+
+#[test]
 fn prepare_with_depedencies_from_alternate_registry() {
     with_env_var(
         "CARGO_REGISTRIES_TEST_INDEX",
