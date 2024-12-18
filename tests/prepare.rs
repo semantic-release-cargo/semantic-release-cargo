@@ -8,7 +8,6 @@
 
 use std::ffi::OsStr;
 use std::fs;
-use std::io;
 use std::path::{Path, PathBuf};
 
 use fs_extra::dir::{copy, CopyOptions};
@@ -23,7 +22,7 @@ use semantic_release_cargo::prepare;
 fn prepare_basic() {
     let (_tempdir, manifest) = copy_workspace("basic");
 
-    prepare(io::sink(), Some(&manifest), "2.0.0".into()).expect("prepare failed");
+    prepare(Some(&manifest), "2.0.0".into()).expect("prepare failed");
 
     let graph = get_package_graph(manifest);
     let workspace = graph.workspace();
@@ -35,7 +34,7 @@ fn prepare_basic() {
 fn prepare_with_depedencies() {
     let (_tempdir, manifest) = copy_workspace("dependencies");
 
-    prepare(io::sink(), Some(&manifest), "2.0.0".into()).expect("prepare failed");
+    prepare(Some(&manifest), "2.0.0".into()).expect("prepare failed");
 
     let graph = get_package_graph(&manifest);
     for pkg in graph.workspace().iter() {
@@ -54,7 +53,7 @@ fn prepare_with_depedencies() {
 fn prepare_with_dependencies_with_explicit_version() {
     let (_tempdir, manifest) = copy_workspace("dependencies_with_explicit_version");
 
-    prepare(io::sink(), Some(&manifest), "2.0.0".into()).expect("prepare failed");
+    prepare(Some(&manifest), "2.0.0".into()).expect("prepare failed");
 
     let graph = get_package_graph(&manifest);
     for pkg in graph.workspace().iter() {
@@ -78,7 +77,7 @@ fn prepare_with_depedencies_from_alternate_registry() {
         || {
             let (_tempdir, manifest) = copy_workspace("dependencies_alternate_registry");
 
-            prepare(io::sink(), Some(&manifest), "2.0.0".into()).expect("prepare failed");
+            prepare(Some(&manifest), "2.0.0".into()).expect("prepare failed");
 
             let graph = get_package_graph(&manifest);
             for pkg in graph.workspace().iter() {
@@ -99,7 +98,7 @@ fn prepare_with_depedencies_from_alternate_registry() {
 fn prepare_with_target_dependency() {
     let (_tempdir, manifest) = copy_workspace("target_dep");
 
-    prepare(io::sink(), Some(&manifest), "2.0.0".into()).expect("prepare failed");
+    prepare(Some(&manifest), "2.0.0".into()).expect("prepare failed");
 
     let graph = get_package_graph(&manifest);
     for pkg in graph.workspace().iter() {
