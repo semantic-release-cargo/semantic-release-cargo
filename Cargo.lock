@@ -121,14 +121,14 @@ dependencies = [
 
 [[package]]
 name = "cargo-config2"
-version = "0.1.29"
+version = "0.1.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1124054becb9262cc15c5e96e82f0d782f2aed3a3034d1f71a6385a6fa9e9595"
+checksum = "9aaa737dcb93f2c0292582255911684002d82fcbee111b9470884494c64e46f3"
 dependencies = [
- "home",
  "serde",
  "serde_derive",
  "toml_edit",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -364,15 +364,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "322f4de77956e22ed0e5032c359a0f1273f1f7f0d79bfa3b8ffbc730d7fbcc5c"
 dependencies = [
  "libc",
-]
-
-[[package]]
-name = "home"
-version = "0.5.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5444c27eef6923071f7ebcc33e3444508466a76f7a2b93da00ed6e19f30c1ddb"
-dependencies = [
- "windows-sys 0.48.0",
 ]
 
 [[package]]
