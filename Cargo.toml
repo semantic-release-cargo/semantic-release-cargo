@@ -73,7 +73,6 @@ lto = true
 codegen-units = 1
 strip = true
 
-
 [[test]]
 name = "listpkg"
 harness = false
