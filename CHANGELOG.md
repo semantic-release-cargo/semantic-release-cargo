@@ -1,3 +1,23 @@
+# [2.4.0](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.3.80...v2.4.0) (2025-01-01)
+
+
+### Bug Fixes
+
+* add non-static lifetime specifiers to logger ([8707d4e](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/8707d4e3fdb7af18bc8012ca63dcdc819f64341d))
+* Correctly  filter by log-level ([002f9ca](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/002f9ca1ea7643d01f442662a24a0fedaef376b0))
+* **deps:** update rust crate serde_json to v1.0.134 ([16ada95](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/16ada95383d61bbaee5daefc2bdd6d5af360de40))
+* Enabled condition for logger is inverted ([dbce5f7](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/dbce5f7d9f36a712cf3f5ebcf26d12b805fb5407))
+* re-add missing output logger for release metadata ([9ef8713](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/9ef8713b3c99e3e624d229d9fb32b7b782a91b24))
+
+
+### Features
+
+* Add append destination support ([d30a962](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/d30a96210fa0a806c839276b6c6f4143e0466f4c))
+* add max_level and verbosity funcs ([e629fc4](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/e629fc42edd68645751ff37540762c07bcfb7fd0))
+* add multi-destination logging ([4705a0b](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/4705a0b07c848da80b48b0a02a5a5162e4ac270e))
+* begin stubbing out logger implementation ([98d9ffb](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/98d9ffb0876a8ce60ef7bf0f058c9dd5105f7e93))
+* replace loggerv with internal logger ([1f308be](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/1f308beec6b44dca37933c1cf0b8bed40294a52d))
+
 ## [2.3.80](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.3.79...v2.3.80) (2024-12-28)
 
 
