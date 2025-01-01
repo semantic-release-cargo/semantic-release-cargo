@@ -8,7 +8,6 @@
 
 use std::env;
 use std::ffi::OsStr;
-use std::io;
 use std::path::{Path, PathBuf};
 
 use assert_matches::assert_matches;
@@ -46,7 +45,7 @@ fn verify_workspace_with_cycle_is_error() {
     set_registry_token();
     let path = get_test_data_manifest_path("cycle");
 
-    let result = verify_conditions(io::sink(), Some(path));
+    let result = verify_conditions(Some(path));
 
     assert!(result.is_err());
 
@@ -64,7 +63,7 @@ fn verify_unknown_workspace_is_error() {
     set_registry_token();
     let path = get_test_data_manifest_path("unknown");
 
-    let result = verify_conditions(io::sink(), Some(&path));
+    let result = verify_conditions(Some(&path));
 
     assert!(result.is_err());
     // assert_matches!(result, Err(Error::WorkspaceError(_)));
@@ -75,7 +74,7 @@ fn verify_with_git_dependency_is_error() {
     set_registry_token();
     let path = get_test_data_manifest_path("git_dep");
 
-    let result = verify_conditions(io::sink(), Some(&path));
+    let result = verify_conditions(Some(&path));
 
     assert!(result.is_err());
     // assert_matches!(
@@ -94,7 +93,7 @@ fn verify_with_git_and_version_dependency_is_ok() {
     with_env_var("CARGO_REGISTRY_TOKEN", "fake_token", || {
         let path = get_test_data_manifest_path("git_dep_version");
 
-        let result = verify_conditions(io::sink(), Some(&path));
+        let result = verify_conditions(Some(&path));
 
         assert_matches!(result, Ok(_));
     });
@@ -103,7 +102,7 @@ fn verify_with_git_and_version_dependency_is_ok() {
 fn verify_workspace_is_ok(alternate_registry: Option<&str>, dir: impl AsRef<Path>) {
     let path = get_test_data_manifest_path(dir);
 
-    let result = verify_conditions_with_alternate(io::sink(), alternate_registry, Some(&path));
+    let result = verify_conditions_with_alternate(alternate_registry, Some(&path));
 
     assert_matches!(result, Ok(_));
 }

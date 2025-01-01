@@ -37,10 +37,6 @@ pub enum Error {
         crate2: String,
     },
 
-    /// Error while writing to the output.
-    #[error("Unable to write to the output")]
-    OutputError(#[source] io::Error),
-
     /// Error while verifying the conditions for a release.
     #[error("Conditions for a release are not satisfied: {reason}")]
     VerifyError {
@@ -215,10 +211,6 @@ impl Error {
             metadata_error,
             manifest_path,
         })
-    }
-
-    pub(crate) fn output_error(inner: io::Error) -> Error {
-        Error::OutputError(inner)
     }
 
     pub(crate) fn verify_error(reason: impl Into<String>) -> Error {

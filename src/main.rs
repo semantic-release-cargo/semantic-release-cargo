@@ -8,14 +8,14 @@
 
 use std::{
     fs::File,
-    io::{self, BufWriter, Write},
     path::{Path, PathBuf},
 };
 
 use anyhow::{Context, Error};
 use clap::{builder::TypedValueParser, crate_version, Parser};
 use log::Level;
-use loggerv::{Logger, Output};
+
+mod logger;
 
 use semantic_release_cargo::{
     list_packages_with_arguments, prepare, publish, verify_conditions_with_alternate, PublishArgs,
@@ -155,27 +155,23 @@ where
 }
 
 impl Subcommand {
-    fn run(&self, w: impl Write) -> Result<(), Error> {
+    fn run(&self) -> Result<(), Error> {
         use Subcommand::*;
 
         match self {
             ListPackages(opt) => Ok(list_packages_with_arguments(
-                w,
                 opt.registry.as_deref(),
                 opt.manifest_path(),
             )?),
             VerifyConditions(opt) => Ok(verify_conditions_with_alternate(
-                w,
                 opt.registry.as_deref(),
                 opt.manifest_path(),
             )?),
             Prepare(opt) => Ok(prepare(
-                w,
                 opt.common.manifest_path(),
                 opt.next_version.clone(),
             )?),
             Publish(opt) => Ok(publish(
-                w,
                 opt.common.manifest_path(),
                 &PublishArgs {
                     no_dirty: Some(opt.no_dirty),
@@ -196,26 +192,48 @@ impl Subcommand {
 fn main() -> Result<(), Error> {
     let opt: Opt = Opt::parse();
 
-    let logger = Logger::new()
-        .output(&Level::Trace, Output::Stderr)
-        .output(&Level::Debug, Output::Stderr);
+    let log_builder = logger::LoggerBuilder::default()
+        .output(Level::Trace, std::io::stderr())
+        .output(Level::Debug, std::io::stderr());
 
     // Set the max level to initialize to based on the `log-level` flag if it's
     // available, otherwise fall back to verbosity.
-    if let Some(log_level) = opt.log_level {
-        logger.max_level(log_level).init()?;
+    let log_builder = if let Some(log_level) = opt.log_level {
+        log_builder.max_level(log_level)
     } else {
-        logger.verbosity(opt.verbose.into()).init()?
+        log_builder.verbosity(opt.verbose)
     };
 
     match opt.output {
         Some(path) => {
             let file = File::create(&path)
                 .with_context(|| format!("Failed to create output file {}", path.display()))?;
-            opt.subcommand.run(BufWriter::new(file))
+
+            // If an output file is specified, append it as an Info level log target
+            let log_builder_with_output = log_builder.append_output(Level::Info, file);
+
+            // initialize the log_builder into a logger
+            let boxed_logger = log_builder_with_output.finalize()?;
+            let max_level_filter = boxed_logger.max_level_filter();
+
+            log::set_boxed_logger(boxed_logger)
+                .map(|()| log::set_max_level(max_level_filter))
+                .map_err(|_| logger::Error::Initialization)?;
+
+            opt.subcommand.run()
         }
 
-        None => opt.subcommand.run(BufWriter::new(io::stdout())),
+        None => {
+            // initialize the log_builder into a logger
+            let boxed_logger = log_builder.finalize()?;
+            let max_level_filter = boxed_logger.max_level_filter();
+
+            log::set_boxed_logger(boxed_logger)
+                .map(|()| log::set_max_level(max_level_filter))
+                .map_err(|_| logger::Error::Initialization)?;
+
+            opt.subcommand.run()
+        }
     }
 }
 
