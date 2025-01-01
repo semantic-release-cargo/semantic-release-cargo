@@ -715,8 +715,49 @@ fn set_package_version(doc: &mut DocumentMut, version: &str) -> result::Result<(
         .ok_or_else(|| CargoTomlError::no_value("version"))
 }
 
+/// Finds the table key for the package table for a given dependency.
+fn find_matching_dependency_key<'table>(
+    table: &'table mut Table,
+    name: &'table str,
+) -> Option<String> {
+    for (key, dependency_item) in table.iter() {
+        // short-circuit if the item's key matches the expected name.
+        if key == name {
+            return Some(name.to_string());
+        }
+
+        // If there is no `package` key in the table jump back to the top of the
+        // loop. It should be expected that the value of this package key is a
+        // string.
+        let Some(Item::Value(Value::String(package_ident))) = dependency_item.get("package") else {
+            continue;
+        };
+
+        let Some(package_ident) = package_ident.as_repr() else {
+            continue;
+        };
+
+        let maybe_package_ident_str_repr = package_ident
+            .as_raw()
+            .as_str()
+            // If we've guaranteed it's a string repr it will be `'"'`-wrapped.
+            // Stripping these is easier for matching.
+            .map(|repr| repr.trim_matches('"'));
+        if maybe_package_ident_str_repr == Some(name) {
+            return Some(key.to_string());
+        }
+    }
+
+    None
+}
+
 fn set_dependency_version(table: &mut Table, version: &str, name: &str) -> Option<()> {
-    match table.entry(name) {
+    let dependency_key = match find_matching_dependency_key(table, name) {
+        Some(key) => key,
+        None => return Some(()),
+    };
+
+    match table.entry(&dependency_key) {
         toml_edit::Entry::Occupied(mut req) => {
             let item = req.get_mut();
 
