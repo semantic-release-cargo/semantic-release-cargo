@@ -65,7 +65,9 @@ use crate::itertools::Itertools;
 #[cfg(feature = "napi-rs")]
 #[napi]
 pub fn verify_conditions() -> Result<()> {
-    internal_verify_conditions(None, None)
+    let maybe_manifest_path: Option<&'static str> = None;
+
+    internal_verify_conditions(None, maybe_manifest_path)
 }
 
 /// Verify that the conditions for a release are satisfied.
