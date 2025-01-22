@@ -1,3 +1,13 @@
+## [2.4.1](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.4.0...v2.4.1) (2025-01-22)
+
+
+### Bug Fixes
+
+* add a dependency lookup that factors in package field ([53f35ba](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/53f35ba842244f25bafea882675ea7e9e6771e28))
+* bind the manifest path napi verify_conditions method ([1ca5032](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/1ca5032b8712ac96bf23a5ea7a56dd1355cfc60a))
+* correct bad manifest path in aliased dependency test ([0ff1362](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/0ff1362b22a9865c03b8bed215327a8792d390b3))
+* re-add napi verify_conditions method ([3643e18](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/3643e18b2b95ff9f80b2acdf6212ff4632ad61fd))
+
 # [2.4.0](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.3.80...v2.4.0) (2025-01-01)
 
 
