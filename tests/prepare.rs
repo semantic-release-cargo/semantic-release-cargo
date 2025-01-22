@@ -73,7 +73,7 @@ fn prepare_with_dependencies_with_explicit_version() {
 fn prepare_with_dependencies_with_aliased_package_names() {
     let (_tempdir, manifest) = copy_workspace("dependencies_with_aliased_pkg");
 
-    prepare(io::sink(), Some(&manifest), "2.0.0".into()).expect("prepare failed");
+    prepare(Some(&manifest), "2.0.0".into()).expect("prepare failed");
 
     let graph = get_package_graph(&manifest);
     for pkg in graph.workspace().iter() {

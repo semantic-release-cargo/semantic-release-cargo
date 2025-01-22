@@ -62,6 +62,34 @@ use crate::itertools::Itertools;
 ///
 /// This implements the `verifyConditions` step for `semantic-release` for a
 /// Cargo-based rust workspace.
+#[cfg(feature = "napi-rs")]
+#[napi]
+pub fn verify_conditions() -> Result<()> {
+    let maybe_manifest_path: Option<&'static str> = None;
+
+    internal_verify_conditions(None, maybe_manifest_path)
+}
+
+/// Verify that the conditions for a release are satisfied.
+///
+/// The conditions for a release checked by this function are:
+///
+///    1. That the cargo registry token has been defined.
+///    2. That it can construct the graph of all of the dependencies in the
+///       workspace.
+///    3. That the dependencies and build-dependencies of all of crates in the
+///       workspace are suitable for publishing to `crates.io`.
+///
+/// If `manifest_path` is provided then it is expect to give the path to the
+/// `Cargo.toml` file for the root of the workspace. If `manifest_path` is `None`
+/// then `verify_conditions` will look for the root of the workspace in a
+/// `Cargo.toml` file in the current directory. If one of the conditions for a
+/// release are not satisfied then an explanation for that will be written to
+/// `output`.
+///
+/// This implements the `verifyConditions` step for `semantic-release` for a
+/// Cargo-based rust workspace.
+#[cfg(not(feature = "napi-rs"))]
 pub fn verify_conditions(manifest_path: Option<impl AsRef<Path>>) -> Result<()> {
     internal_verify_conditions(None, manifest_path)
 }
