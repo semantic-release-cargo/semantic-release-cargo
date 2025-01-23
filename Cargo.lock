@@ -122,9 +122,9 @@ dependencies = [
 
 [[package]]
 name = "cargo-config2"
-version = "0.1.31"
+version = "0.1.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9aaa737dcb93f2c0292582255911684002d82fcbee111b9470884494c64e46f3"
+checksum = "6dc3749a36e0423c991f1e7a3e4ab0c36a1f489658313db4b187d401d79cc461"
 dependencies = [
  "serde",
  "serde_derive",
