@@ -1,3 +1,10 @@
+## [2.4.24](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.4.23...v2.4.24) (2025-02-27)
+
+
+### Bug Fixes
+
+* include stderr output in cargo publish errors ([dd5ec5a](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/dd5ec5abfdcf6d81c43793963b04170d58f80d72)), closes [#533](https://github.com/semantic-release-cargo/semantic-release-cargo/issues/533)
+
 ## [2.4.23](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.4.22...v2.4.23) (2025-02-25)
 
 
