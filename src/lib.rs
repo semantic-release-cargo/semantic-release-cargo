@@ -644,11 +644,17 @@ fn publish_package(pkg: &PackageMetadata, opts: &PublishArgs) -> Result<()> {
         Ok(())
     } else {
         error!(
-            "publishing package {} failed: {}",
+            "publishing package {} failed: {}\n{}",
             pkg.name(),
-            output.status
+            output.status,
+            String::from_utf8_lossy(&output.stderr)
         );
-        Err(Error::cargo_publish_status(output.status, pkg.manifest_path().as_std_path()).into())
+        Err(Error::cargo_publish_status(
+            output.status,
+            pkg.manifest_path().as_std_path(),
+            &output.stderr,
+        )
+        .into())
     }
 }
 

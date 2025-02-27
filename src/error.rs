@@ -108,13 +108,16 @@ pub enum Error {
     },
 
     /// Error that records a non-sucess exit status from `cargo publish`.
-    #[error("\"cargo publish\" exited with a failure for {manifest_path}: {status}")]
+    #[error("\"cargo publish\" exited with a failure for {manifest_path}: {status}\n{stderr}")]
     CargoPublishStatus {
         /// The exit status from `cargo publish`.
         status: ExitStatus,
 
         /// The manifest path for the crate on which the error occurred.
         manifest_path: PathBuf,
+
+        /// The stderr output from cargo publish
+        stderr: String,
     },
 
     /// Error while parsing a url for the release record.
@@ -255,10 +258,15 @@ impl Error {
         }
     }
 
-    pub(crate) fn cargo_publish_status(status: ExitStatus, manifest_path: &Path) -> Error {
+    pub(crate) fn cargo_publish_status(
+        status: ExitStatus,
+        manifest_path: &Path,
+        stderr: &[u8],
+    ) -> Error {
         Error::CargoPublishStatus {
             status,
             manifest_path: manifest_path.to_owned(),
+            stderr: String::from_utf8_lossy(stderr).into_owned(),
         }
     }
 

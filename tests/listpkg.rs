@@ -177,7 +177,8 @@ fn main() {
             list_dependencies_with_alternate_registry_restriction_in_workspace_child_main()
         }
         Some("alternate_registry_restriction_in_workspace_with_unset_alt") => {
-            list_dependencies_with_alternate_registry_restriction_in_workspace_unset_alt_child_main()
+            list_dependencies_with_alternate_registry_restriction_in_workspace_unset_alt_child_main(
+            )
         }
         _ => {
             parent_main();
@@ -224,7 +225,7 @@ fn parent_main() {
             let stderr = String::from_utf8_lossy(&output.stderr).to_string();
             let lines: Vec<_> = stderr.lines().collect();
 
-           assert!(lines.is_empty()) 
+           assert!(lines.is_empty())
         },
     );
 
