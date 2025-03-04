@@ -63,7 +63,7 @@ napi-build = { version = "=2.1.5", optional = true }
 assert_matches = "=1.5.0"
 tempfile = "=3.17.1"
 fs_extra = "=1.3.0"
-semver = "=1.0.25"
+semver = "=1.0.26"
 
 [features]
 napi-rs = ["napi", "napi-build", "napi-derive"]
