@@ -46,7 +46,7 @@ anyhow = "=1.0.97"
 guppy = "=0.17.17"
 log = { version = "=0.4.26", features = ["std"] }
 loggerv = "=0.7.2"
-napi = { version = "=2.16.16", features = ["error_anyhow"], optional = true }
+napi = { version = "=2.16.17", features = ["error_anyhow"], optional = true }
 napi-derive = { version = "=2.16.13", optional = true }
 serde_json = "=1.0.140"
 serde = { version = "=1.0.219", features = ["derive"] }
@@ -57,7 +57,7 @@ url = { version = "=2.5.4", features = ["serde"] }
 cargo-config2 = "=0.1.32"
 
 [build-dependencies]
-napi-build = { version = "=2.1.5", optional = true }
+napi-build = { version = "=2.1.6", optional = true }
 
 [dev-dependencies]
 assert_matches = "=1.5.0"
