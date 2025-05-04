@@ -1,3 +1,10 @@
+## [2.4.37](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.4.36...v2.4.37) (2025-05-04)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate toml_edit to v0.22.26 ([7808b79](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/7808b798f50164118579e4329944e9ab991f17b5))
+
 ## [2.4.36](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.4.35...v2.4.36) (2025-05-04)
 
 
