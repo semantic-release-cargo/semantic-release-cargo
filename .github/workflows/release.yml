@@ -28,7 +28,7 @@ jobs:
 
   test:
     name: Cargo test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -73,25 +73,25 @@ jobs:
           - os: macOS-latest
             target: aarch64-apple-darwin
             cross: true
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             target: aarch64-unknown-linux-gnu
             cross: true
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             target: aarch64-unknown-linux-musl
             cross: true
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             target: i686-unknown-linux-gnu
             cross: true
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             target: i686-unknown-linux-musl
             cross: true
           - os: macOS-latest
             target: x86_64-apple-darwin
             cross: false
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             cross: false
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             target: x86_64-unknown-linux-musl
             cross: false
 
@@ -122,13 +122,17 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ steps.rust-toolchain.outputs.cachekey }}-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Install semantic-release-cargo
-        uses: taiki-e/install-action@v2
-        with:
-          tool: semantic-release-cargo@2
+      - name: Update semantic-release version number
+        env:
+          release_version: ${{ needs.get-next-version.outputs.new-release-version }}
+        run: |
+          # Update version in Cargo.toml
+          awk -v ver="$release_version" '/^version = / {sub(/= "[^"]*"/, "= \""ver"\""); print; next} {print}' Cargo.toml > Cargo.toml.new
+          mv Cargo.toml.new Cargo.toml
 
-      - name: Prepare semantic-release for Rust
-        run: semantic-release-cargo prepare ${{ needs.get-next-version.outputs.new-release-version }}
+          # Update version in Cargo.lock
+          awk -v ver="$release_version" '/^name = "semantic-release-cargo"$/ {print; getline; sub(/version = "[^"]*"/, "version = \""ver"\""); print; next} {print}' Cargo.lock > Cargo.lock.new
+          mv Cargo.lock.new Cargo.lock
 
       - name: Install cross
         uses: taiki-e/install-action@v2
@@ -251,7 +255,7 @@ jobs:
           retention-days: 1
 
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: Release
     if: needs.get-next-version.outputs.new-release-published == 'true'
     needs:
