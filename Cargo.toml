@@ -1,6 +1,6 @@
 [package]
 name = "semantic-release-cargo"
-version = "2.4.39"
+version = "2.4.40"
 authors = [
   "Steven Bosnick <sbosnick@sympatico.ca>",
   "Eric Crosson <eric.s.crosson@utexas.edu>",
