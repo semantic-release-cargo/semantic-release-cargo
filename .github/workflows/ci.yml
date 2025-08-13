@@ -49,7 +49,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install build inputs
         if: runner.os == 'Linux' && !matrix.build.cross
@@ -122,7 +122,7 @@ jobs:
               ./node_modules/.bin/napi build --platform --release --js false --features napi-rs --cargo-flags=--lib --target x86_64-unknown-linux-gnu
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup node
         uses: actions/setup-node@v4
