@@ -52,7 +52,7 @@ serde = { version = "=1.0.219", features = ["derive"] }
 clap = { version = "=4.5.45", features = ["cargo", "derive"] }
 thiserror = "=1.0.69"
 toml_edit = "=0.22.26"
-url = { version = "=2.5.4", features = ["serde"] }
+url = { version = "=2.5.6", features = ["serde"] }
 cargo-config2 = "=0.1.35"
 
 [build-dependencies]
