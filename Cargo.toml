@@ -43,7 +43,7 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "=1.0.100"
-guppy = "=0.17.22"
+guppy = "=0.17.23"
 log = { version = "=0.4.28", features = ["std"] }
 napi = { version = "=2.16.17", features = ["error_anyhow"], optional = true }
 napi-derive = { version = "=2.16.13", optional = true }
