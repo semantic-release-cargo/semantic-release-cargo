@@ -1,3 +1,10 @@
+## [2.4.79](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.4.78...v2.4.79) (2025-10-30)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate clap to v4.5.51 ([6a38ca1](https://github.com/semantic-release-cargo/semantic-release-cargo/commit/6a38ca1747181dd1eecafc477bb8b9c565be5572))
+
 ## [2.4.78](https://github.com/semantic-release-cargo/semantic-release-cargo/compare/v2.4.77...v2.4.78) (2025-10-21)
 
 
