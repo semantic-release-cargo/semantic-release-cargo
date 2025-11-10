@@ -56,7 +56,7 @@ url = { version = "=2.5.7", features = ["serde"] }
 cargo-config2 = "=0.1.39"
 
 [build-dependencies]
-napi-build = { version = "=2.2.4", optional = true }
+napi-build = { version = "=2.3.1", optional = true }
 
 [dev-dependencies]
 assert_matches = "=1.5.0"
