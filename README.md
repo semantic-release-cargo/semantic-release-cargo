@@ -22,8 +22,20 @@ your Rust crate to crates.io.
 
 If publishing to [crates.io], you must set the `CARGO_REGISTRY_TOKEN` environment variable.
 
-If publishing to an [alternate registry](https://doc.rust-lang.org/cargo/reference/registries.html#using-an-alternate-registry), you must set the `CARGO_REGISTRIES_<YOUR REGISTRY>_TOKEN` environment variable.
+If publishing to an [alternate registry](https://doc.rust-lang.org/cargo/reference/registries.html#using-an-alternate-registry), you must set the `CARGO_REGISTRIES_<YOUR REGISTRY>_TOKEN` environment variable and add the registry to the `releaserc` configuration to be passed to the `--registry` flag.
 
+```json
+{
+  "plugins": [
+    [
+      "@semantic-release-cargo/semantic-release-cargo",
+      {
+        "registry": "<YOUR REGISTRY>"
+      }
+    ]
+  ]
+}
+```
 
 This workflow is supported on the following systems:
 
