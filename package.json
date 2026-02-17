@@ -35,7 +35,7 @@
   },
   "homepage": "https://github.com/semantic-release-cargo/semantic-release-cargo#readme",
   "devDependencies": {
-    "@napi-rs/cli": "2.18.4",
+    "@napi-rs/cli": "3.5.1",
     "@semantic-release/changelog": "6.0.3",
     "@semantic-release/exec": "7.1.0",
     "@semantic-release/git": "10.0.1",
