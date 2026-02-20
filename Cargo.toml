@@ -42,7 +42,7 @@ name = "semantic-release-cargo"
 path = "src/main.rs"
 
 [dependencies]
-anyhow = "=1.0.101"
+anyhow = "=1.0.102"
 guppy = "=0.17.25"
 log = { version = "=0.4.29", features = ["std"] }
 napi = { version = "=2.16.17", features = ["error_anyhow"], optional = true }
