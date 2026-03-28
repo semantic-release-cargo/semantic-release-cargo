@@ -10,15 +10,15 @@ use std::path::{Path, PathBuf};
 
 use assert_matches::assert_matches;
 
-use semantic_release_cargo::verify_conditions_with_alternate;
+use semantic_release_cargo::{verify_conditions_with_alternate, RegistryPreference};
 // use semantic_release_cargo::Error;
 
 #[test]
 fn verify_simple_workspaces_with_cargo_toml_is_ok() {
-    verify_workspace_is_ok(None, "basic_with_cargo_config")
+    verify_workspace_is_ok(RegistryPreference::Default, "basic_with_cargo_config")
 }
 
-fn verify_workspace_is_ok(alternate_registry: Option<&str>, dir: impl AsRef<Path>) {
+fn verify_workspace_is_ok(registry: RegistryPreference, dir: impl AsRef<Path>) {
     let previous_dir = std::env::current_dir().unwrap();
     let mut test_dir = PathBuf::from(file!());
     test_dir.pop();
@@ -31,7 +31,7 @@ fn verify_workspace_is_ok(alternate_registry: Option<&str>, dir: impl AsRef<Path
 
     let manifest_path = PathBuf::from("Cargo.toml");
 
-    let result = verify_conditions_with_alternate(alternate_registry, Some(&manifest_path));
+    let result = verify_conditions_with_alternate(registry, Some(&manifest_path));
 
     // revert to the original directory
     std::env::set_current_dir(previous_dir).unwrap();
