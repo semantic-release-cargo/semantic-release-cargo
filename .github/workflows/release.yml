@@ -24,14 +24,14 @@ env:
 
 jobs:
   get-next-version:
-    uses: semantic-release-action/next-release-version/.github/workflows/next-release-version.yml@v4
+    uses: semantic-release-action/next-release-version/.github/workflows/next-release-version.yml@v4.0.17
 
   test:
     name: Cargo test
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v5.0.1
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@master
@@ -40,7 +40,7 @@ jobs:
           toolchain: stable
 
       - name: Cache cargo
-        uses: actions/cache@v4
+        uses: actions/cache@v4.3.0
         id: cache-cargo
         with:
           path: |
@@ -97,7 +97,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v5.0.1
 
       - name: Install build inputs
         if: runner.os == 'Linux' && !matrix.build.cross
@@ -111,7 +111,7 @@ jobs:
           target: ${{ matrix.build.target }}
 
       - name: Cache cargo
-        uses: actions/cache@v4
+        uses: actions/cache@v4.3.0
         id: cache-cargo
         with:
           path: |
@@ -135,7 +135,7 @@ jobs:
           mv Cargo.lock.new Cargo.lock
 
       - name: Install cross
-        uses: taiki-e/install-action@v2
+        uses: taiki-e/install-action@v2.75.18
         with:
           tool: cross
 
@@ -156,7 +156,7 @@ jobs:
         working-directory: ./dist
 
       - name: Upload release artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: ${{ matrix.build.target }}
           path: |
@@ -204,7 +204,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v5.0.1
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@master
@@ -214,7 +214,7 @@ jobs:
           target: ${{ matrix.build.target }}
 
       - name: Cache cargo
-        uses: actions/cache@v4
+        uses: actions/cache@v4.3.0
         with:
           path: |
             ~/.cargo/registry/index/
@@ -225,14 +225,14 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ steps.rust-toolchain.outputs.cachekey }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Setup node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v6.3.0
         with:
           node-version: lts/*
           check-latest: true
           cache: npm
 
       - name: Cache npm dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v4.3.0
         id: cache-node-modules
         with:
           path: node_modules
@@ -247,7 +247,7 @@ jobs:
         shell: bash
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: bindings-${{ matrix.build.target }}
           path: ${{ env.APP_NAME }}.*.node
@@ -266,7 +266,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v5.0.1
         with:
           # Fetch all history and tags for calculating next semantic version
           fetch-depth: 0
@@ -278,7 +278,7 @@ jobs:
           toolchain: stable
 
       - name: Cache cargo
-        uses: actions/cache@v4
+        uses: actions/cache@v4.3.0
         id: cache-cargo
         with:
           path: |
@@ -290,14 +290,14 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ steps.rust-toolchain.outputs.cachekey }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v6.3.0
         with:
           node-version: lts/*
           check-latest: true
           cache: npm
 
       - name: Cache npm dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v4.3.0
         id: cache-node-modules
         with:
           path: node_modules
@@ -308,7 +308,7 @@ jobs:
         run: npm ci --ignore-scripts --loglevel error
 
       - name: Download release artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v6.0.0
         with:
           path: artifacts
 
