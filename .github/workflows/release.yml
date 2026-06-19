@@ -37,7 +37,7 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         id: rust-toolchain
         with:
-          toolchain: stable
+          toolchain: 1.96.0
 
       - name: Cache cargo
         uses: actions/cache@v4.3.0
@@ -107,7 +107,7 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         id: rust-toolchain
         with:
-          toolchain: stable
+          toolchain: 1.96.0
           target: ${{ matrix.build.target }}
 
       - name: Cache cargo
@@ -210,7 +210,7 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         id: rust-toolchain
         with:
-          toolchain: stable
+          toolchain: 1.96.0
           target: ${{ matrix.build.target }}
 
       - name: Cache cargo
@@ -275,7 +275,7 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         id: rust-toolchain
         with:
-          toolchain: stable
+          toolchain: 1.96.0
 
       - name: Cache cargo
         uses: actions/cache@v4.3.0
