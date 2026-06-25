@@ -18,7 +18,8 @@ use log::Level;
 mod logger;
 
 use semantic_release_cargo::{
-    list_packages_with_arguments, prepare, publish, verify_conditions_with_alternate, PublishArgs,
+    list_packages_with_arguments, prepare, publish, verify_conditions_with_alternate,
+    RegistryPreference, PublishArgs,
 };
 
 /// Run semantic-release steps in the context of a cargo based Rust project.
@@ -109,6 +110,10 @@ struct CommonOpt {
     /// Specify an alternate-registry to publish the target crate to.
     #[clap(long)]
     registry: Option<String>,
+
+    /// Effectively means that we only prepare the package
+    #[clap(long)]
+    publish: bool,
 }
 
 #[derive(Parser)]
@@ -163,10 +168,16 @@ impl Subcommand {
                 opt.registry.as_deref(),
                 opt.manifest_path(),
             )?),
-            VerifyConditions(opt) => Ok(verify_conditions_with_alternate(
-                opt.registry.as_deref(),
-                opt.manifest_path(),
-            )?),
+            VerifyConditions(opt) => {
+                let registry = if !opt.publish {
+                    RegistryPreference::Disabled
+                } else if let Some(r) = &opt.registry {
+                    RegistryPreference::Alternate(r.clone())
+                } else {
+                    RegistryPreference::Default
+                };
+                Ok(verify_conditions_with_alternate(registry, opt.manifest_path())?)
+            }
             Prepare(opt) => Ok(prepare(
                 opt.common.manifest_path(),
                 opt.next_version.clone(),
@@ -183,7 +194,7 @@ impl Subcommand {
                         },
                     )),
                     registry: opt.common.registry.clone(),
-                },
+                    publish: Some(opt.common.publish)                },
             )?),
         }
     }
