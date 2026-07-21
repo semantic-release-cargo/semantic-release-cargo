@@ -45,8 +45,8 @@ path = "src/main.rs"
 anyhow = "=1.0.104"
 guppy = "=0.17.26"
 log = { version = "=0.4.33", features = ["std"] }
-napi = { version = "=2.16.17", features = ["error_anyhow"], optional = true }
-napi-derive = { version = "=2.16.13", optional = true }
+napi = { version = "=3.11.0", features = ["error_anyhow"], optional = true }
+napi-derive = { version = "=3.6.0", optional = true }
 serde_json = "=1.0.151"
 serde = { version = "=1.0.229", features = ["derive"] }
 clap = { version = "=4.6.2", features = ["cargo", "derive"] }
