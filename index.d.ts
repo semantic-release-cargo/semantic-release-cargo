@@ -8,8 +8,7 @@
  *
  * The conditions for a release checked by this function are:
  *
- *    1. That the CARGO_REGISTRY_TOKEN environment variable is set and is
- *       non-empty.
+ *    1. That the cargo registry token has been defined (skipped in prepare-only mode).
  *    2. That it can construct the graph of all of the dependencies in the
  *       workspace.
  *    3. That the dependencies and build-dependencies of all of crates in the
@@ -25,22 +24,23 @@
  * This implements the `verifyConditions` step for `semantic-release` for a
  * Cargo-based rust workspace.
  */
-export function verifyConditions(): void
+export declare function verifyConditions(opts?: PublishArgs | undefined | null): void
 /**
  * Prepare the Rust workspace for a release.
  *
  * Preparing the release updates the version of each crate in the workspace and of
  * the intra-workspace dependencies. The `version` field in the `packages` table of
  * each `Cargo.toml` file in the workspace is set to the supplied version. The
- * `version` field of each dependency or build-dependency that is otherwise
- * identified by a workspace-relative path dependencies is also set to the supplied
- * version (the version filed will be added if it isn't already present).
+ * `version` field of each dependency, build-dependency and dev-dependency that
+ * is otherwise identified by a workspace-relative path dependencies is also set
+ * to the supplied version (the version filed will be added if it isn't
+ * already present).
  *
  * This implements the `prepare` step for `semantic-release` for a Cargo-based Rust
  * workspace.
  */
-export function prepare(nextReleaseVersion: string): void
-/** Arguments to be passed to the `publish` function. */
+export declare function prepare(nextReleaseVersion: string): void
+/** Arguments to be passed to the `publish` function and reused for `verifyConditions`. */
 export interface PublishArgs {
   /** Whether the `--no-dirty` flag should be passed to `cargo publish`. */
   noDirty?: boolean
@@ -48,6 +48,11 @@ export interface PublishArgs {
   features?: Record<string, Array<string>>
   /** Optionally passes a `--registry` flag `cargo publish`. */
   registry?: string
+  /**
+   * When `Some(false)`, publishing is disabled (prepare-only mode): no packages
+   * are uploaded.
+   */
+  publish?: boolean
 }
 /**
  * Publish the publishable crates from the workspace.
@@ -59,4 +64,4 @@ export interface PublishArgs {
  * This implements the `publish` step for `semantic-release` for a Cargo-based
  * Rust workspace.
  */
-export function publish(opts?: PublishArgs | undefined | null): void
+export declare function publish(opts?: PublishArgs | undefined | null): void
