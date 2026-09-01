@@ -12,7 +12,9 @@ use std::path::{Path, PathBuf};
 
 // use assert_matches::assert_matches;
 
-use semantic_release_cargo::{verify_conditions, verify_conditions_with_alternate};
+use semantic_release_cargo::{
+    verify_conditions, verify_conditions_with_alternate, RegistryPreference,
+};
 // use semantic_release_cargo::Error;
 
 #[test]
@@ -30,12 +32,18 @@ fn verify_alternate_registry_throws_error_if_correct_token_not_set() {
     let path = get_test_data_manifest_path("dependencies_alternate_registry");
 
     // fails if no registry is set.
-    let result = verify_conditions_with_alternate(Some("test"), Some(&path));
+    let result = verify_conditions_with_alternate(
+        RegistryPreference::Alternate("test".to_string()),
+        Some(&path),
+    );
     assert!(result.is_err());
 
     // fails if the wrong token is set.
     with_env_var("CARGO_REGISTRY_TOKEN", "fake_token", || {
-        let result = verify_conditions_with_alternate(Some("test"), Some(&path));
+        let result = verify_conditions_with_alternate(
+            RegistryPreference::Alternate("test".to_string()),
+            Some(&path),
+        );
         assert!(result.is_err());
     });
 }
