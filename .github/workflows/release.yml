@@ -135,7 +135,7 @@ jobs:
           mv Cargo.lock.new Cargo.lock
 
       - name: Install cross
-        uses: taiki-e/install-action@v2.87.28
+        uses: taiki-e/install-action@v2.87.29
         with:
           tool: cross
 
