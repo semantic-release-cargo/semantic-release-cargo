@@ -1,4 +1,5 @@
-const { platform, arch } = require("os");
+const { platform, arch } = require("node:os");
+const path = require("node:path");
 
 const getAbi = (platform) => {
   switch (platform) {
@@ -18,11 +19,11 @@ const ABI = getAbi(PLATFORM);
 const semanticReleaseCargo = require(`./napi/${MODULE_NAME}.${PLATFORM}-${ARCH}${ABI}.node`);
 
 function verifyConditions(pluginConfig, context) {
-  semanticReleaseCargo.verifyConditions();
+  semanticReleaseCargo.verifyConditions(pluginConfig);
 }
 
 function prepare(pluginConfig, context) {
-  semanticReleaseCargo.prepare(context.nextRelease.version);
+  semanticReleaseCargo.prepare(context.nextRelease.version, pluginConfig);
 }
 
 function publish(pluginConfig, context) {

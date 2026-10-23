@@ -12,7 +12,9 @@ use std::path::{Path, PathBuf};
 
 use assert_matches::assert_matches;
 
-use semantic_release_cargo::{verify_conditions, verify_conditions_with_alternate};
+use semantic_release_cargo::{
+    verify_conditions, verify_conditions_with_alternate, RegistryPreference,
+};
 // use semantic_release_cargo::Error;
 
 #[test]
@@ -101,8 +103,11 @@ fn verify_with_git_and_version_dependency_is_ok() {
 
 fn verify_workspace_is_ok(alternate_registry: Option<&str>, dir: impl AsRef<Path>) {
     let path = get_test_data_manifest_path(dir);
-
-    let result = verify_conditions_with_alternate(alternate_registry, Some(&path));
+    let registry = match alternate_registry {
+        None => RegistryPreference::Default,
+        Some(name) => RegistryPreference::Alternate(name.to_string()),
+    };
+    let result = verify_conditions_with_alternate(registry, Some(&path));
 
     assert_matches!(result, Ok(_));
 }
