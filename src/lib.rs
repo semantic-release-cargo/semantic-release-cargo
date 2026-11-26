@@ -43,11 +43,36 @@ pub use logger::LoggerBuilder;
 
 use crate::itertools::Itertools;
 
+/// Whether to use a registry when verifying and publishing.
+///
+/// Used by `verify_conditions_with_alternate`: either an explicit alternate
+/// registry, default (crates.io), or no registry at all (prepare-only).
+#[derive(Clone, Debug)]
+pub enum RegistryPreference {
+    /// Use crates.io (default).
+    Default,
+    /// Use the named [alternate registry](https://doc.rust-lang.org/cargo/reference/registries.html#using-an-alternate-registry).
+    Alternate(String),
+    /// No registry; skip token and publishability checks (prepare-only).
+    Disabled,
+}
+
+impl RegistryPreference {
+    /// Default (crates.io).
+    pub fn default_registry() -> Self {
+        RegistryPreference::Default
+    }
+    /// Named alternate registry.
+    pub fn alternate(name: impl Into<String>) -> Self {
+        RegistryPreference::Alternate(name.into())
+    }
+}
+
 /// Verify that the conditions for a release are satisfied.
 ///
 /// The conditions for a release checked by this function are:
 ///
-///    1. That the cargo registry token has been defined.
+///    1. That the cargo registry token has been defined (skipped in prepare-only mode).
 ///    2. That it can construct the graph of all of the dependencies in the
 ///       workspace.
 ///    3. That the dependencies and build-dependencies of all of crates in the
@@ -64,17 +89,25 @@ use crate::itertools::Itertools;
 /// Cargo-based rust workspace.
 #[cfg(feature = "napi-rs")]
 #[napi]
-pub fn verify_conditions() -> Result<()> {
+pub fn verify_conditions(opts: Option<PublishArgs>) -> Result<()> {
     let maybe_manifest_path: Option<&'static str> = None;
 
-    internal_verify_conditions(None, maybe_manifest_path)
+    let opts = opts.unwrap_or_default();
+    let registry = if opts.publish == Some(false) {
+        RegistryPreference::Disabled
+    } else if let Some(r) = &opts.registry {
+        RegistryPreference::Alternate(r.clone())
+    } else {
+        RegistryPreference::Default
+    };
+    internal_verify_conditions(&registry, maybe_manifest_path)
 }
 
 /// Verify that the conditions for a release are satisfied.
 ///
 /// The conditions for a release checked by this function are:
 ///
-///    1. That the cargo registry token has been defined.
+///    1. That the cargo registry token has been defined (skipped in prepare-only mode).
 ///    2. That it can construct the graph of all of the dependencies in the
 ///       workspace.
 ///    3. That the dependencies and build-dependencies of all of crates in the
@@ -91,7 +124,7 @@ pub fn verify_conditions() -> Result<()> {
 /// Cargo-based rust workspace.
 #[cfg(not(feature = "napi-rs"))]
 pub fn verify_conditions(manifest_path: Option<impl AsRef<Path>>) -> Result<()> {
-    internal_verify_conditions(None, manifest_path)
+    internal_verify_conditions(&RegistryPreference::Default, manifest_path)
 }
 
 /// Verify that the conditions for a release are satisfied.
@@ -106,9 +139,12 @@ pub fn verify_conditions(manifest_path: Option<impl AsRef<Path>>) -> Result<()> 
 ///    3. That the dependencies and build-dependencies of all of crates in the
 ///       workspace are suitable for publishing to `crates.io`.
 ///
-/// If `alternate_registry` is provided then it is expected to point to an
+/// * `RegistryPreference::Default` — use crates.io; token and publishability checks apply.
+/// * `RegistryPreference::Alternate(name)` —  expected to point to an
 /// [alternate registry](https://doc.rust-lang.org/cargo/reference/registries.html#using-an-alternate-registry)
 /// defined in a cargo.toml file.
+/// * `RegistryPreference::Disabled` — no registry; only cycle check runs (no token or publishability checks).
+///
 /// If `manifest_path` is provided then it is expect to give the path to the
 /// `Cargo.toml` file for the root of the workspace. If `manifest_path` is `None`
 /// then `verify_conditions` will look for the root of the workspace in a
@@ -120,44 +156,42 @@ pub fn verify_conditions(manifest_path: Option<impl AsRef<Path>>) -> Result<()> 
 /// Cargo-based rust workspace.
 #[cfg(not(feature = "napi-rs"))]
 pub fn verify_conditions_with_alternate(
-    alternate_registry: Option<&str>,
+    registry: RegistryPreference,
     manifest_path: Option<impl AsRef<Path>>,
 ) -> Result<()> {
-    internal_verify_conditions(alternate_registry, manifest_path)
+    internal_verify_conditions(&registry, manifest_path)
 }
 
 fn internal_verify_conditions(
-    alternate_registry: Option<&str>,
+    registry: &RegistryPreference,
     manifest_path: Option<impl AsRef<Path>>,
 ) -> Result<()> {
     let cargo_config = cargo_config2::Config::load()?;
-
-    let registry_token_set = match alternate_registry {
-        Some(alternate_registry_id) => {
-            // The key can be both uppercased or lowercased depending on the
-            // source, uppercase if from environment variables, so we try both.
-            let registry_value = cargo_config
-                .registries
-                .get(alternate_registry_id)
-                .or_else(|| {
-                    let uppercased_registry = alternate_registry_id.to_uppercase();
-                    cargo_config.registries.get(&uppercased_registry)
-                });
-
-            registry_value.and_then(|registry| registry.token.as_ref().map(|_| ()))
-        }
-        None => cargo_config.registry.token.map(|_| ()),
+    let (to_publish, registry) = match registry {
+        RegistryPreference::Default => (true, None),
+        RegistryPreference::Alternate(name) => (true, Some(name.as_str())),
+        RegistryPreference::Disabled => (false, None),
     };
 
-    debug!("Checking cargo registry token is set");
-    registry_token_set.ok_or_else(|| {
-        let registry_id = alternate_registry.unwrap_or("crates-io");
-
-        Error::verify_error(format!(
-            "Registry token for {} empty or not set.",
-            &registry_id
-        ))
-    })?;
+    if to_publish {
+        debug!("Setting registry token");
+        let registry_token_set = match registry {
+            Some(id) => {
+                let registry_value = cargo_config
+                    .registries
+                    .get(id)
+                    .or_else(|| cargo_config.registries.get(&id.to_uppercase()));
+                registry_value.and_then(|r| r.token.as_ref().map(|_| ()))
+            }
+            None => cargo_config.registry.token.map(|_| ()),
+        };
+        registry_token_set.ok_or_else(|| {
+            Error::verify_error(format!(
+                "Registry token for {} empty or not set.",
+                registry.unwrap_or("crates-io")
+            ))
+        })?;
+    }
 
     debug!("Checking that workspace dependencies graph is buildable");
     let graph = get_package_graph(manifest_path)?;
@@ -348,7 +382,7 @@ fn internal_prepare(manifest_path: Option<&Path>, next_release_version: String) 
 
 #[cfg_attr(feature = "napi-rs", napi(object))]
 #[derive(Debug, Default)]
-/// Arguments to be passed to the `publish` function.
+/// Arguments to be passed to the `publish` function and reused for `verifyConditions`.
 pub struct PublishArgs {
     /// Whether the `--no-dirty` flag should be passed to `cargo publish`.
     pub no_dirty: Option<bool>,
@@ -358,6 +392,10 @@ pub struct PublishArgs {
 
     /// Optionally passes a `--registry` flag `cargo publish`.
     pub registry: Option<String>,
+
+    /// When `Some(false)`, publishing is disabled (prepare-only mode): no packages
+    /// are uploaded.
+    pub publish: Option<bool>,
 }
 
 /// Publish the publishable crates from the workspace.
@@ -389,6 +427,11 @@ pub fn publish(manifest_path: Option<&Path>, opts: &PublishArgs) -> Result<()> {
 }
 
 fn internal_publish(manifest_path: Option<&Path>, opts: &PublishArgs) -> Result<()> {
+    if opts.publish == Some(false) {
+        info!("Publish skipped (publish: false).");
+        return Ok(());
+    }
+
     debug!("Getting the package graph");
     let graph = get_package_graph(manifest_path)?;
     let optional_registry = opts.registry.as_deref();
